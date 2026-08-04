@@ -1,21 +1,10 @@
-import logging
-
 import uvicorn
 from pydantic_settings import BaseSettings, CliApp, CliSubCommand, SettingsConfigDict
 from uvicorn.config import LOGGING_CONFIG
 
+from lomas_core.models.constants import FilterOutLiveSuccess
 from lomas_server.models.config import Config
 from lomas_server.worker import WorkerConfig
-
-
-class FilterOutLiveSuccess:
-    """Filter out INFO logs: GET /live HTTP/1.1 200 OK."""
-
-    def filter(self, record: logging.LogRecord) -> bool:  # pylint: disable=missing-function-docstring
-        (_, _, full_path, _, status_code) = record.args  # type: ignore[misc]
-        return (not (("/live" in full_path) and (int(status_code) == 200))) and (
-            not (("/job/pending" in full_path) and (int(status_code) == 204))
-        )  # type: ignore[arg-type, operator]
 
 
 class ServiceConfig(Config):

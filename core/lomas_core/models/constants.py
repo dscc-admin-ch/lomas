@@ -86,6 +86,23 @@ class AuthenticationType(StrEnum):
 # -----------------------------------------------------------------------------
 
 
+class FilterOutLiveSuccess:
+    """Filter out INFO logs: GET /live HTTP/1.1 200 OK."""
+
+    def filter(self, record: logging.LogRecord) -> bool:  # pylint: disable=missing-function-docstring
+        match record.args:
+            case (_, "GET", "/live", _, 200):
+                return False
+            case (_, "GET", full_path, _, 204):
+                # handle worker prefix if any
+                return "job/pending" not in full_path
+            # httpx2
+            case ("GET", url, _, 204, _):
+                return "job/pending" not in url
+            case _:
+                return True
+
+
 def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> None:
     """Sets basic logging config to level and creates a logger named after name with log level lomas_level.
 
@@ -106,7 +123,7 @@ def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> N
         ],
         level=level,
     )
-
+    logging.getLogger("httpx2").addFilter(FilterOutLiveSuccess())
     logging.getLogger(name).setLevel(lomas_level)
 
 

@@ -39,6 +39,8 @@ let
       type = types.nullOr types.str;
     };
   };
+
+  notifyRoot = "${config.devenv.runtime}/processes/notify";
 in
 {
   options.lomas = {
@@ -134,9 +136,13 @@ in
           procNames = genList (i: "worker-${toString i}") cfg.worker.replicas;
         in
         genAttrs procNames (name: {
-          exec = "exec lomas work";
+          exec = ''
+            socat -t3 -u UNIX-RECV:$NOTIFY_SOCKET,unlink-early OPEN:${notifyRoot}/${name}.log,creat,trunc &
+            exec lomas work
+          '';
           cwd = "${config.git.root}/server/lomas_server";
-          ready.notify = true;
+          env.NOTIFY_SOCKET = "${notifyRoot}/${name}.sock";
+          ready.exec = "${pkgs.ripgrep}/bin/rg -q 'READY=1' ${notifyRoot}/${name}.log";
           watch = {
             paths = [ config.git.root ];
             extensions = [ "py" ];
@@ -146,11 +152,16 @@ in
 
     {
       processes.lomas-server = {
-        exec = "exec python cli.py start";
+        exec = ''
+          socat -t3 -u UNIX-RECV:$NOTIFY_SOCKET,unlink-early OPEN:${notifyRoot}/lomas.log,creat,trunc &
+          exec python cli.py start
+        '';
         cwd = "${config.git.root}/server/lomas_server";
+        env.NOTIFY_SOCKET = "${notifyRoot}/lomas.sock";
         ready = {
-          notify = true;
-          http.get = {
+          exec = "${pkgs.ripgrep}/bin/rg -q 'READY=1' ${notifyRoot}/lomas.log";
+          # mutually exclusive probes in process-compose
+          http.get = mkIf false {
             inherit (cfg) host;
             port = lib.toInt config.ports.lomas.apiService;
             path = "/live";

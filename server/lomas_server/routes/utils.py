@@ -6,9 +6,7 @@ from typing import Annotated
 
 from aio_pika.patterns.rpc import Proxy
 from fastapi import Depends, Request
-from fastapi.exceptions import HTTPException
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
-from starlette import status
 
 from lomas_core.constants import DPLibraries
 from lomas_core.exceptions import (
@@ -60,11 +58,20 @@ def timing_protection(func):  # type: ignore[no-untyped-def]
     return wrapper
 
 
+def get_user_id_from_api_key(
+    request: Request,
+    api_key: Annotated[str, Depends(APIKeyHeader(name=LomasHeaders.APIKEY))],
+) -> UserId:
+    # TODO: validate api_key
+    # Allow worker to impersonate Users Id for db queries
+    name = request.headers.get(LomasHeaders.FORUSER, LomasHeaders.WORKERUSER)
+    return UserId(name=name, email="api@noreply.com")
+
+
 def get_user_id_from_authenticator(
     request: Request,
     security_scopes: SecurityScopes,
-    auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer(auto_error=False))],
-    api_key: Annotated[str, Depends(APIKeyHeader(name=LomasHeaders.APIKEY, auto_error=False))],
+    auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
 ) -> UserId:
     """Extracts the authenticator from the app state and calls its get_user_id method.
 
@@ -78,14 +85,6 @@ def get_user_id_from_authenticator(
     Returns:
         UserId: A UserId instance extracted from the token.
     """
-    if auth_creds is None:
-        if api_key is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-        # TODO: validate api_key
-        # Allow worker to impersonate Users Id for db queries
-        name = request.headers.get(LomasHeaders.FORUSER, LomasHeaders.WORKERUSER)
-        return UserId(name=name, email="api@noreply.com")
-
     # Bootstrap initialization
     if not request.app.state.admin_database.get_bootstrap_disabled():
         bootstrap_cred = request.app.state.admin_database.get_bootstrap()

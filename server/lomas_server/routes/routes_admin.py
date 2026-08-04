@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import Annotated
 from uuid import UUID
 
@@ -99,39 +98,6 @@ async def status_handler(
         response.status_code = job.status_code
 
     return job
-
-
-@router.put("/job", responses=API_ERROR_RESPONSES)
-async def update_job(
-    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)], request: Request, job_update: Job
-):
-    admin_database = request.app.state.admin_database
-
-    if not admin_database.does_job_exist(job_update.uid):
-        raise JobNotFoundException(job_update.uid)
-
-    # job = admin_database.get_job(job_update.uid)
-    # TODO: check all the things before update
-    admin_database.update_job(job_update)
-    admin_database.archive_job(job_update.uid)
-
-
-@router.get("/job/pending", responses=API_ERROR_RESPONSES)
-async def get_next_pending(
-    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)], request: Request, response: Response
-) -> Job | None:
-    admin_database = request.app.state.admin_database
-    next_pending = admin_database.get_job_pending()
-
-    if next_pending is None:
-        response.status_code = status.HTTP_204_NO_CONTENT
-        return None
-
-    update_job = deepcopy(next_pending)
-    update_job.status = JobStatus.IN_PROGRESS
-    admin_database.update_job(update_job)
-
-    return next_pending
 
 
 # Get server state
@@ -592,17 +558,6 @@ def set_epsilon_delta(
     db: LocalAdminDatabase = request.app.state.admin_database
     db.set_epsilon_or_delta(username, body.dataset_name, BudgetDBKey.EPSILON_INIT, body.epsilon)
     db.set_epsilon_or_delta(username, body.dataset_name, BudgetDBKey.DELTA_INIT, body.delta)
-
-
-@router.put("/users/{username}/dataset/budget", responses=API_ERROR_RESPONSES)
-def update_epsilon_delta(
-    request: Request,
-    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
-    username: str,
-    body: LomasBudgetRequest,
-) -> None:
-    db: LocalAdminDatabase = request.app.state.admin_database
-    db.update_budget(username, body.dataset_name, body.epsilon, body.delta)
 
 
 @router.get("/users/{username}/archive", responses=API_ERROR_RESPONSES)

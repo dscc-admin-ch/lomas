@@ -5,6 +5,7 @@ from importlib import metadata
 from typing import Literal
 
 import diffprivlib
+import httpx2
 from rich.console import Console
 from rich.logging import RichHandler
 
@@ -93,12 +94,11 @@ class FilterOutLiveSuccess:
         match record.args:
             case (_, "GET", "/live", _, 200):
                 return False
-            case (_, "GET", full_path, _, 204):
+            case (_, "GET", str(full_path), _, 204):
                 # handle worker prefix if any
                 return "job/pending" not in full_path
-            # httpx2
-            case ("GET", url, _, 204, _):
-                return "job/pending" not in url
+            case ("GET", httpx2.URL() as url, _, 204, _):
+                return "job/pending" not in url.path
             case _:
                 return True
 

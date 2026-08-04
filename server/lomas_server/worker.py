@@ -12,7 +12,6 @@ from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from returns.io import IOSuccess
 from returns.unsafe import unsafe_perform_io
-from rich.pretty import pprint
 
 from lomas_core.exceptions import InternalServerException
 from lomas_core.instrumentation import init_telemetry
@@ -57,7 +56,7 @@ def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
         case ("get_remaining_budget", {"user_name": user_name, "dataset_name": dataset_name}):
             res = (
                 query_lomas(
-                    "/get_remaining_budget",
+                    "/w/get_remaining_budget",
                     httpx2.post,
                     headers={LomasHeaders.APIKEY: TEST_APIKEY, LomasHeaders.FORUSER: user_name},
                     json={"dataset_name": dataset_name},
@@ -65,24 +64,20 @@ def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
                 .map(RemainingBudgetResponse.model_validate)
                 .map(lambda resp: (resp.remaining_epsilon, resp.remaining_delta))
             )
-            pprint(res)
             return unsafe_perform_io(res.value_or(None))
 
         case ("get_dataset_metadata", {"dataset_name": dataset_name}):
             res = query_lomas(
-                "/get_dataset_metadata",
-                httpx2.post,
+                f"/w/dataset/{dataset_name}/metadata",
+                httpx2.get,
                 headers={LomasHeaders.APIKEY: TEST_APIKEY},
-                json={"dataset_name": dataset_name},
             ).map(TableMetadata.model_validate)
-            pprint(res)
             return unsafe_perform_io(res.value_or(None))
 
         case ("get_dataset", {"dataset_name": dataset_name}):
             res = query_lomas(
-                f"/dataset/{dataset_name}", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY}
+                f"/w/dataset/{dataset_name}", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY}
             ).map(DSInfo.model_validate)
-            pprint(res)
             return unsafe_perform_io(res.value_or(None))
 
         case ("get_and_set_may_user_query" | "set_may_user_query", _):
@@ -106,12 +101,11 @@ def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
                 delta=spent_delta,
             )
             res = query_lomas(
-                f"/users/{user_name}/dataset/budget",
+                f"/w/users/{user_name}/dataset/budget",
                 httpx2.put,
                 headers={LomasHeaders.APIKEY: TEST_APIKEY},
                 json=budgetReq.model_dump(),
             )
-            pprint(res)
             return unsafe_perform_io(res.value_or(None))
 
         case _:
@@ -185,29 +179,24 @@ async def process_message(config: Config) -> None:
     while True:
         await asyncio.sleep(2)
 
-        res = query_lomas("/job/pending", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY})
+        res = query_lomas("/w/job/pending", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY})
         if res == IOSuccess(None):
             logger.debug("No pending Jobs - Waiting")
         else:
-            # pprint(res)
             job = unsafe_perform_io(res.map(Job.model_validate).value_or(None))
             if job is None:
                 continue
 
             job_done = handle_query(config, Proxy(admin_database_proxy), job)
 
-            # pprint(job_done)
-
-            pprint(job_done.model_dump_json())
             res = query_lomas(
-                "/job",
+                "/w/job",
                 httpx2.put,
                 headers={LomasHeaders.APIKEY: TEST_APIKEY},
                 json=job_done.model_dump(
                     exclude_unset=True, mode="json"
                 ),  # Requires json mode to make UUID (not json serializable) into str.
             )
-            pprint(res)
 
 
 class TerminateTaskGroup(Exception):

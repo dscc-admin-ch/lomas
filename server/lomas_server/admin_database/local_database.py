@@ -261,7 +261,6 @@ class LocalAdminDatabase(AdminDatabase):
 
         return Job.model_validate_json(row[0])
 
-    @override
     @db_span("db.get_job_pending", table="admin-db")
     def get_job_pending(self) -> Job | None:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_job_pending"})

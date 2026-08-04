@@ -13,7 +13,7 @@ from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
 from lomas_server.models.config import Config
-from lomas_server.routes import routes_admin, routes_dp
+from lomas_server.routes import routes_admin, routes_dp, routes_worker
 from lomas_server.routes.error_handler import add_exception_handlers
 from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,
@@ -109,3 +109,4 @@ FastAPIInstrumentor.instrument_app(app)
 # Add endpoints
 app.include_router(routes_dp.router)
 app.include_router(routes_admin.router)
+app.include_router(routes_worker.router)

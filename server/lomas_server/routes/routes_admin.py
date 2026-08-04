@@ -106,7 +106,7 @@ async def update_job(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)], request: Request, job_update: Job
 ):
     admin_database = request.app.state.admin_database
-    print(job_update)
+
     if not admin_database.does_job_exist(job_update.uid):
         raise JobNotFoundException(job_update.uid)
 

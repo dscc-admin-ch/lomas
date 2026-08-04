@@ -3,7 +3,6 @@ import functools
 import signal
 import time
 from typing import Any, Never
-from uuid import UUID
 
 import httpx2
 from aio_pika.patterns.rpc import Proxy
@@ -174,7 +173,7 @@ def handle_query(config: Config, admin_database: Proxy, job: Job) -> Job:
         error_model, status_code = model_from_lomas_exception(exc)
 
         return Job(
-            uid=UUID(job.uid),
+            uid=job.uid,
             status=JobStatus.FAILED,
             error=error_model,
             status_code=status_code,
@@ -205,7 +204,7 @@ async def process_message(config: Config) -> None:
                 httpx2.put,
                 headers={LomasHeaders.APIKEY: TEST_APIKEY},
                 json=job_done.model_dump(
-                    mode="json"
+                    exclude_unset=True, mode="json"
                 ),  # Requires json mode to make UUID (not json serializable) into str.
             )
             pprint(res)

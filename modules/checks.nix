@@ -178,18 +178,18 @@
                             client_secret = "secret-${toString idx}";
                           };
                           may_query = true;
-                          datasets_list = [
-                            {
+                          datasets = {
+                            FSO_INCOME_SYNTHETIC = {
                               dataset_name = "FSO_INCOME_SYNTHETIC";
                               initial_epsilon = 50;
                               initial_delta = 1;
-                            }
-                            {
+                            };
+                            penguin = {
                               dataset_name = "penguin";
                               initial_epsilon = 500;
                               initial_delta = 10;
-                            }
-                          ];
+                            };
+                          };
                         }) userParralel.max;
                       }
                     );

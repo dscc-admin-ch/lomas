@@ -164,10 +164,14 @@ def ensure_dataset_access(user: UserId, dataset_name: str, admin_database: Admin
 
     Raises:
         DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
         UnauthorizedAccessException: If the user does not have access to the dataset.
     """
     if not admin_database.does_dataset_exist(dataset_name):
         raise DatasetNotFoundException(dataset_name)
+
+    if not (user.name == LomasHeaders or admin_database.does_user_exist(user.name)):
+        raise UserNotFoundException(user.name)
 
     if not (
         user.name == LomasHeaders.WORKERUSER

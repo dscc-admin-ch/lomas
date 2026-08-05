@@ -40,7 +40,7 @@ class User(BaseModel):
     id: UserId
     may_query: bool
     admin: bool = False
-    datasets_list: list[DatasetOfUser]
+    datasets: dict[str, DatasetOfUser] = {}
 
 
 class UserCollection(BaseModel):

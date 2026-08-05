@@ -262,7 +262,7 @@ if submit:
         new_user = User(
             id=UserId(name=au_username, email=au_email, client_secret=au_password),
             may_query=False,
-            datasets_list=[],
+            datasets={},
         )
         match add_lomas_user(new_user):
             case IOSuccess(_):
@@ -277,12 +277,13 @@ if submit:
 st.subheader("Bulk users import")
 
 u_file = st.file_uploader("User collection (YAML)", type="yaml")
-u_clean = st.toggle("Overwrite all current users & collection")
+u_clean = st.toggle("Remove all current users")
+u_overwrite = st.toggle("Overwrite existing users")
 
 if u_file and st.button("Import"):
-    query_lomas_auth("/usersfile", httpx2.post, json={"clean": u_clean}, files={"file": u_file}).alt(
-        lambda e: st.error(f"Failed to import collection because {e}")
-    )
+    query_lomas_auth(
+        "/usersfile", httpx2.post, json={"clean": u_clean, "overwrite": u_overwrite}, files={"file": u_file}
+    ).alt(lambda e: st.error(f"Failed to import collection because {e}"))
 
     # Reset cursor to start of file
     u_file.seek(0)

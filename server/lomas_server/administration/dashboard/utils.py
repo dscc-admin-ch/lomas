@@ -153,8 +153,8 @@ def get_user_df() -> IOResultE[pd.DataFrame]:
                 [
                     u.id.name,
                     u.id.email,
-                    [ds.dataset_name for ds in u.datasets_list],
-                    pd.DataFrame([ds.model_dump() for ds in u.datasets_list]),
+                    u.datasets.keys(),
+                    pd.DataFrame([ds.model_dump() for ds in u.values()]),
                 ]
                 for u in users
             ],
@@ -174,6 +174,6 @@ def list_users() -> IO[list[str]]:
 def find_user(username: str) -> Callable[[list[User]], list[DatasetOfUser]]:
     @impure_safe
     def find_user_inner(users: list[User]) -> list[DatasetOfUser]:
-        return next(u.datasets_list for u in users if u.id.name == username)
+        return next(list(u.datasets.values()) for u in users if u.id.name == username)
 
     return find_user_inner

@@ -116,7 +116,7 @@ def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> N
     """
     console = Console(width=200, force_terminal=True)
     logging.basicConfig(
-        format="%(asctime)s - %(message)s - %(name)s",
+        format="%(message)s - %(name)s",
         datefmt="[%H:%M:%S]",
         handlers=[
             RichHandler(console=console, show_time=True, rich_tracebacks=False, tracebacks_show_locals=True)

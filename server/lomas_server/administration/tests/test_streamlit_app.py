@@ -27,7 +27,7 @@ def demo_setup():
 
     lomas_demo_setup()
 
-    yield
+    yield True
 
     config.database.wipe()
 
@@ -106,7 +106,7 @@ def test_admin_page(dashbord_dir: Path, client: TestClient, demo_setup) -> None:
 def test_add_rm_user(client: TestClient, demo_setup) -> None:
     username = "newUser"
 
-    new_user = User(id=UserId(name=username, email="new@user.com"), may_query=True, datasets_list=[])
+    new_user = User(id=UserId(name=username, email="new@user.com"), may_query=True, datasets={})
     assert is_successful(query_lomas("/users", client.post, json=new_user.model_dump()))
     assert query_lomas(f"/users/{username}/archive", client.get) == IOSuccess([])
     assert is_successful(query_lomas(f"/users/{username}", client.delete))
@@ -143,8 +143,8 @@ def test_add_rm_dataset(client: TestClient, demo_setup) -> None:
     )
     # Ensure <user> has the new dataset in their list
     assert query_lomas("/users", client.get).map(
-        lambda user_list: next(u["datasets_list"] for u in user_list if u["id"]["name"] == user_name)
-    ).map(lambda ds_list: len([ds for ds in ds_list if ds["dataset_name"] == ds_name])) == IOSuccess(1)
+        lambda user_list: next(u["datasets"] for u in user_list if u["id"]["name"] == user_name)
+    ).map(lambda ds_dict: ds_name in ds_dict) == IOSuccess(1)
 
     assert is_successful(query_lomas(f"/dataset/{ds_name}", client.delete))
     # Ensure dataset deletion
@@ -159,20 +159,21 @@ def test_add_rm_dataset(client: TestClient, demo_setup) -> None:
     )
     # Ensure <user> no longer has the new dataset in their list
     assert query_lomas("/users", client.get).map(
-        lambda user_list: next(u["datasets_list"] for u in user_list if u["id"]["name"] == user_name)
-    ).map(lambda ds_list: len([ds for ds in ds_list if ds["dataset_name"] == ds_name])) == IOSuccess(0)
+        lambda user_list: next(u["datasets"] for u in user_list if u["id"]["name"] == user_name)
+    ).map(lambda ds_dict: ds_name in ds_dict) == IOSuccess(0)
 
 
 def test_add_user_yaml(client: TestClient, demo_setup) -> None:
     user_collection_file = test_data_folder / "test_user_collection.yaml"
-    assert is_successful(
-        query_lomas(
-            "/usersfile",
-            client.post,
-            json={"clean": False},
-            files={"file": user_collection_file.open(mode="rb")},
-        )
+
+    query_result = query_lomas(
+        "/usersfile",
+        client.post,
+        data={"clean": False, "overwrite": True},  # , "overwrite": False},
+        files={"file": user_collection_file.open(mode="rb")},
     )
+
+    assert is_successful(query_result)
 
 
 def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> None:
@@ -180,7 +181,7 @@ def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> No
     post_result = query_lomas(
         "/dataset/bulk",
         client.post,
-        json={"clean": True},
+        data={"clean": True},
         files={"file": dataset_collection.open(mode="rb")},
     )
     assert is_successful(post_result)

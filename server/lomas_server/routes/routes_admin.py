@@ -4,12 +4,13 @@ from uuid import UUID
 from csvw_eo.datatypes import to_pandas_dtype
 from csvw_eo.make_dummy_from_metadata import make_dummy_from_metadata
 from csvw_eo.metadata_structure import TableMetadata
-from fastapi import APIRouter, Body, Request, Response, Security, UploadFile, status
+from fastapi import APIRouter, Body, Form, Request, Response, Security, UploadFile, status
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from lomas_core.constants import Scopes
 from lomas_core.exceptions import (
     DatasetNotFoundException,
+    InvalidQueryException,
     JobNotFoundException,
     UnauthorizedAccessException,
     UserNotFoundException,
@@ -262,11 +263,14 @@ def get_initial_budget(
             - initial_delta (float): initial delta budget.
     """
     app = request.app
+    admin_database = app.state.admin_database
+
+    ensure_dataset_access(user_id, query_json.dataset_name, admin_database)
 
     (
         initial_epsilon,
         initial_delta,
-    ) = app.state.admin_database.get_initial_budget(user_id.name, query_json.dataset_name)
+    ) = admin_database.get_initial_budget(user_id.name, query_json.dataset_name)
 
     return InitialBudgetResponse(initial_epsilon=initial_epsilon, initial_delta=initial_delta)
 
@@ -305,11 +309,14 @@ def get_total_spent_budget(
             - total_spent_delta (float): total spent delta budget.
     """
     app = request.app
+    admin_database = app.state.admin_database
+
+    ensure_dataset_access(user_id, query_json.dataset_name, admin_database)
 
     (
         total_spent_epsilon,
         total_spent_delta,
-    ) = app.state.admin_database.get_total_spent_budget(user_id.name, query_json.dataset_name)
+    ) = admin_database.get_total_spent_budget(user_id.name, query_json.dataset_name)
 
     return SpentBudgetResponse(total_spent_epsilon=total_spent_epsilon, total_spent_delta=total_spent_delta)
 
@@ -348,10 +355,11 @@ def get_remaining_budget(
             - remaining_delta (float): remaining delta budget.
     """
     app = request.app
+    admin_database = app.state.admin_database
 
-    rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
-        user_id.name, query_json.dataset_name
-    )
+    ensure_dataset_access(user_id, query_json.dataset_name, admin_database)
+
+    rem_epsilon, rem_delta = admin_database.get_remaining_budget(user_id.name, query_json.dataset_name)
 
     return RemainingBudgetResponse(remaining_epsilon=rem_epsilon, remaining_delta=rem_delta)
 
@@ -421,7 +429,7 @@ def list_users(
 
 
 @router.post("/users", responses=API_ERROR_RESPONSES)
-def add_user(
+def put_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
     new_user: User,
@@ -432,7 +440,10 @@ def add_user(
         new_user (User): User to add
     """
     db: LocalAdminDatabase = request.app.state.admin_database
-    return db.add_user(new_user.id.name, new_user.id.email)
+    try:
+        return db.put_user(new_user)
+    except KeyError as e:
+        raise InvalidQueryException(str(e)) from e
 
 
 @router.post("/usersfile", responses=API_ERROR_RESPONSES)
@@ -440,7 +451,9 @@ def add_users_yaml(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
     file: UploadFile,
-    clean: bool = False,
+    clean: Annotated[bool, Form()],
+    overwrite: Annotated[bool, Form()],
+    # data: Annotated[FormData, Form()] | None = None
 ) -> None:
     """Add all users from a yaml file.
 
@@ -450,8 +463,13 @@ def add_users_yaml(
             True if drop current user collection
             False if keep current user collection
     """
+    # print(request.)
     db: LocalAdminDatabase = request.app.state.admin_database
-    return db.add_users_via_yaml(file.file, clean=clean)
+    try:
+        print(db.does_user_exist("Dr.Antartica"))
+        return db.add_users_via_yaml(file.file, clean=clean, overwrite=overwrite)
+    except KeyError as e:
+        raise InvalidQueryException(str(e)) from e
 
 
 @router.delete("/users/{username}", responses=API_ERROR_RESPONSES)
@@ -493,7 +511,7 @@ def add_dataset_bulk(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
     file: UploadFile,
-    clean: bool = False,
+    clean: Annotated[bool, Form()],
 ) -> None:
     db: LocalAdminDatabase = request.app.state.admin_database
     config = Config()
@@ -534,6 +552,10 @@ def add_dataset_to_user(
     body: LomasRequestModel,
 ) -> None:
     db: LocalAdminDatabase = request.app.state.admin_database
+
+    if not db.does_user_exist(username):
+        raise UserNotFoundException(username)
+
     return db.add_dataset_to_user(username, body.dataset_name, 0.0, 0.0)
 
 
@@ -545,6 +567,10 @@ def del_dataset_to_user(
     body: LomasRequestModel,
 ) -> None:
     db: LocalAdminDatabase = request.app.state.admin_database
+
+    if not db.does_user_exist(username):
+        raise UserNotFoundException(username)
+
     return db.del_dataset_to_user(username, body.dataset_name)
 
 
@@ -556,6 +582,10 @@ def set_epsilon_delta(
     body: LomasBudgetRequest,
 ) -> None:
     db: LocalAdminDatabase = request.app.state.admin_database
+
+    if not db.does_user_exist(username):
+        raise UserNotFoundException(username)
+
     db.set_epsilon_or_delta(username, body.dataset_name, BudgetDBKey.EPSILON_INIT, body.epsilon)
     db.set_epsilon_or_delta(username, body.dataset_name, BudgetDBKey.DELTA_INIT, body.delta)
 
@@ -567,6 +597,10 @@ def get_archives_user(
     username: str,
 ) -> list[Job]:
     db: LocalAdminDatabase = request.app.state.admin_database
+
+    if not db.does_user_exist(username):
+        raise UserNotFoundException(username)
+
     return db.get_user_queries(username)
 
 
@@ -577,6 +611,10 @@ def get_dataset(
     dataset_name: str,
 ) -> DSInfo:
     db: LocalAdminDatabase = request.app.state.admin_database
+
+    if not db.does_dataset_exist(dataset_name):
+        raise DatasetNotFoundException(dataset_name)
+
     return db.get_dataset(dataset_name)
 
 

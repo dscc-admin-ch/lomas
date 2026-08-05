@@ -116,37 +116,6 @@ class AdminDatabase(ABC):
             bool: True if the user is a lomas admin.
         """
 
-    def set_may_user_query(self, user_name: str, may_query: bool) -> None:
-        """
-        Sets if a user may query the server..
-
-        (Set False before querying and True after updating budget)
-
-        Wrapped by [user_must_exist][lomas_server.admin_database.admin_database.user_must_exist].
-
-        Args:
-            user_name (str): name of the user
-            may_query (bool): flag give or remove access to user
-        """
-        _ = self.get_and_set_may_user_query(user_name, may_query)
-
-    @abstractmethod
-    def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
-        """
-        Atomic operation to check and set if the user may query the server.
-
-        (Set False before querying and True after updating budget)
-
-        Wrapped by [user_must_exist][lomas_server.admin_database.admin_database.user_must_exist].
-
-        Args:
-            user_name (str): name of the user
-            may_query (bool): flag give or remove access to user
-
-        Returns:
-            bool: The may_query status of the user before the update.
-        """
-
     @abstractmethod
     def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
         """

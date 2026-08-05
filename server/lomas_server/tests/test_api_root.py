@@ -38,8 +38,7 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):
         self.config.database.set_bootstrap(self.config.bootstrap)
 
         self.config.database.add_users_via_yaml(
-            yaml_file=(path_prefix / "test_user_collection.yaml"),
-            clean=True,
+            yaml_file=(path_prefix / "test_user_collection.yaml"), clean=True, overwrite=False
         )
 
         self.config.database.add_datasets_via_yaml(

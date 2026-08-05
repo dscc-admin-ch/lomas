@@ -14,17 +14,19 @@ Adding a user works either through the straightforward "Add user" section or via
     email: "alice@example.com"
     client_secret: alice        # Only if using Dex, not for production.
   may_query: True
-  datasets_list:                # Can be empty
-  - dataset_name: "IRIS"
-    initial_epsilon: 10.0
-    initial_delta: 0.0001
-    total_spent_epsilon: 0.0
-    total_spent_delta: 0.0
-  - dataset_name: "PENGUIN"
-    initial_epsilon: 5.0
-    initial_delta: 0.0005
-    total_spent_epsilon: 0.0
-    total_spent_delta: 0.0
+  datasets:
+    IRIS:                # Can be empty
+      dataset_name: "IRIS"
+      initial_epsilon: 10.0
+      initial_delta: 0.0001
+      total_spent_epsilon: 0.0
+      total_spent_delta: 0.0
+    PENGUIN:
+      dataset_name: "PENGUIN"
+      initial_epsilon: 5.0
+      initial_delta: 0.0005
+      total_spent_epsilon: 0.0
+      total_spent_delta: 0.0
 ```
 
 ## Adding datasets to users and setting DP budget

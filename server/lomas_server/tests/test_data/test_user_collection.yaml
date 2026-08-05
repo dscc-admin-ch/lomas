@@ -4,62 +4,70 @@ users:
     email: "dr.antartica@example.com"
     client_secret: dr.antartica
   may_query: True
-  datasets_list:
-  - dataset_name: "PENGUIN"
-    initial_epsilon: 50
-    initial_delta: 0.005
-    total_spent_epsilon: 0
-    total_spent_delta: 0
-  - dataset_name: "TINTIN_S3_TEST"
-    initial_epsilon: 10
-    initial_delta: 0.005
-    total_spent_epsilon: 0
-    total_spent_delta: 0
-  - dataset_name: "PUMS"
-    initial_epsilon: 5
-    initial_delta: 0.005
-    total_spent_epsilon: 0
-    total_spent_delta: 0
-  - dataset_name: "FSO_INCOME_SYNTHETIC"
-    initial_epsilon: 10
-    initial_delta: 0.005
-    total_spent_epsilon: 0
-    total_spent_delta: 0
-  - dataset_name: "COVID_SYNTHETIC"
-    initial_epsilon: 10
-    initial_delta: 0.005
-    total_spent_epsilon: 0
-    total_spent_delta: 0
+  datasets:
+    PENGUIN:
+      dataset_name: "PENGUIN"
+      initial_epsilon: 50
+      initial_delta: 0.005
+      total_spent_epsilon: 0
+      total_spent_delta: 0
+    TINTIN_S3_TEST:
+      dataset_name: "TINTIN_S3_TEST"
+      initial_epsilon: 10
+      initial_delta: 0.005
+      total_spent_epsilon: 0
+      total_spent_delta: 0
+    PUMS:
+      dataset_name: "PUMS"
+      initial_epsilon: 5
+      initial_delta: 0.005
+      total_spent_epsilon: 0
+      total_spent_delta: 0
+    FSO_INCOME_SYNTHETIC:
+      dataset_name: "FSO_INCOME_SYNTHETIC"
+      initial_epsilon: 10
+      initial_delta: 0.005
+      total_spent_epsilon: 0
+      total_spent_delta: 0
+    COVID_SYNTHETIC:
+      dataset_name: "COVID_SYNTHETIC"
+      initial_epsilon: 10
+      initial_delta: 0.005
+      total_spent_epsilon: 0
+      total_spent_delta: 0
 - id:
     name: "Tintin"
     email: "tintin@example.com"
     client_secret: tintin
   may_query: True
-  datasets_list:
-  - dataset_name: "Bijoux de la Castafiore"
-    initial_epsilon: 10
-    initial_delta: 0.005
-    total_spent_epsilon: 0.0
-    total_spent_delta: 0.0
+  datasets:
+    BijouxDeLaCastafiore:
+      dataset_name: BijouxDeLaCastafiore
+      initial_epsilon: 10
+      initial_delta: 0.005
+      total_spent_epsilon: 0.0
+      total_spent_delta: 0.0
 - id:
     name: "Milou"
     email: "milou@example.com"
     client_secret: milou
   may_query: True
-  datasets_list:
-  - dataset_name: "os"
-    initial_epsilon: 20
-    initial_delta: 0.005
-    total_spent_epsilon: 0.0
-    total_spent_delta: 0.0
+  datasets:
+    os:
+      dataset_name: "os"
+      initial_epsilon: 20
+      initial_delta: 0.005
+      total_spent_epsilon: 0.0
+      total_spent_delta: 0.0
 - id:
     name: BirthdayGirl
     email: "birthdaygirl@example.com"
     client_secret: birthdaygirl
   may_query: True
-  datasets_list:
-  - dataset_name: "BIRTHDAYS"
-    initial_epsilon: 10
-    initial_delta: 0.05
-    total_spent_epsilon: 0
-    total_spent_delta: 0
+  datasets:
+    BIRTHDAYS:
+      dataset_name: "BIRTHDAYS"
+      initial_epsilon: 10
+      initial_delta: 0.05
+      total_spent_epsilon: 0
+      total_spent_delta: 0

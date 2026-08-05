@@ -5,7 +5,6 @@ from aio_pika.patterns.rpc import Proxy
 
 from lomas_core.exceptions import (
     InvalidQueryException,
-    UnauthorizedAccessException,
 )
 from lomas_core.models.requests import (
     LomasRequestModel,
@@ -97,10 +96,10 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                 - spent_delta (float): The amount of delta budget spent for the query.
         """
         # Block access to other queries to user
-        if not self.admin_database.get_and_set_may_user_query(user_name=user_name, may_query=False):
-            raise UnauthorizedAccessException(
-                f"User {user_name} is trying to query before end of previous query."
-            )
+        # if not self.admin_database.get_and_set_may_user_query(user_name=user_name, may_query=False):
+        #     raise UnauthorizedAccessException(
+        #         f"User {user_name} is trying to query before end of previous query."
+        #     )
 
         try:
             # Get cost of the query
@@ -139,11 +138,11 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
             )
 
             # Re-enable user to query
-            self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
+            # self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
 
         except Exception as e:
             # Response is only sent back if nothing happens in the try catch, otherwise raise.
-            self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
+            # self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
             raise e
 
         # Return response

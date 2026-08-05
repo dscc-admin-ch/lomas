@@ -56,7 +56,7 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
     add_users: IOResultE = query_lomas(
         "/usersfile",
         httpx2.post,
-        json={"clean": True},
+        data={"clean": True, "overwrite": False},
         files={"file": config.user_yaml.open(mode="rb")},
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
@@ -74,7 +74,7 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
     add_datasets: IOResultE = query_lomas(
         "/dataset/bulk",
         httpx2.post,
-        json={"clean": True},
+        data={"clean": True},
         files={"file": config.dataset_yaml.open(mode="rb")},
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )

@@ -137,7 +137,8 @@ in
         in
         genAttrs procNames (name: {
           exec = ''
-            socat -t3 -u UNIX-RECV:$NOTIFY_SOCKET,unlink-early OPEN:${notifyRoot}/${name}.log,creat,trunc &
+            mkdir -p ${notifyRoot}
+            ${lib.getExe pkgs.socat} -t3 -u UNIX-RECV:$NOTIFY_SOCKET,unlink-early OPEN:${notifyRoot}/${name}.log,creat,trunc &
             exec lomas work
           '';
           cwd = "${config.git.root}/server/lomas_server";
@@ -153,7 +154,8 @@ in
     {
       processes.lomas-server = {
         exec = ''
-          socat -t3 -u UNIX-RECV:$NOTIFY_SOCKET,unlink-early OPEN:${notifyRoot}/lomas.log,creat,trunc &
+          mkdir -p ${notifyRoot}
+          ${lib.getExe pkgs.socat} -t3 -u UNIX-RECV:$NOTIFY_SOCKET,unlink-early OPEN:${notifyRoot}/lomas.log,creat,trunc &
           exec python cli.py start
         '';
         cwd = "${config.git.root}/server/lomas_server";

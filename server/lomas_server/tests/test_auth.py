@@ -7,6 +7,9 @@ import pytest
 from authlib.integrations.requests_client import OAuth2Session
 from fastapi import status
 from fastapi.testclient import TestClient
+from returns.io import IOSuccess
+from returns.iterables import Fold
+from returns.pipeline import is_successful
 
 from lomas_client.constants import OIDC_REQUIRED_SCOPES
 from lomas_client.models.config import ClientConfig
@@ -33,15 +36,23 @@ def demo_setup():
     admin_config = AdminConfig()
     dex_config = admin_config.dex_config
     assert dex_config is not None
-    query_lomas(
-        "/collections/users", httpx2.delete, headers=get_auth_header("lomas_admin@example.com", "lomas_admin")
+    cleanup = Fold.collect(
+        [
+            query_lomas(
+                "/collections/datasets",
+                httpx2.delete,
+                headers=get_auth_header("lomas_admin@example.com", "lomas_admin"),
+            ),
+            query_lomas(
+                "/collections/users",
+                httpx2.delete,
+                headers=get_auth_header("lomas_admin@example.com", "lomas_admin"),
+            ),
+            del_all_dex_users(dex_config),
+        ],
+        IOSuccess(()),
     )
-    query_lomas(
-        "/collections/datasets",
-        httpx2.delete,
-        headers=get_auth_header("lomas_admin@example.com", "lomas_admin"),
-    )
-    del_all_dex_users(dex_config)
+    assert is_successful(cleanup)
 
 
 def test_bootstrap(demo_setup: None) -> None:

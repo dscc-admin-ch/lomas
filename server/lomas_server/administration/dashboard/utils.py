@@ -153,8 +153,8 @@ def get_user_df() -> IOResultE[pd.DataFrame]:
                 [
                     u.id.name,
                     u.id.email,
-                    u.datasets.keys(),
-                    pd.DataFrame([ds.model_dump() for ds in u.values()]),
+                    list(u.datasets.keys()),
+                    pd.DataFrame([ds.model_dump() for ds in u.datasets.values()]),
                 ]
                 for u in users
             ],

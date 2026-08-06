@@ -5,7 +5,7 @@ import shelve
 import sqlite3
 import sys
 from collections.abc import Callable, Generator
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from functools import wraps
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
@@ -107,17 +107,25 @@ class LocalAdminDatabase(AdminDatabase):
     def _sqlite_connection(self, path: Path) -> Generator[sqlite3.Connection]:
         """Creates connection context to sqlite database.
 
-        Returns:
-            Iterator[sqlite3.Connection]: The connection context.
+        Yields:
+            Generator[sqlite3.Connection]: The connection context.
         """
         conn = sqlite3.connect(path, timeout=30)
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA busy_timeout=30000")
         try:
-            with conn:  # commits on success, rolls back on exception
+            with conn as conn:  # commits on success, rolls back on exception
                 yield conn
         finally:
             conn.close()
+
+    def get_db_conn(self) -> Generator[sqlite3.Connection]:
+        """Creates connection context to sqlite database.
+
+        Yields:
+            Generator[sqlite3.Connection]: The connection context.
+        """
+        return self._sqlite_connection(self._db_path)
 
     @override
     @with_lock
@@ -257,10 +265,10 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @db_span("db.get_job", table="admin-db")
-    def get_job(self, uid: UUID) -> Job:
+    def get_job(self, uid: UUID, conn: Generator[sqlite3.Connection] | None = None) -> Job:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_job"})
 
-        with self._sqlite_connection(self._db_path) as conn:
+        with self._sqlite_connection(self._db_path) if conn is None else nullcontext(conn) as conn:
             row = conn.execute("SELECT job_json FROM jobs WHERE uid = ?", (str(uid),)).fetchone()
 
         if row is None:
@@ -306,16 +314,19 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @db_span("db.update_job", table="admin-db")
-    def update_job(self, job_update: Job) -> None:
+    def update_job(
+        self, job_update: Job, conn: Generator[sqlite3.Connection, None, None] | None = None
+    ) -> None:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "update_job"})
+
         uid = job_update.uid
-        job = self.get_job(uid)
+        job = self.get_job(uid, conn)
 
         # Does not perform a deep merge, but not required here.
         merged_data = job.model_dump() | job_update.model_dump(exclude_unset=True)
         merged_job = Job.model_validate(merged_data)
 
-        with self._sqlite_connection(self._db_path) as conn:
+        with self._sqlite_connection(self._db_path) if conn is None else nullcontext(conn) as conn:
             cursor = conn.execute(
                 """
                 UPDATE jobs
@@ -328,6 +339,11 @@ class LocalAdminDatabase(AdminDatabase):
             )
             if cursor.rowcount == 0:
                 raise KeyError(f"No job with uid {job_update.uid}")
+
+    # @override
+    @db_span("db.set_query_result", table="admin-db")
+    def set_query_result(self, job_update: Job) -> None:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "set_query_result"})
 
     # Archives
     ###########################################################################
@@ -388,8 +404,8 @@ class LocalAdminDatabase(AdminDatabase):
 
     def load_users_collection(self, users: list[User], overwrite: bool) -> None:
         with self._sqlite_connection(self._db_path) as conn:
-            for user in users:
-                if overwrite:
+            if overwrite:
+                for user in users:
                     conn.execute(
                         "INSERT OR REPLACE INTO users "
                         "(user_name, email, may_query, admin, user_json) "
@@ -402,7 +418,8 @@ class LocalAdminDatabase(AdminDatabase):
                             user.model_dump_json(),
                         ),
                     )
-                else:
+            else:
+                for user in users:
                     try:
                         conn.execute(
                             "INSERT INTO users "
@@ -417,6 +434,7 @@ class LocalAdminDatabase(AdminDatabase):
                             ),
                         )
                     except sqlite3.IntegrityError as e:
+                        # Because we are in the same context, all previous inserts will be rolled back
                         raise KeyError(f"User with name {user.id.name} already exists.") from e
 
     def users(self) -> list[User]:
@@ -424,8 +442,8 @@ class LocalAdminDatabase(AdminDatabase):
             rows = conn.execute("SELECT user_json FROM users").fetchall()
             return [User.model_validate_json(row[0]) for row in rows]
 
-    def get_user(self, user_name: str) -> User:
-        with self._sqlite_connection(self._db_path) as conn:
+    def get_user(self, user_name: str, conn: Generator[sqlite3.Connection] | None = None) -> User:
+        with self._sqlite_connection(self._db_path) if conn is None else nullcontext(conn) as conn:
             row = conn.execute("SELECT user_json FROM users WHERE user_name = ?", (user_name,)).fetchone()
 
             if row is None:
@@ -433,8 +451,8 @@ class LocalAdminDatabase(AdminDatabase):
 
             return User.model_validate_json(row[0])
 
-    def replace_user(self, user: User) -> None:
-        with self._sqlite_connection(self._db_path) as conn:
+    def replace_user(self, user: User, conn: Generator[sqlite3.Connection] | None = None) -> None:
+        with self._sqlite_connection(self._db_path) if conn is None else nullcontext(conn) as conn:
             cursor = conn.execute(
                 """
                 UPDATE users

@@ -5,7 +5,6 @@ from aio_pika.patterns.rpc import Proxy
 
 from lomas_core.exceptions import (
     InvalidQueryException,
-    UnauthorizedAccessException,
 )
 from lomas_core.models.requests import (
     LomasRequestModel,
@@ -96,57 +95,32 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                 - spent_epsilon (float): The amount of epsilon budget spent for the query.
                 - spent_delta (float): The amount of delta budget spent for the query.
         """
-        # Don't even start with costs/budget calculation if another query is running
-        if not self.admin_database.get_user(user_name=user_name).may_query:
-            raise UnauthorizedAccessException(
-                f"User {user_name} is trying to query before end of previous query."
+        # Get cost of the query
+        eps_cost, delta_cost = self.cost(query_json)
+
+        # Check that enough budget to do the query
+        # Note: This is only to create an early failure if budget is not enough to start with.
+        #       Budget check and update is done at the server in a single transaction once job is returned.
+        (
+            eps_remain,
+            delta_remain,
+        ) = self.admin_database.get_remaining_budget(
+            user_name=user_name, dataset_name=query_json.dataset_name
+        )
+
+        if (eps_remain < eps_cost) or (delta_remain < delta_cost):
+            raise InvalidQueryException(
+                "Not enough budget for this query epsilon remaining "
+                f"{eps_remain}, delta remaining {delta_remain}."
             )
 
-        try:
-            # Get cost of the query
-            eps_cost, delta_cost = self.cost(query_json)
+        # Query
+        query_result = self.query(query_json)
 
-            # Check that enough budget to do the query
-            (
-                eps_remain,
-                delta_remain,
-            ) = self.admin_database.get_remaining_budget(
-                user_name=user_name, dataset_name=query_json.dataset_name
-            )
-
-            if (eps_remain < eps_cost) or (delta_remain < delta_cost):
-                raise InvalidQueryException(
-                    "Not enough budget for this query epsilon remaining "
-                    f"{eps_remain}, delta remaining {delta_remain}."
-                )
-
-            # TODO:~= start transaction here / lock may_query ?
-
-            # Query
-            query_result = self.query(query_json)
-
-            # Deduce budget from user
-            self.admin_database.update_budget(
-                user_name=user_name,
-                dataset_name=query_json.dataset_name,
-                spent_epsilon=eps_cost,
-                spent_delta=delta_cost,
-            )
-
-            response = QueryResponse(
-                requested_by=user_name,
-                result=query_result,
-                epsilon=eps_cost,
-                delta=delta_cost,
-            )
-
-            # Re-enable user to query
-            # self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
-
-        except Exception as e:
-            # Response is only sent back if nothing happens in the try catch, otherwise raise.
-            # self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
-            raise e
-
-        # Return response
-        return response
+        # Return query response
+        return QueryResponse(
+            requested_by=user_name,
+            result=query_result,
+            epsilon=eps_cost,
+            delta=delta_cost,
+        )

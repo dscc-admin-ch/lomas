@@ -214,13 +214,13 @@ class Job(ResponseModel):
 
     uid: UUID = Field(default_factory=uuid4)
     """Job unique identifier."""
-    requested_by: str | None = None
+    requested_by: str
     """Name of the user that requested this job."""
-    dataset_name: str | None = None
+    dataset_name: str
     """Name of the dataset targetted by this job."""
     status: JobStatus = JobStatus.PENDING
     """Job status."""
-    query: AnyLomasRequest | None = None
+    query: AnyLomasRequest
     """Job query."""
     result: AnyLomasQueryResponse | None = None
     """Job result, if available."""

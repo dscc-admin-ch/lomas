@@ -170,12 +170,11 @@ def handle_query(config: Config, admin_database: Proxy, job: Job) -> Job:
     except Exception as exc:  # pylint: disable=broad-exception-caught
         error_model, status_code = model_from_lomas_exception(exc)
 
-        return Job(
-            uid=job.uid,
-            status=JobStatus.FAILED,
-            error=error_model,
-            status_code=status_code,
-        )
+        job.status = JobStatus.FAILED
+        job.error = error_model
+        job.status_code = status_code
+
+        return job
 
 
 async def process_message(config: Config) -> None:

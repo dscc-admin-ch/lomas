@@ -22,7 +22,7 @@ from lomas_server.routes.utils import (
     handle_query_to_job,
 )
 
-router = APIRouter()
+router = APIRouter(responses=API_ERROR_RESPONSES)
 
 # Smartnoise SQL
 # -----------------------------------------------------------------------------
@@ -30,11 +30,10 @@ router = APIRouter()
 
 @router.post(
     "/smartnoise_sql_query",
-    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def smartnoise_sql_handler(
+def smartnoise_sql_handler(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLQueryModel,
@@ -61,16 +60,15 @@ async def smartnoise_sql_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return await handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
+    return handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
     "/dummy_smartnoise_sql_query",
-    responses=API_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def dummy_smartnoise_sql_handler(
+def dummy_smartnoise_sql_handler(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLDummyQueryModel,
@@ -98,16 +96,15 @@ async def dummy_smartnoise_sql_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return await handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
+    return handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
     "/estimate_smartnoise_sql_cost",
-    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def estimate_smartnoise_sql_cost(
+def estimate_smartnoise_sql_cost(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLCostQueryModel,
@@ -134,7 +131,7 @@ async def estimate_smartnoise_sql_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
+    return handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
 
 
 # OpenDP
@@ -143,11 +140,10 @@ async def estimate_smartnoise_sql_cost(
 
 @router.post(
     "/opendp_query",
-    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def opendp_query_handler(
+def opendp_query_handler(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPQueryModel,
@@ -174,16 +170,15 @@ async def opendp_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return await handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
+    return handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
 
 
 @router.post(
     "/dummy_opendp_query",
-    responses=API_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def dummy_opendp_query_handler(
+def dummy_opendp_query_handler(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPDummyQueryModel,
@@ -210,16 +205,15 @@ async def dummy_opendp_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return await handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
+    return handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
 
 
 @router.post(
     "/estimate_opendp_cost",
-    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def estimate_opendp_cost(
+def estimate_opendp_cost(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPCostQueryModel,
@@ -246,7 +240,7 @@ async def estimate_opendp_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
+    return handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
 
 
 # DiffPrivLib
@@ -255,11 +249,10 @@ async def estimate_opendp_cost(
 
 @router.post(
     "/diffprivlib_query",
-    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def diffprivlib_query_handler(
+def diffprivlib_query_handler(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     diffprivlib_query: DiffPrivLibQueryModel,
@@ -286,16 +279,15 @@ async def diffprivlib_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return await handle_query_to_job(request, diffprivlib_query, user_id, DPLibraries.DIFFPRIVLIB)
+    return handle_query_to_job(request, diffprivlib_query, user_id, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
     "/dummy_diffprivlib_query",
-    responses=API_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def dummy_diffprivlib_query_handler(
+def dummy_diffprivlib_query_handler(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     query_json: DiffPrivLibDummyQueryModel,
@@ -322,16 +314,15 @@ async def dummy_diffprivlib_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return await handle_query_to_job(request, query_json, user_id, DPLibraries.DIFFPRIVLIB)
+    return handle_query_to_job(request, query_json, user_id, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
     "/estimate_diffprivlib_cost",
-    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
-async def estimate_diffprivlib_cost(
+def estimate_diffprivlib_cost(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     diffprivlib_query: DiffPrivLibCostQueryModel,
@@ -367,4 +358,4 @@ async def estimate_diffprivlib_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(request, diffprivlib_query, user_id, DPLibraries.DIFFPRIVLIB)
+    return handle_query_to_job(request, diffprivlib_query, user_id, DPLibraries.DIFFPRIVLIB)

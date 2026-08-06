@@ -138,7 +138,7 @@ def get_dataset_credentials(
 
 
 @timing_protection
-async def handle_query_to_job(
+def handle_query_to_job(
     request: Request,
     query: DummyQueryModel | QueryModel | LomasRequestModel,
     user: UserId,

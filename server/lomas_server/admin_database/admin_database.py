@@ -5,7 +5,7 @@ from csvw_eo.metadata_structure import TableMetadata
 
 from lomas_core.models.collections import DSInfo
 from lomas_core.models.constants import get_lomas_logger
-from lomas_core.models.responses import Job
+from lomas_core.models.responses import Budget, Job
 from lomas_server.admin_database.constants import BudgetDBKey
 
 logger = get_lomas_logger(__name__)
@@ -145,7 +145,7 @@ class AdminDatabase(ABC):
             float: The requested budget value.
         """
 
-    def get_total_spent_budget(self, user_name: str, dataset_name: str) -> list[float]:
+    def get_total_spent_budget(self, user_name: str, dataset_name: str) -> Budget:
         """
         Get the total spent epsilon and delta spent by user on dataset.
 
@@ -156,15 +156,12 @@ class AdminDatabase(ABC):
             dataset_name (str): name of the dataset
 
         Returns:
-            List[float]: The first value of the list is the epsilon value,
+            Budget: The first value of the list is the epsilon value,
                 the second value is the delta value.
         """
-        return [
-            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.EPSILON_SPENT),
-            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_SPENT),
-        ]
+        return self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.SPENT)
 
-    def get_initial_budget(self, user_name: str, dataset_name: str) -> list[float]:
+    def get_initial_budget(self, user_name: str, dataset_name: str) -> Budget:
         """
         Get the initial epsilon and delta budget.
 
@@ -175,15 +172,12 @@ class AdminDatabase(ABC):
             dataset_name (str): name of the dataset
 
         Returns:
-            List[float]: The first value of the list is the epsilon value,
+            Budget: The first value of the list is the epsilon value,
                 the second value is the delta value.
         """
-        return [
-            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.EPSILON_INIT),
-            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_INIT),
-        ]
+        return self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.INITIAL)
 
-    def get_remaining_budget(self, user_name: str, dataset_name: str) -> list[float]:
+    def get_remaining_budget(self, user_name: str, dataset_name: str) -> Budget:
         """
         Get the remaining epsilon and delta budget (initial - total spent).
 
@@ -194,52 +188,12 @@ class AdminDatabase(ABC):
             dataset_name (str): name of the dataset
 
         Returns:
-            List[float]: The first value of the list is the epsilon value,
+            Budget: The first value of the list is the epsilon value,
                 the second value is the delta value.
         """
-        init_eps, init_delta = self.get_initial_budget(user_name, dataset_name)
-        spent_eps, spent_delta = self.get_total_spent_budget(user_name, dataset_name)
-        return [init_eps - spent_eps, init_delta - spent_delta]
-
-    @abstractmethod
-    def update_epsilon_or_delta(
-        self,
-        user_name: str,
-        dataset_name: str,
-        parameter: BudgetDBKey,
-        spent_value: float,
-    ) -> None:
-        """
-        Update current budget spent by user with spent budget.
-
-        Args:
-            user_name (str): name of the user
-            dataset_name (str): name of the dataset
-            parameter (str): One of BudgetDBKey
-            spent_value (float): spending of epsilon or delta on last query
-        """
-
-    def update_epsilon(self, user_name: str, dataset_name: str, spent_epsilon: float) -> None:
-        """
-        Update spent epsilon by user with total spent epsilon.
-
-        Args:
-            user_name (str): name of the user
-            dataset_name (str): name of the dataset
-            spent_epsilon (float): value of epsilon spent on last query
-        """
-        return self.update_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.EPSILON_SPENT, spent_epsilon)
-
-    def update_delta(self, user_name: str, dataset_name: str, spent_delta: float) -> None:
-        """
-        Update spent delta spent by user with spent delta of the user.
-
-        Args:
-            user_name (str): name of the user
-            dataset_name (str): name of the dataset
-            spent_delta (float): value of delta spent on last query
-        """
-        self.update_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_SPENT, spent_delta)
+        return self.get_initial_budget(user_name, dataset_name) - self.get_total_spent_budget(
+            user_name, dataset_name
+        )
 
     def update_budget(
         self,

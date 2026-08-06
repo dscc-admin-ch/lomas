@@ -17,10 +17,7 @@ from lomas_core.models.constants import (
     LomasHeaders,
 )
 from lomas_core.models.requests import LomasRequestModel, QueryModel
-from lomas_core.models.responses import (
-    Job,
-    RemainingBudgetResponse,
-)
+from lomas_core.models.responses import Budget, Job
 from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES, model_from_lomas_exception
 from lomas_server.routes.utils import get_user_id_from_api_key
@@ -51,22 +48,20 @@ def set_query_result(admin_database: LocalAdminDatabase, job_update: Job) -> Non
                 user = admin_database.get_user(job.requested_by, conn)
 
                 dataset_of_user = user.datasets[job.dataset_name]
-                remaining_eps = dataset_of_user.initial_epsilon - dataset_of_user.total_spent_epsilon
-                remaining_delta = dataset_of_user.initial_delta - dataset_of_user.total_spent_delta
+                remaining_budget = dataset_of_user.initial_budget - dataset_of_user.total_spent_budget
 
                 if job_update.result is None:
                     raise InternalServerException(f"Job result for job {job_update.uid} is None.")
 
-                if job_update.result.epsilon > remaining_eps or job_update.result.delta > remaining_delta:
+                job_budget = Budget(epsilon=job_update.result.epsilon, delta=job_update.result.delta)
+
+                if not (job_budget <= remaining_budget):
                     raise InvalidQueryException(
-                        "Not enough budget for this query epsilon remaining "
-                        f"{remaining_eps}, delta remaining {remaining_delta}."
+                        f"Not enough budget for this query. Requested: {job_budget} remaining: {remaining_budget}."
                     )
 
                 # Store updated budget
-                dataset_of_user.total_spent_epsilon += job_update.result.epsilon
-                dataset_of_user.total_spent_delta += job_update.result.delta
-
+                dataset_of_user.total_spent_budget += job_budget
                 admin_database.replace_user(user, conn)
 
                 # Store job
@@ -144,29 +139,15 @@ def get_user_w(
     return db.get_user(username)
 
 
-# @router.put("/users/{username}/dataset/budget")
-# def update_epsilon_delta_w(
-#     request: Request,
-#     _: Annotated[UserId, Security(get_user_id_from_api_key)],
-#     username: str,
-#     body: LomasBudgetRequest,
-# ) -> None:
-#     db: LocalAdminDatabase = request.app.state.admin_database
-#     db.update_budget(username, body.dataset_name, body.epsilon, body.delta)
-
-
 ### 'Proxy' api functions TODO: better
 @router.post("/get_remaining_budget")
 def get_remaining_budget_w(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_api_key)],
     query_json: LomasRequestModel,
-) -> RemainingBudgetResponse:
+) -> Budget:
     app = request.app
-    rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
-        user_id.name, query_json.dataset_name
-    )
-    return RemainingBudgetResponse(remaining_epsilon=rem_epsilon, remaining_delta=rem_delta)
+    return app.state.admin_database.get_remaining_budget(user_id.name, query_json.dataset_name)
 
 
 @router.get("/dataset/{dataset_name}/metadata")

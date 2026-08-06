@@ -35,33 +35,6 @@ class ResponseModel(BaseModel):
     """Base model for any response from the server."""
 
 
-class InitialBudgetResponse(ResponseModel):
-    """Model for responses to initial budget queries."""
-
-    initial_epsilon: float
-    """The initial epsilon privacy loss budget."""
-    initial_delta: float
-    """The initial delta privacy loss budget."""
-
-
-class SpentBudgetResponse(ResponseModel):
-    """Model for responses to spent budget queries."""
-
-    total_spent_epsilon: float
-    """The total spent epsilon privacy loss budget."""
-    total_spent_delta: float
-    """The total spent delta privacy loss budget."""
-
-
-class RemainingBudgetResponse(ResponseModel):
-    """Model for responses to remaining budget queries."""
-
-    remaining_epsilon: float
-    """The remaining epsilon privacy loss budget."""
-    remaining_delta: float
-    """The remaining delta privacy loss budget."""
-
-
 class DummyDsResponse(ResponseModel):
     """Model for responses to dummy dataset requests."""
 
@@ -95,22 +68,42 @@ class DummyDsResponse(ResponseModel):
         return dummy_df
 
 
-class CostResponse(ResponseModel):
-    """Model for responses to cost estimation requests or queries."""
-
+class Budget(ResponseModel):
     model_config = ConfigDict(use_attribute_docstrings=True)
-
-    def model_post_init(self, _: Any) -> None:
-        # This makes sure the discriminator field is dumped even with exclude_unset=True
-        if "response_type" in self.__class__.model_fields:
-            self.model_fields_set.add("response_type")
-
-    response_type: Literal[QueryResponseTypes.COST] = QueryResponseTypes.COST
 
     epsilon: float
     """The epsilon cost of the query."""
     delta: float
     """The delta cost of the query."""
+
+    @classmethod
+    def zero(cls):
+        return cls(epsilon=0.0, delta=0.0)
+
+    def __add__(self, other):
+        return Budget(epsilon=(self.epsilon + other.epsilon), delta=(self.delta + other.delta))
+
+    def __sub__(self, other):
+        return Budget(epsilon=(self.epsilon - other.epsilon), delta=(self.delta - other.delta))
+
+    # Partial Ordering
+    def __lt__(self, other):
+        return self.epsilon < other.epsilon and self.delta < other.delta
+
+    # this is not the same as a < b and a == b !
+    def __le__(self, other):
+        return self.epsilon <= other.epsilon and self.delta <= other.delta
+
+
+class CostResponse(Budget):
+    """Model for responses to cost estimation requests or queries."""
+
+    response_type: Literal[QueryResponseTypes.COST] = QueryResponseTypes.COST
+
+    def model_post_init(self, _: Any) -> None:
+        # This makes sure the discriminator field is dumped even with exclude_unset=True
+        if "response_type" in self.__class__.model_fields:
+            self.model_fields_set.add("response_type")
 
 
 # Query Responses

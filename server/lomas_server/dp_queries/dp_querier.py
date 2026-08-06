@@ -11,6 +11,7 @@ from lomas_core.models.requests import (
     QueryModel,
 )
 from lomas_core.models.responses import (
+    Budget,
     QueryResponse,
     QueryResultT,
 )
@@ -44,7 +45,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
         self.admin_database = admin_database
 
     @abstractmethod
-    def cost(self, query_json: RequestModelGeneric) -> tuple[float, float]:
+    def cost(self, query_json: RequestModelGeneric) -> Budget:
         """
         Estimate cost of query.
 
@@ -97,18 +98,16 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
         """
         # Get cost of the query
         eps_cost, delta_cost = self.cost(query_json)
+        query_cost = Budget(epsilon=eps_cost, delta=delta_cost)
 
         # Check that enough budget to do the query
         # Note: This is only to create an early failure if budget is not enough to start with.
         #       Budget check and update is done at the server in a single transaction once job is returned.
-        (
-            eps_remain,
-            delta_remain,
-        ) = self.admin_database.get_remaining_budget(
+        rem_budget = self.admin_database.get_remaining_budget(
             user_name=user_name, dataset_name=query_json.dataset_name
         )
 
-        if (eps_remain < eps_cost) or (delta_remain < delta_cost):
+        if not (query_cost <= rem_budget):
             raise InvalidQueryException(
                 "Not enough budget for this query epsilon remaining "
                 f"{eps_remain}, delta remaining {delta_remain}."
@@ -121,6 +120,6 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
         return QueryResponse(
             requested_by=user_name,
             result=query_result,
-            epsilon=eps_cost,
-            delta=delta_cost,
+            epsilon=query_cost.epsilon,
+            delta=query_cost.delta,
         )

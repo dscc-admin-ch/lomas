@@ -22,13 +22,7 @@ from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
-from lomas_core.models.responses import (
-    DummyDsResponse,
-    InitialBudgetResponse,
-    Job,
-    RemainingBudgetResponse,
-    SpentBudgetResponse,
-)
+from lomas_core.models.responses import Budget, DummyDsResponse, Job
 
 
 class Bound(Protocol):
@@ -214,11 +208,11 @@ class Client:
             self.metadata, dummy_lf, epsilon=epsilon, delta=delta, rho=rho, split_evenly_over=1
         )
 
-    def get_initial_budget(self) -> InitialBudgetResponse:
+    def get_initial_budget(self) -> Budget:
         """This function retrieves the initial budget.
 
         Returns:
-            InitialBudgetResponse: A dictionary
+            Budget: A dictionary
                 containing the initial budget.
         """
         body_dict = {"dataset_name": self.config.dataset_name}
@@ -226,13 +220,13 @@ class Client:
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_initial_budget", body)
 
-        return validate_model_response_direct(res, InitialBudgetResponse)
+        return validate_model_response_direct(res, Budget)
 
-    def get_total_spent_budget(self) -> SpentBudgetResponse:
+    def get_total_spent_budget(self) -> Budget:
         """This function retrieves the total spent budget.
 
         Returns:
-            SpentBudgetResponse: A dictionary containing
+            Budget: A dictionary containing
                 the total spent budget.
         """
         body_dict = {"dataset_name": self.config.dataset_name}
@@ -240,13 +234,13 @@ class Client:
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_total_spent_budget", body)
 
-        return validate_model_response_direct(res, SpentBudgetResponse)
+        return validate_model_response_direct(res, Budget)
 
-    def get_remaining_budget(self) -> RemainingBudgetResponse:
+    def get_remaining_budget(self) -> Budget:
         """This function retrieves the remaining budget.
 
         Returns:
-            RemainingBudgetResponse: A dictionary
+            Budget: A dictionary
                 containing the remaining budget.
         """
         body_dict = {"dataset_name": self.config.dataset_name}
@@ -254,7 +248,7 @@ class Client:
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_remaining_budget", body)
 
-        return validate_model_response_direct(res, RemainingBudgetResponse)
+        return validate_model_response_direct(res, Budget)
 
     def get_previous_queries(self) -> list[Job]:
         """This function retrieves the previous queries of the user.

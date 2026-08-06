@@ -24,16 +24,15 @@ from lomas_core.models.requests import (
     CostQueryModel,
     DiffPrivLibRequestModel,
     DummyQueryModel,
-    LomasBudgetRequest,
     OpenDPRequestModel,
     QueryModel,
     SmartnoiseSQLRequestModel,
 )
 from lomas_core.models.responses import (
+    Budget,
     CostResponse,
     Job,
     QueryResponse,
-    RemainingBudgetResponse,
 )
 from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.dp_queries.dp_libraries.diffprivlib import DiffPrivLibQuerier
@@ -55,16 +54,12 @@ TEST_APIKEY = "worker-api-key"
 def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
     match (method_name, kwargs):
         case ("get_remaining_budget", {"user_name": user_name, "dataset_name": dataset_name}):
-            res = (
-                query_lomas(
-                    "/w/get_remaining_budget",
-                    httpx2.post,
-                    headers={LomasHeaders.APIKEY: TEST_APIKEY, LomasHeaders.FORUSER: user_name},
-                    json={"dataset_name": dataset_name},
-                )
-                .map(RemainingBudgetResponse.model_validate)
-                .map(lambda resp: (resp.remaining_epsilon, resp.remaining_delta))
-            )
+            res = query_lomas(
+                "/w/get_remaining_budget",
+                httpx2.post,
+                headers={LomasHeaders.APIKEY: TEST_APIKEY, LomasHeaders.FORUSER: user_name},
+                json={"dataset_name": dataset_name},
+            ).map(Budget.model_validate)
             return unsafe_perform_io(res.value_or(None))
 
         case ("get_dataset_metadata", {"dataset_name": dataset_name}):
@@ -86,30 +81,6 @@ def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
             res = query_lomas(
                 f"/w/users/{user_name}", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY}
             ).map(User.model_validate)
-            return unsafe_perform_io(res.value_or(None))
-
-        case (
-            "update_budget",
-            {
-                "user_name": user_name,
-                "dataset_name": dataset_name,
-                "spent_epsilon": spent_epsilon,
-                "spent_delta": spent_delta,
-            },
-        ):
-            # Should we change handle query to: not update the budget, packit in the server JobResultResponse
-            # and server will handle atomic budget update (and check) ?
-            budgetReq = LomasBudgetRequest(
-                dataset_name=dataset_name,
-                epsilon=spent_epsilon,
-                delta=spent_delta,
-            )
-            res = query_lomas(
-                f"/w/users/{user_name}/dataset/budget",
-                httpx2.put,
-                headers={LomasHeaders.APIKEY: TEST_APIKEY},
-                json=budgetReq.model_dump(),
-            )
             return unsafe_perform_io(res.value_or(None))
 
         case _:

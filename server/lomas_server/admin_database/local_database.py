@@ -37,7 +37,7 @@ from lomas_core.models.constants import (
     QueryTypes,
     get_lomas_logger,
 )
-from lomas_core.models.responses import Job
+from lomas_core.models.responses import Budget, Job
 from lomas_server.admin_database.admin_database import (
     AdminDatabase,
 )
@@ -47,7 +47,6 @@ from lomas_server.utils.metrics import (
     ADMINDB_ERROR_COUNTER,
     ADMINDB_INSERT_COUNTER,
     ADMINDB_QUERY_COUNTER,
-    ADMINDB_UPDATE_COUNTER,
 )
 from lomas_server.utils.span import db_span
 
@@ -470,10 +469,10 @@ class LocalAdminDatabase(AdminDatabase):
                 raise KeyError(f"No user with name {user.id.name}")
 
     @db_span("db.add_dataset_to_user", table="admin-db")
-    def add_dataset_to_user(self, username: str, dataset_name: str, epsilon: float, delta: float) -> None:
+    def add_dataset_to_user(self, username: str, dataset_name: str, initial_budget: Budget) -> None:
         ADMINDB_INSERT_COUNTER.add(1, {"operation": "add_dataset_to_user"})
         user = self.get_user(username)
-        ds = DatasetOfUser(dataset_name=dataset_name, initial_epsilon=epsilon, initial_delta=delta)
+        ds = DatasetOfUser(dataset_name=dataset_name, initial_budget=initial_budget)
         user.datasets = user.datasets | {dataset_name: ds}
         self.replace_user(user)
 
@@ -583,28 +582,13 @@ class LocalAdminDatabase(AdminDatabase):
         user = self.get_user(user_name)
         return getattr(user.datasets[dataset_name], parameter)
 
-    @override
-    @db_span("db.update_epsilon_or_delta", table="admin-db")
-    def update_epsilon_or_delta(
-        self,
-        user_name: str,
-        dataset_name: str,
-        parameter: BudgetDBKey,
-        spent_value: float,
-    ) -> None:
-        ADMINDB_UPDATE_COUNTER.add(1, {"operation": "update_epsilon_or_delta"})
-        user = self.get_user(user_name)
-        new_value = getattr(user.datasets[dataset_name], parameter) + spent_value
-        setattr(user.datasets[dataset_name], parameter, new_value)
-        self.replace_user(user)
-
     @db_span("db.set_epsilon_or_delta", table="admin-db")
     def set_epsilon_or_delta(
         self,
         user_name: str,
         dataset_name: str,
         parameter: BudgetDBKey,
-        value: float,
+        value: Budget,
     ) -> None:
         ADMINDB_INSERT_COUNTER.add(1, {"operation": "set_epsilon_or_delta"})
         user = self.get_user(user_name)

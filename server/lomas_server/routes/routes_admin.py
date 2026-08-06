@@ -23,11 +23,9 @@ from lomas_core.models.requests_examples import (
     EXAMPLE_GET_DUMMY_DATASET,
 )
 from lomas_core.models.responses import (
+    Budget,
     DummyDsResponse,
-    InitialBudgetResponse,
     Job,
-    RemainingBudgetResponse,
-    SpentBudgetResponse,
 )
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.local_database import LocalAdminDatabase
@@ -238,7 +236,7 @@ def get_initial_budget(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: LomasRequestModel = example_get_admin_db_data_body,
-) -> InitialBudgetResponse:
+) -> Budget:
     """
     Returns the initial budget for a user and dataset.
 
@@ -259,20 +257,14 @@ def get_initial_budget(
             the user does not have access to the dataset.
     Returns:
         JSONResponse: a JSON object with:
-            - initial_epsilon (float): initial epsilon budget.
-            - initial_delta (float): initial delta budget.
+            - epsilon (float): initial epsilon budget.
+            - delta (float): initial delta budget.
     """
     app = request.app
     admin_database = app.state.admin_database
 
     ensure_dataset_access(user_id, query_json.dataset_name, admin_database)
-
-    (
-        initial_epsilon,
-        initial_delta,
-    ) = admin_database.get_initial_budget(user_id.name, query_json.dataset_name)
-
-    return InitialBudgetResponse(initial_epsilon=initial_epsilon, initial_delta=initial_delta)
+    return admin_database.get_initial_budget(user_id.name, query_json.dataset_name)
 
 
 @router.post(
@@ -284,7 +276,7 @@ def get_total_spent_budget(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: LomasRequestModel = example_get_admin_db_data_body,
-) -> SpentBudgetResponse:
+) -> Budget:
     """
     Returns the spent budget for a user and dataset.
 
@@ -305,20 +297,15 @@ def get_total_spent_budget(
             the user does not have access to the dataset.
     Returns:
         JSONResponse: a JSON object with:
-            - total_spent_epsilon (float): total spent epsilon budget.
-            - total_spent_delta (float): total spent delta budget.
+            - epsilon (float): total spent epsilon budget.
+            - delta (float): total spent delta budget.
     """
     app = request.app
     admin_database = app.state.admin_database
 
     ensure_dataset_access(user_id, query_json.dataset_name, admin_database)
 
-    (
-        total_spent_epsilon,
-        total_spent_delta,
-    ) = admin_database.get_total_spent_budget(user_id.name, query_json.dataset_name)
-
-    return SpentBudgetResponse(total_spent_epsilon=total_spent_epsilon, total_spent_delta=total_spent_delta)
+    return admin_database.get_total_spent_budget(user_id.name, query_json.dataset_name)
 
 
 @router.post(
@@ -330,7 +317,7 @@ def get_remaining_budget(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: LomasRequestModel = example_get_admin_db_data_body,
-) -> RemainingBudgetResponse:
+) -> Budget:
     """
     Returns the remaining budget for a user and dataset.
 
@@ -351,17 +338,15 @@ def get_remaining_budget(
             the user does not have access to the dataset.
     Returns:
         JSONResponse: a JSON object with:
-            - remaining_epsilon (float): remaining epsilon budget.
-            - remaining_delta (float): remaining delta budget.
+            - epsilon (float): remaining epsilon budget.
+            - delta (float): remaining delta budget.
     """
     app = request.app
     admin_database = app.state.admin_database
 
     ensure_dataset_access(user_id, query_json.dataset_name, admin_database)
 
-    rem_epsilon, rem_delta = admin_database.get_remaining_budget(user_id.name, query_json.dataset_name)
-
-    return RemainingBudgetResponse(remaining_epsilon=rem_epsilon, remaining_delta=rem_delta)
+    return admin_database.get_remaining_budget(user_id.name, query_json.dataset_name)
 
 
 @router.post(
@@ -556,7 +541,7 @@ def add_dataset_to_user(
     if not db.does_user_exist(username):
         raise UserNotFoundException(username)
 
-    return db.add_dataset_to_user(username, body.dataset_name, 0.0, 0.0)
+    return db.add_dataset_to_user(username, body.dataset_name, Budget.zero())
 
 
 @router.patch("/users/{username}/dataset/del", responses=API_ERROR_RESPONSES)
@@ -586,8 +571,9 @@ def set_epsilon_delta(
     if not db.does_user_exist(username):
         raise UserNotFoundException(username)
 
-    db.set_epsilon_or_delta(username, body.dataset_name, BudgetDBKey.EPSILON_INIT, body.epsilon)
-    db.set_epsilon_or_delta(username, body.dataset_name, BudgetDBKey.DELTA_INIT, body.delta)
+    db.set_epsilon_or_delta(
+        username, body.dataset_name, BudgetDBKey.INITIAL, Budget(epsilon=body.epsilon, delta=body.delta)
+    )
 
 
 @router.get("/users/{username}/archive", responses=API_ERROR_RESPONSES)

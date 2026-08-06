@@ -31,16 +31,13 @@ from lomas_core.models.requests_examples import (
     QUERY_EPSILON,
 )
 from lomas_core.models.responses import (
+    Budget,
     DummyDsResponse,
-    InitialBudgetResponse,
     QueryResponse,
-    RemainingBudgetResponse,
-    SpentBudgetResponse,
 )
 from lomas_server.app import app
 from lomas_server.tests.test_api_root import (
-    INITAL_EPSILON,
-    INITIAL_DELTA,
+    INITIAL_BUDGET,
     TestSetupRootAPIEndpoint,
 )
 from lomas_server.tests.utils import submit_job_wait
@@ -236,9 +233,8 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             response = client.post("/get_initial_budget", json=EXAMPLE_GET_ADMIN_DB_DATA)
             assert response.status_code == status.HTTP_200_OK
 
-            response_model = InitialBudgetResponse.model_validate(response.json())
-            assert response_model.initial_epsilon == 50.0
-            assert response_model.initial_delta == INITIAL_DELTA
+            response_model = Budget.model_validate(response.json())
+            assert response_model == Budget(epsilon=50.0, delta=INITIAL_BUDGET.delta)
 
             # Query to spend budget
             submit_job_wait(client, "/opendp_query", json=EXAMPLE_OPENDP_POLARS_PLAN)
@@ -258,9 +254,8 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = response.json()
-            response_model = SpentBudgetResponse.model_validate(response_dict)
-            assert response_model.total_spent_epsilon == 0
-            assert response_model.total_spent_delta == 0
+            response_model = Budget.model_validate(response_dict)
+            assert response_model == Budget.zero()
 
             # Query to spend budget
             submit_job_wait(client, "/opendp_query", json=EXAMPLE_OPENDP_POLARS_PLAN)
@@ -272,11 +267,11 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = response_2.json()
-            response_model_2 = SpentBudgetResponse.model_validate(response_dict_2)
+            response_model_2 = Budget.model_validate(response_dict_2)
 
             assert response_dict_2 != response_dict
-            assert response_model_2.total_spent_epsilon == QUERY_EPSILON
-            assert response_model_2.total_spent_delta >= QUERY_DELTA
+            assert response_model_2.epsilon == QUERY_EPSILON
+            assert response_model_2.delta >= QUERY_DELTA
 
     def test_get_remaining_budget(self) -> None:
         """Test_get_remaining_budget."""
@@ -288,10 +283,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = response.json()
-            response_model = RemainingBudgetResponse.model_validate(response_dict)
+            response_model = Budget.model_validate(response_dict)
 
-            assert response_model.remaining_epsilon == INITAL_EPSILON
-            assert response_model.remaining_delta == INITIAL_DELTA
+            assert response_model == INITIAL_BUDGET
 
             # Query to spend budget
             submit_job_wait(client, "/opendp_query", json=EXAMPLE_OPENDP_POLARS_PLAN)
@@ -303,10 +297,10 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = response_2.json()
-            response_model_2 = RemainingBudgetResponse.model_validate(response_dict_2)
-            assert response_dict_2 != response_dict
-            assert response_model_2.remaining_epsilon == INITAL_EPSILON - QUERY_EPSILON
-            assert response_model_2.remaining_delta <= INITIAL_DELTA - QUERY_DELTA
+            response_model_2 = Budget.model_validate(response_dict_2)
+            assert response_model_2 == pytest.approx(
+                INITIAL_BUDGET - Budget(epsilon=QUERY_EPSILON, delta=QUERY_DELTA)
+            )
 
     def test_get_previous_queries(self) -> None:
         """Test_get_previous_queries."""

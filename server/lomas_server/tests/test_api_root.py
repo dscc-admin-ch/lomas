@@ -5,10 +5,10 @@ from pathlib import Path
 from opendp.mod import enable_features
 
 from lomas_core.models.constants import AuthenticationType
+from lomas_core.models.responses import Budget
 from lomas_server.models.config import Config
 
-INITAL_EPSILON = 10
-INITIAL_DELTA = 0.005
+INITIAL_BUDGET = Budget(epsilon=10, delta=0.005)
 
 enable_features("idealized-numerics")
 

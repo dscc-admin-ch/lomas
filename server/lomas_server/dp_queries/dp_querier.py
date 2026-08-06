@@ -5,6 +5,7 @@ from aio_pika.patterns.rpc import Proxy
 
 from lomas_core.exceptions import (
     InvalidQueryException,
+    UnauthorizedAccessException,
 )
 from lomas_core.models.requests import (
     LomasRequestModel,
@@ -95,11 +96,11 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                 - spent_epsilon (float): The amount of epsilon budget spent for the query.
                 - spent_delta (float): The amount of delta budget spent for the query.
         """
-        # Block access to other queries to user
-        # if not self.admin_database.get_and_set_may_user_query(user_name=user_name, may_query=False):
-        #     raise UnauthorizedAccessException(
-        #         f"User {user_name} is trying to query before end of previous query."
-        #     )
+        # Don't even start with costs/budget calculation if another query is running
+        if not self.admin_database.get_user(user_name=user_name).may_query:
+            raise UnauthorizedAccessException(
+                f"User {user_name} is trying to query before end of previous query."
+            )
 
         try:
             # Get cost of the query
@@ -118,6 +119,8 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                     "Not enough budget for this query epsilon remaining "
                     f"{eps_remain}, delta remaining {delta_remain}."
                 )
+
+            # TODO:~= start transaction here / lock may_query ?
 
             # Query
             query_result = self.query(query_json)

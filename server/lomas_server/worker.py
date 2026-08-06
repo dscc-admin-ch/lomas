@@ -17,6 +17,7 @@ from lomas_core.exceptions import InternalServerException
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.collections import (
     DSInfo,
+    User,
 )
 from lomas_core.models.constants import JobStatus, LomasHeaders, get_lomas_logger, init_logging
 from lomas_core.models.requests import (
@@ -80,9 +81,12 @@ def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
             ).map(DSInfo.model_validate)
             return unsafe_perform_io(res.value_or(None))
 
-        case ("get_and_set_may_user_query" | "set_may_user_query", _):
+        case ("get_user", {"user_name": user_name}):
             # TODO: should this mechanic be changed ? do we even want to attempt Semaphore over network ?
-            return True
+            res = query_lomas(
+                f"/w/users/{user_name}", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY}
+            ).map(User.model_validate)
+            return unsafe_perform_io(res.value_or(None))
 
         case (
             "update_budget",

@@ -9,7 +9,7 @@ from lomas_core.exceptions import (
     DatasetNotFoundException,
     JobNotFoundException,
 )
-from lomas_core.models.collections import DSInfo, UserId
+from lomas_core.models.collections import DSInfo, User, UserId
 from lomas_core.models.constants import (
     JobStatus,
     LomasHeaders,
@@ -67,6 +67,16 @@ async def get_next_pending(
     admin_database.update_job(update_job)
 
     return next_pending
+
+
+@router.get("/users/{username}")
+def get_user_w(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_api_key)],
+    username: str,
+) -> User:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.get_user(username)
 
 
 @router.put("/users/{username}/dataset/budget")

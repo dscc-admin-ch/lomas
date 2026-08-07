@@ -97,8 +97,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                 - spent_delta (float): The amount of delta budget spent for the query.
         """
         # Get cost of the query
-        eps_cost, delta_cost = self.cost(query_json)
-        query_cost = Budget(epsilon=eps_cost, delta=delta_cost)
+        query_cost = self.cost(query_json)
 
         # Check that enough budget to do the query
         # Note: This is only to create an early failure if budget is not enough to start with.
@@ -108,10 +107,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
         )
 
         if not (query_cost <= rem_budget):
-            raise InvalidQueryException(
-                "Not enough budget for this query epsilon remaining "
-                f"{eps_remain}, delta remaining {delta_remain}."
-            )
+            raise InvalidQueryException(f"Not enough budget for this query epsilon remaining {rem_budget}")
 
         # Query
         query_result = self.query(query_json)

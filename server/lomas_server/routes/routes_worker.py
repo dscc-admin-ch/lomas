@@ -33,59 +33,54 @@ router = APIRouter(
 
 def set_query_result(admin_database: LocalAdminDatabase, job_update: Job) -> None:
     with admin_database.get_db_conn() as conn:
+        job = admin_database.get_job(job_update.uid, conn)
+
+        if not job.status == JobStatus.IN_PROGRESS:
+            raise InvalidQueryException(f"Job with uid {job_update.uid} not in progress anymore")
+
         try:
-            job = admin_database.get_job(job_update.uid, conn)
+            # Make sure job did not fail
+            if job_update.status == JobStatus.FAILED:
+                return  # Finally still runs!
 
-            if not job.status == JobStatus.IN_PROGRESS:
-                raise InvalidQueryException(f"Job with uid {job_update.uid} not in progress anymore")
+            # Validate budget
+            user = admin_database.get_user(job.requested_by, conn)
 
-            try:
-                # Make sure job did not fail
-                if job_update.status == JobStatus.FAILED:
-                    return  # Finally still runs!
+            dataset_of_user = user.datasets[job.dataset_name]
+            remaining_budget = dataset_of_user.initial_budget - dataset_of_user.total_spent_budget
 
-                # Validate budget
-                user = admin_database.get_user(job.requested_by, conn)
+            if job_update.result is None:
+                raise InternalServerException(f"Job result for job {job_update.uid} is None.")
 
-                dataset_of_user = user.datasets[job.dataset_name]
-                remaining_budget = dataset_of_user.initial_budget - dataset_of_user.total_spent_budget
+            job_budget = Budget(epsilon=job_update.result.epsilon, delta=job_update.result.delta)
 
-                if job_update.result is None:
-                    raise InternalServerException(f"Job result for job {job_update.uid} is None.")
+            if not (job_budget <= remaining_budget):
+                raise InvalidQueryException(
+                    f"Not enough budget for this query. Requested: {job_budget} remaining: {remaining_budget}."
+                )
 
-                job_budget = Budget(epsilon=job_update.result.epsilon, delta=job_update.result.delta)
+            # Store updated budget
+            dataset_of_user.total_spent_budget += job_budget
+            admin_database.replace_user(user, conn)
 
-                if not (job_budget <= remaining_budget):
-                    raise InvalidQueryException(
-                        f"Not enough budget for this query. Requested: {job_budget} remaining: {remaining_budget}."
-                    )
+            # Store job
+            admin_database.update_job(job_update, conn)
 
-                # Store updated budget
-                dataset_of_user.total_spent_budget += job_budget
-                admin_database.replace_user(user, conn)
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            # If anything goes bad, just fail the job
 
-                # Store job
-                admin_database.update_job(job_update, conn)
+            error_model, status_code = model_from_lomas_exception(exc)
 
-            except Exception as exc:  # pylint: disable=broad-exception-caught
-                # If anything goes bad, just fail the job
+            job_update.error = error_model
+            job_update.status_code = status_code
+            job_update.status = JobStatus.FAILED
 
-                error_model, status_code = model_from_lomas_exception(exc)
+            raise exc
+        finally:
+            # Always update job
+            admin_database.update_job(job_update, conn)
 
-                job_update.error = error_model
-                job_update.status_code = status_code
-                job_update.status = JobStatus.FAILED
-
-                raise exc
-            finally:
-                # Always update job
-                admin_database.update_job(job_update, conn)
-
-            return
-
-        except Exception as e:
-            conn.rollback()
-            raise e
+        return
 
 
 @router.put("/job")

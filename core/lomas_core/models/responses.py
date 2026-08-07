@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 from uuid import UUID, uuid4
 
 import pandas as pd
@@ -77,21 +77,21 @@ class Budget(ResponseModel):
     """The delta cost of the query."""
 
     @classmethod
-    def zero(cls):
+    def zero(cls) -> Self:
         return cls(epsilon=0.0, delta=0.0)
 
-    def __add__(self, other):
+    def __add__(self, other: Self) -> Self:
         return Budget(epsilon=(self.epsilon + other.epsilon), delta=(self.delta + other.delta))
 
-    def __sub__(self, other):
+    def __sub__(self, other: Self) -> Self:
         return Budget(epsilon=(self.epsilon - other.epsilon), delta=(self.delta - other.delta))
 
     # Partial Ordering
-    def __lt__(self, other):
+    def __lt__(self, other: Self) -> bool:
         return self.epsilon < other.epsilon and self.delta < other.delta
 
     # this is not the same as a < b and a == b !
-    def __le__(self, other):
+    def __le__(self, other: Self) -> bool:
         return self.epsilon <= other.epsilon and self.delta <= other.delta
 
 

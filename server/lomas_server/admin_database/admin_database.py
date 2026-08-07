@@ -132,7 +132,7 @@ class AdminDatabase(ABC):
         """
 
     @abstractmethod
-    def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> float:
+    def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> Budget:
         """
         Get the total spent epsilon or delta by user on dataset.
 
@@ -213,8 +213,8 @@ class AdminDatabase(ABC):
             spent_epsilon (float): value of epsilon spent on last query
             spent_delta (float): value of delta spent on last query
         """
-        self.update_epsilon(user_name, dataset_name, spent_epsilon)
-        self.update_delta(user_name, dataset_name, spent_delta)
+        # FIXME
+        return
 
     @abstractmethod
     def get_dataset(self, dataset_name: str) -> DSInfo:

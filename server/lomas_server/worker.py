@@ -118,13 +118,16 @@ def handle_query(config: Config, admin_database: Proxy, job: Job) -> Job:
 
         match query_model:
             case CostQueryModel():
-                eps_cost, delta_cost = dp_querier.cost(query_model)
-                query_response = CostResponse(epsilon=eps_cost, delta=delta_cost)
+                budget_cost = dp_querier.cost(query_model)
+                query_response = CostResponse(epsilon=budget_cost.epsilon, delta=budget_cost.delta)
             case DummyQueryModel():
-                eps_cost, delta_cost = dp_querier.cost(query_model)
+                budget_cost = dp_querier.cost(query_model)
                 result = dp_querier.query(query_model)
                 query_response = QueryResponse(
-                    requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost
+                    requested_by=user_name,
+                    result=result,
+                    epsilon=budget_cost.epsilon,
+                    delta=budget_cost.delta,
                 )
             case QueryModel():
                 query_response = dp_querier.handle_query(query_model, user_name)

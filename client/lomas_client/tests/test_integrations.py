@@ -20,7 +20,7 @@ from sklearn.pipeline import Pipeline
 
 from lomas_client import Client
 from lomas_client.constants import DEFAULT_EPSILON
-from lomas_core.exceptions import UserNotFoundException
+from lomas_core.exceptions import LomasAPIException, UserNotFoundException
 from lomas_core.models.responses import Budget, OpenDPPolarsQueryResult
 from lomas_server.administration.dex.dex_admin import (
     add_dex_user,
@@ -91,7 +91,7 @@ def test_oauth2(aria, dex_config) -> None:
 
     client = aria.as_client()
 
-    with pytest.raises(UserNotFoundException, match=f"User {aria.user_name!r} does not exist."):
+    with pytest.raises(LomasAPIException, match=f"{UserNotFoundException(aria.user_name)!s}"):
         client.get_dataset_metadata()
 
 
@@ -224,18 +224,20 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert cost_zcdp.delta == pytest.approx(1e-6, abs=1e-5)
     assert cost_zcdp.epsilon == pytest.approx(5, 0.5)
 
+    # no budget consumed by costs
+    assert client.get_remaining_budget() == init_budget
+    assert client.get_total_spent_budget() == Budget.zero()
+
     # Dummy Query
     dummy_res = client.opendp.query(plan, dummy=True, epsilon=DEFAULT_EPSILON)
     assert isinstance(dummy_res.result.value, pl.DataFrame)
 
+    # no budget consumed for dummy
+    assert client.get_remaining_budget() == init_budget
+    assert client.get_total_spent_budget() == Budget.zero()
+
     avg_age = dummy_res.result.value.to_pandas().Age[0]
     assert avg_age == pytest.approx(51.5, 0.5)
-
-    rem_budget = client.get_remaining_budget()
-    assert rem_budget.delta == pytest.approx(0.2, rel=0.01)
-    assert rem_budget.epsilon == 45
-    tot_spent = client.get_total_spent_budget()
-    assert tot_spent == Budget.zero()
 
     # True Query
     res = client.opendp.query(plan, epsilon=DEFAULT_EPSILON)

@@ -40,7 +40,14 @@ def submit_job_wait(
 
     if query_job_submit.status_code != status.HTTP_202_ACCEPTED:
         error = LomasAPIErrorModel.model_validate_json(query_job_submit.content)
-        return Job(status=JobStatus.FAILED, status_code=query_job_submit.status_code, error=error)
+        return Job(
+            requested_by="",
+            dataset_name="",
+            query=None,
+            status=JobStatus.FAILED,
+            status_code=query_job_submit.status_code,
+            error=error,
+        )
 
     job_uid = query_job_submit.json()["uid"]
     job = wait_for_job(client, f"/status/{job_uid}", headers=headers)

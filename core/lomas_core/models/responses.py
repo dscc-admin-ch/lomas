@@ -213,7 +213,7 @@ class Job(ResponseModel):
     """Name of the dataset targetted by this job."""
     status: JobStatus = JobStatus.PENDING
     """Job status."""
-    query: AnyLomasRequest
+    query: AnyLomasRequest | None
     """Job query."""
     result: AnyLomasQueryResponse | None = None
     """Job result, if available."""

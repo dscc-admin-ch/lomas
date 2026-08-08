@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 import json
 import shelve
 import sqlite3
@@ -299,13 +298,12 @@ class LocalAdminDatabase(AdminDatabase):
                 conn.execute(
                     "INSERT INTO jobs "
                     "(uid, user_name, dataset_name, status, started_at, job_json) "
-                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    "VALUES (?, ?, ?, ?, 'now', ?)",
                     (
                         str(job.uid),
                         job.requested_by,
                         job.dataset_name,
                         job.status,
-                        datetime.datetime.now(datetime.UTC),
                         job.model_dump_json(),
                     ),
                 )
@@ -358,13 +356,12 @@ class LocalAdminDatabase(AdminDatabase):
                 conn.execute(
                     "INSERT OR REPLACE INTO archives "
                     "(uid, user_name, dataset_name, status, archived_at, job_json) "
-                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    "VALUES (?, ?, ?, ?, 'now', ?)",
                     (
                         str(job.uid),
                         job.requested_by,
                         job.dataset_name,
                         job.status,
-                        datetime.datetime.now(datetime.UTC),
                         job.model_dump_json(),
                     ),
                 )

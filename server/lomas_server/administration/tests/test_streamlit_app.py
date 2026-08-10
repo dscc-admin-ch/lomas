@@ -11,11 +11,11 @@ from streamlit.testing.v1 import AppTest
 from lomas_core.models.collections import User, UserId
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
-from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import app
 from lomas_server.models.config import Config
 from lomas_server.tests.utils import free_pass_env
+from lomas_server.utils.query import query_lomas
 
 test_data_folder = (Path(__file__).parent / "../../tests/test_data").resolve()
 

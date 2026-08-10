@@ -7,7 +7,8 @@ from returns.pipeline import flow
 from returns.pointfree import alt, bind_result, lash, map_
 from returns.result import Failure, Success
 
-from lomas_server.administration.dashboard.utils import get_config, query_lomas_auth, recover_if_410
+from lomas_server.administration.dashboard.utils import query_lomas_auth
+from lomas_server.utils.query import get_config, recover_if_410
 
 
 def main() -> None:

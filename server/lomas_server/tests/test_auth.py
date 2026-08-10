@@ -16,11 +16,11 @@ from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error
 from lomas_core.exceptions import LomasAPIException, UnauthorizedAccessException
 from lomas_core.models.requests_examples import EXAMPLE_GET_ADMIN_DB_DATA
-from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.administration.dex.dex_admin import del_all_dex_users
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import app
 from lomas_server.models.config import AdminConfig, Config
+from lomas_server.utils.query import query_lomas
 
 
 @pytest.fixture

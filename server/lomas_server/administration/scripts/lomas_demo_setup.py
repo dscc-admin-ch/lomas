@@ -13,9 +13,9 @@ from returns.result import Failure
 from rich.pretty import pprint
 
 from lomas_server.admin_database.constants import TopDBKey as TK
-from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.administration.dex.dex_admin import add_dex_users_via_yaml
 from lomas_server.models.config import AdminConfig
+from lomas_server.utils.query import query_lomas
 
 
 class DemoAdminConfig(AdminConfig):

@@ -34,7 +34,6 @@ from lomas_core.models.responses import (
     Job,
     QueryResponse,
 )
-from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.dp_queries.dp_libraries.diffprivlib import DiffPrivLibQuerier
 from lomas_server.dp_queries.dp_libraries.opendp import OpenDPQuerier, set_opendp_features_config
 from lomas_server.dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
@@ -44,6 +43,7 @@ from lomas_server.models.config import Config
 from lomas_server.routes.error_handler import model_from_lomas_exception
 from lomas_server.routes.utils import get_dataset_connector
 from lomas_server.utils.notify import notify
+from lomas_server.utils.query import query_lomas
 
 logger = get_lomas_logger(__name__)
 

@@ -18,17 +18,14 @@ from lomas_core.models.constants import PrivateDatabaseType
 from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
 from lomas_server.admin_database.constants import TopDBKey as TK
 from lomas_server.administration.dashboard.utils import (
-    call_if_dex,
     confirm_delete,
     ensure_user_has_datasets,
     find_user,
-    get_config,
     get_datasets,
     get_user_df,
     get_users,
     list_users,
     query_lomas_auth,
-    recover_if_410,
 )
 from lomas_server.administration.dex.dex_admin import (
     add_dex_user,
@@ -36,6 +33,7 @@ from lomas_server.administration.dex.dex_admin import (
     del_all_dex_users,
     del_dex_user,
 )
+from lomas_server.utils.query import call_if_dex, get_config, recover_if_410
 
 EPSILON_LIMIT = 500.0
 EPSILON_STEP = 0.01

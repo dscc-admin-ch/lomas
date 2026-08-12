@@ -16,7 +16,7 @@ from lomas_core.models.constants import (
     JobStatus,
     LomasHeaders,
 )
-from lomas_core.models.requests import LomasRequestModel, QueryModel
+from lomas_core.models.requests import DummyQueryModel, LomasRequestModel, QueryModel
 from lomas_core.models.responses import Budget, Job
 from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES, model_from_lomas_exception
@@ -95,6 +95,8 @@ def update_job(
         raise JobNotFoundException(job_update.uid)
 
     match job_update.query:
+        case DummyQueryModel():
+            admin_database.update_job(job_update)
         case QueryModel():
             print("adjust cost and more")
             set_query_result(admin_database, job_update)

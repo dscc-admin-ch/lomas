@@ -114,7 +114,9 @@ def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> N
         level (str): Log level for the root logger.
         lomas_level (str): Log level for the parent logger.
     """
-    console = Console(width=200, force_terminal=True)
+    console = Console(force_terminal=True)
+    if console.width <= 80:
+        console.width = 135
     logging.basicConfig(
         format="%(message)s - %(name)s",
         datefmt="[%H:%M:%S]",

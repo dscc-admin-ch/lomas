@@ -103,7 +103,9 @@ class FilterOutLiveSuccess:
                 return True
 
 
-def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> None:
+def init_logging(
+    name: str, level: str = "INFO", lomas_level: str = "INFO", console: Console | None = None
+) -> None:
     """Sets basic logging config to level and creates a logger named after name with log level lomas_level.
 
     This function is meant to set a parent logger for the lomas_* module with a different
@@ -114,9 +116,10 @@ def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> N
         level (str): Log level for the root logger.
         lomas_level (str): Log level for the parent logger.
     """
-    console = Console(force_terminal=True)
-    if console.width <= 80:
-        console.width = 135
+    if console is None:
+        console = Console(force_terminal=True)
+        if console.width <= 80:
+            console.width = 135
     logging.basicConfig(
         format="%(message)s - %(name)s",
         datefmt="[%H:%M:%S]",
@@ -126,6 +129,7 @@ def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> N
         level=level,
     )
     logging.getLogger("httpx2").addFilter(FilterOutLiveSuccess())
+    logging.getLogger("watchfiles.main").setLevel("WARNING")  # too chatty even on INFO
     logging.getLogger(name).setLevel(lomas_level)
 
 

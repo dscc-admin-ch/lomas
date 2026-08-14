@@ -91,6 +91,8 @@ class Config(BaseSettings):
 
     telemetry: Telemetry = Field(default_factory=Telemetry, description=CLI_SUPPRESS)
 
+    tui: bool = Field(default=False, description="Terminal friendly output")
+
     @computed_field
     def database(self) -> AdminDatabase:
         return LocalAdminDatabase(directory=self.database_directory)

@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import functools
 import os
 import signal
@@ -15,6 +16,7 @@ from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from returns.io import IOSuccess
 from returns.unsafe import unsafe_perform_io
+from rich.progress import BarColumn, Progress, SpinnerColumn, TimeElapsedColumn
 from watchfiles import awatch
 
 from lomas_core.exceptions import InternalServerException
@@ -53,6 +55,17 @@ logger = get_lomas_logger(__name__)
 
 # TODO: deployment key & fun
 TEST_APIKEY = "worker-api-key"
+
+job_progress = Progress(
+    "[turquoise2]{task.description}",
+    "[pink1]{task.fields[job].query.library}",
+    "[khaki1]{task.fields[job].query.request_type}",
+    "[plum2]{task.fields[requested_by]}",
+    "[light_green]{task.fields[dataset_name]}",
+    SpinnerColumn(),
+    BarColumn(),
+    TimeElapsedColumn(),
+)
 
 
 def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
@@ -157,27 +170,39 @@ def handle_query(config: Config, admin_database: Proxy, job: Job) -> Job:
 
 async def process_message(config: Config) -> None:
     """General Job processing loop."""
-    while True:
-        await asyncio.sleep(2)
+    with job_progress if config.tui else contextlib.nullcontext():
+        while True:
+            await asyncio.sleep(2)
 
-        res = query_lomas("/w/job/pending", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY})
-        if res == IOSuccess(None):
-            logger.debug("No pending Jobs - Waiting")
-        else:
-            job = unsafe_perform_io(res.map(Job.model_validate).value_or(None))
-            if job is None:
-                continue
+            res = query_lomas("/w/job/pending", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY})
+            if res == IOSuccess(None):
+                logger.debug("No pending Jobs - Waiting")
+            else:
+                job = unsafe_perform_io(res.map(Job.model_validate).value_or(None))
+                if job is None:
+                    continue
 
-            job_done = handle_query(config, Proxy(admin_database_proxy), job)
+                task = job_progress.add_task(
+                    f"{job.uid}",
+                    total=1,
+                    requested_by=job.requested_by,
+                    dataset_name=job.dataset_name,
+                    job=job,
+                )
 
-            res = query_lomas(
-                "/w/job",
-                httpx2.put,
-                headers={LomasHeaders.APIKEY: TEST_APIKEY},
-                json=job_done.model_dump(
-                    exclude_unset=True, mode="json"
-                ),  # Requires json mode to make UUID (not json serializable) into str.
-            )
+                job_done = handle_query(config, Proxy(admin_database_proxy), job)
+                job_progress.update(task, completed=1)
+                if job_done.status == JobStatus.FAILED:
+                    job_progress.update(task, description="[red]FAILED")
+
+                res = query_lomas(
+                    "/w/job",
+                    httpx2.put,
+                    headers={LomasHeaders.APIKEY: TEST_APIKEY},
+                    json=job_done.model_dump(
+                        exclude_unset=True, mode="json"
+                    ),  # Requires json mode to make UUID (not json serializable) into str.
+                )
 
 
 class TerminateTaskGroup(Exception):
@@ -247,8 +272,12 @@ def run(config: Config | None = None) -> None:
     """Start the Worker loop."""
     if config is None:
         config = Config()
+
     init_logging(
-        name="lomas_server", level=config.server.log_level, lomas_level=config.server.lomas_log_level
+        name="lomas_server",
+        level=config.server.log_level,
+        lomas_level=config.server.lomas_log_level,
+        console=job_progress.console if config.tui else None,
     )
 
     set_opendp_features_config(config.opendp_features)

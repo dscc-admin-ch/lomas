@@ -181,13 +181,17 @@
                           datasets = {
                             FSO_INCOME_SYNTHETIC = {
                               dataset_name = "FSO_INCOME_SYNTHETIC";
-                              initial_epsilon = 50;
-                              initial_delta = 1;
+                              initial_budget = {
+                                epsilon = 50;
+                                delta = 1;
+                              };
                             };
                             penguin = {
                               dataset_name = "penguin";
-                              initial_epsilon = 500;
-                              initial_delta = 10;
+                              initial_budget = {
+                                epsilon = 500;
+                                delta = 10;
+                              };
                             };
                           };
                         }) userParralel.max;
@@ -205,6 +209,8 @@
                                 url = "https://raw.githubusercontent.com/dscc-admin-ch/lomas/refs/heads/master/server/data/datasets/income_synthetic_data.csv";
                                 hash = "sha256-I8b0qYsQfZR7UwM7k7pa97qFuyeV4haqjISUQvGR/+w=";
                               };
+                              # When github is down ...
+                              # path = ../server/lomas_server/tests/test_data/income_synthetic_data.csv;
                             };
                             metadata_access = {
                               database_type = "PATH_DB";

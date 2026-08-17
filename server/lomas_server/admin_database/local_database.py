@@ -2,13 +2,12 @@ import asyncio
 import json
 import shelve
 import sqlite3
-import sys
 from collections.abc import Callable, Generator
 from contextlib import AbstractContextManager, closing, contextmanager, nullcontext
 from functools import wraps
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
-from typing import Any, BinaryIO, Concatenate, ParamSpec, TypeVar
+from typing import Any, BinaryIO, Concatenate, ParamSpec, TypeVar, override
 from uuid import UUID
 
 import boto3
@@ -49,12 +48,6 @@ from lomas_server.utils.metrics import (
 )
 from lomas_server.utils.span import db_span
 
-if sys.version_info >= (3, 12):
-    from typing import override
-else:
-    from typing_extensions import override
-
-
 logger = get_lomas_logger(__name__)
 
 P = ParamSpec("P")
@@ -62,7 +55,9 @@ T = TypeVar("T")
 DB = TypeVar("DB", bound="LocalAdminDatabase")
 
 
-def with_lock(fn: Callable[Concatenate[DB, P], T]) -> Callable[Concatenate[DB, P], T]:
+def with_lock[DB: "LocalAdminDatabase", **P, T](
+    fn: Callable[Concatenate[DB, P], T],
+) -> Callable[Concatenate[DB, P], T]:
     @wraps(fn)
     def wrapper(self: DB, *args: P.args, **kwargs: P.kwargs) -> T:
         with self.lock:

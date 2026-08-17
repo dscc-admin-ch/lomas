@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from aio_pika.patterns.rpc import Proxy
 
@@ -22,7 +22,11 @@ QueryModelGeneric = TypeVar("QueryModelGeneric", bound=QueryModel)
 QueryResultGeneric = TypeVar("QueryResultGeneric", bound=QueryResultT)
 
 
-class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResultGeneric]):
+class DPQuerier[
+    RequestModelGeneric: LomasRequestModel,
+    QueryModelGeneric: QueryModel,
+    QueryResultGeneric: QueryResultT,
+](ABC):
     """
     Abstract Base Class for Queriers to external DP library.
 

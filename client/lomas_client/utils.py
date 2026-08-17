@@ -50,7 +50,7 @@ def validate_model_response_direct(response: requests.Response, response_model: 
 ResponseT = TypeVar("ResponseT", bound=ResponseModel)
 
 
-def validate_model_response(
+def validate_model_response[ResponseT: ResponseModel](
     client: LomasHttpClient, response: requests.Response, response_model: type[ResponseT]
 ) -> ResponseT:
     """Validate and process a HTTP response.

@@ -1,4 +1,4 @@
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol
 
 import opendp.prelude as dp
 import pandas as pd
@@ -30,9 +30,6 @@ class Bound(Protocol):
 
     def __lt__(self, other: "Bound") -> bool: ...
     def __gt__(self, other: "Bound") -> bool: ...
-
-
-T = TypeVar("T", bound=Bound)  # Type variable for values that can be compared (e.g. int, float, datetime).
 
 
 class Client:
@@ -98,7 +95,7 @@ class Client:
             available = [col[COL_NAME] for col in self.metadata[TABLE_SCHEMA][COL_LIST]]
             raise ValueError(f"Column '{column_name}' not found. Available columns: {available}") from err
 
-    def get_column_bounds(self, column_name: str) -> tuple[T, T]:
+    def get_column_bounds[T: Bound](self, column_name: str) -> tuple[T, T]:
         """This function retrieves metadata  bounds for the column.
 
         Returns: A tuple of (minimum_bound, maximum_bound)

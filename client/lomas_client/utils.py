@@ -1,5 +1,5 @@
 from json import JSONDecodeError
-from typing import Any, NoReturn, TypeVar
+from typing import Any, NoReturn
 
 import httpx2
 import requests
@@ -45,9 +45,6 @@ def validate_model_response_direct(response: requests.Response, response_model: 
         return r_model
 
     raise_error(response)
-
-
-ResponseT = TypeVar("ResponseT", bound=ResponseModel)
 
 
 def validate_model_response[ResponseT: ResponseModel](

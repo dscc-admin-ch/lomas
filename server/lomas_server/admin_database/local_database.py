@@ -7,7 +7,7 @@ from contextlib import AbstractContextManager, closing, contextmanager, nullcont
 from functools import wraps
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
-from typing import Any, BinaryIO, Concatenate, ParamSpec, TypeVar, override
+from typing import Any, BinaryIO, Concatenate, override
 from uuid import UUID
 
 import boto3
@@ -50,12 +50,8 @@ from lomas_server.utils.span import db_span
 
 logger = get_lomas_logger(__name__)
 
-P = ParamSpec("P")
-T = TypeVar("T")
-DB = TypeVar("DB", bound="LocalAdminDatabase")
 
-
-def with_lock[DB: "LocalAdminDatabase", **P, T](
+def with_lock[DB: LocalAdminDatabase, **P, T](
     fn: Callable[Concatenate[DB, P], T],
 ) -> Callable[Concatenate[DB, P], T]:
     @wraps(fn)

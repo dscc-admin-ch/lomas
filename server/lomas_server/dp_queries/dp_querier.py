@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar
 
 from aio_pika.patterns.rpc import Proxy
 
@@ -16,10 +15,6 @@ from lomas_core.models.responses import (
     QueryResultT,
 )
 from lomas_server.data_connector.data_connector import DataConnector
-
-RequestModelGeneric = TypeVar("RequestModelGeneric", bound=LomasRequestModel)
-QueryModelGeneric = TypeVar("QueryModelGeneric", bound=QueryModel)
-QueryResultGeneric = TypeVar("QueryResultGeneric", bound=QueryResultT)
 
 
 class DPQuerier[

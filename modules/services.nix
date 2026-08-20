@@ -48,7 +48,7 @@
           };
 
           externalUrl = mkOption {
-            default = if cfg.workerOnly then "worker.local" else "http://server:${toString cfg.port}";
+            default = "http://server:${toString cfg.port}";
             description = "Hostname on which Lomas can be found";
             type = types.str;
           };
@@ -200,6 +200,7 @@
           ];
 
           environment = {
+            LOMAS_ADMIN_server_url = cfg.externalUrl;
             LOMAS_SERVICE_authenticator__authentication_type = lib.mkDefault "free_pass";
           };
 

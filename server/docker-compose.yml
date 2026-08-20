@@ -38,6 +38,10 @@ services:
   lomas_worker:
     image: lomas-oci:latest
     container_name: lomas_worker_dev
+    environment:
+      - LOMAS_SERVICE_server__host_port=${LOMAS_SERVICE_PORT}
+      - LOMAS_CLIENT_APP_URL=http://lomas_server:${LOMAS_SERVICE_PORT}
+      - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVICE_PORT}
     restart: always
     command: lomas work
     volumes:

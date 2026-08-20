@@ -272,7 +272,8 @@ class LocalAdminDatabase(AdminDatabase):
 
         with _sqlite_connection(self._db_path) as conn:
             row = conn.execute(
-                "SELECT job_json FROM jobs WHERE status = ?", (str(JobStatus.PENDING),)
+                "SELECT job_json FROM jobs WHERE status = ? ORDER BY RANDOM() LIMIT 1",
+                (str(JobStatus.PENDING),),
             ).fetchone()
 
         if row is None:

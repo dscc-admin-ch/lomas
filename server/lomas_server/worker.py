@@ -171,14 +171,24 @@ def handle_query(config: Config, admin_database: Proxy, job: Job) -> Job:
 
 async def process_message(config: Config) -> None:
     """General Job processing loop."""
-    with job_progress if config.tui else contextlib.nullcontext():
+    with contextlib.ExitStack() as stack:
+        consecutive_sleep = 0
+        status = None
+        if config.tui:
+            status = stack.enter_context(job_progress.console.status("Polling ..."))
+            stack.enter_context(job_progress)
+
         while True:
+            if status is not None:
+                status.update(status=f"Polling ... {consecutive_sleep}")
+            consecutive_sleep += 1
             await asyncio.sleep(2)
 
             res = query_lomas("/w/job/pending", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY})
             match res:
                 case IOSuccess(Success(None)):
-                    logger.debug("No pending Jobs - Waiting")
+                    if not config.tui:
+                        logger.debug("No pending Jobs - Waiting")
                 case IOSuccess(Success(job_json)):
                     job = Job.model_validate(job_json)
 
@@ -203,8 +213,9 @@ async def process_message(config: Config) -> None:
                             exclude_unset=True, mode="json"
                         ),  # Requires json mode to make UUID (not json serializable) into str.
                     )
+                    consecutive_sleep = 0
                 case IOFailure(e):
-                    logger.warn(f"True failure: {e}")
+                    logger.warn(str(e))
 
 
 class TerminateTaskGroup(Exception):

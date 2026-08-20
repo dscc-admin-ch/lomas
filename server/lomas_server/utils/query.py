@@ -18,7 +18,10 @@ def get_config() -> AdminConfig:
 
 
 @impure_safe
-def parse_if_ok(response: httpx2.Response) -> str:
+def parse_if_ok(response: httpx2.Response) -> str | None:
+    # Allow HTTP_204_NO_CONTENT
+    if response.status_code == 204:
+        return None
     return response.raise_for_status().json()
 
 
@@ -34,7 +37,7 @@ def recover_if_410(e: Exception, default: Any = None) -> IOResultE:
 
 def query_lomas(
     endpoint: str, verb: Callable[..., httpx2.Response], **kwargs: dict[str, Any]
-) -> IOResultE[httpx2.Response]:
+) -> IOResultE[str | None]:
     return flow(
         # get/parse our config from environment/files
         get_config(),

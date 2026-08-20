@@ -14,7 +14,8 @@ from csvw_eo.metadata_structure import TableMetadata
 from fastapi import status
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
-from returns.io import IOSuccess
+from returns.io import IOFailure, IOSuccess
+from returns.result import Success
 from returns.unsafe import unsafe_perform_io
 from rich.progress import BarColumn, Progress, SpinnerColumn, TimeElapsedColumn
 from watchfiles import awatch
@@ -175,34 +176,35 @@ async def process_message(config: Config) -> None:
             await asyncio.sleep(2)
 
             res = query_lomas("/w/job/pending", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY})
-            if res == IOSuccess(None):
-                logger.debug("No pending Jobs - Waiting")
-            else:
-                job = unsafe_perform_io(res.map(Job.model_validate).value_or(None))
-                if job is None:
-                    continue
+            match res:
+                case IOSuccess(Success(None)):
+                    logger.debug("No pending Jobs - Waiting")
+                case IOSuccess(Success(job_json)):
+                    job = Job.model_validate(job_json)
 
-                task = job_progress.add_task(
-                    f"{job.uid}",
-                    total=1,
-                    requested_by=job.requested_by,
-                    dataset_name=job.dataset_name,
-                    job=job,
-                )
+                    task_id = job_progress.add_task(
+                        f"{job.uid}",
+                        total=1,
+                        requested_by=job.requested_by,
+                        dataset_name=job.dataset_name,
+                        job=job,
+                    )
 
-                job_done = handle_query(config, Proxy(admin_database_proxy), job)
-                job_progress.update(task, completed=1)
-                if job_done.status == JobStatus.FAILED:
-                    job_progress.update(task, description="[red]FAILED")
+                    job_done = handle_query(config, Proxy(admin_database_proxy), job)
+                    job_progress.update(task_id, completed=1)
+                    if job_done.status == JobStatus.FAILED:
+                        job_progress.update(task_id, description="[red]FAILED")
 
-                res = query_lomas(
-                    "/w/job",
-                    httpx2.put,
-                    headers={LomasHeaders.APIKEY: TEST_APIKEY},
-                    json=job_done.model_dump(
-                        exclude_unset=True, mode="json"
-                    ),  # Requires json mode to make UUID (not json serializable) into str.
-                )
+                    res = query_lomas(
+                        "/w/job",
+                        httpx2.put,
+                        headers={LomasHeaders.APIKEY: TEST_APIKEY},
+                        json=job_done.model_dump(
+                            exclude_unset=True, mode="json"
+                        ),  # Requires json mode to make UUID (not json serializable) into str.
+                    )
+                case IOFailure(e):
+                    logger.warn(f"True failure: {e}")
 
 
 class TerminateTaskGroup(Exception):

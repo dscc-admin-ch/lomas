@@ -2,24 +2,20 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
 from lomas_core.exceptions import InternalServerException
-from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.constants import get_lomas_logger, init_logging
-from lomas_server.dp_queries.dp_libraries.opendp import (
-    set_opendp_features_config,
-)
+from lomas_core.models.constants import get_lomas_logger
 from lomas_server.models.config import Config
-from lomas_server.routes import routes_admin, routes_dp, routes_worker
+from lomas_server.routes import routes_admin, routes_dp, routes_user, routes_worker
 from lomas_server.routes.error_handler import add_exception_handlers
 from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,
     LoggingAndTracingMiddleware,
 )
 from lomas_server.utils.notify import notify
+
+logger = get_lomas_logger(__name__)
 
 
 @asynccontextmanager
@@ -37,25 +33,13 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     """
     # Load Config
     config = Config()
+    lomas_app.state.config = config
 
     # Load admin database
     try:
         # Database
         logger.info("Loading admin database")
-
         lomas_app.state.admin_database = config.database
-        if config.clean_admin_database:
-            logger.warning(
-                "Admin database cleaned at startup. With this option, server restarts will wipe the database!"
-            )
-            lomas_app.state.admin_database.database.wipe()
-
-        # Bootstrap
-        if not config.database.get_bootstrap_disabled():
-            logger.info("Setting bootstrap credentials.")
-            config.database.set_bootstrap(config.bootstrap)
-        else:
-            logger.warning("Not setting bootstrap credentials because already disabled in the admin database")
 
         # Auth/authz
         logger.info("Loading authenticator")
@@ -66,9 +50,6 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     except InternalServerException as e:
         logger.exception(f"Failed at startup: {e!s}")
 
-    # Set DP Libraries config
-    set_opendp_features_config(config.opendp_features)
-
     notify(b"READY=1")
     try:
         yield  # lomas_app is handling requests
@@ -76,37 +57,43 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
         notify(b"STOPPING=1")
 
 
-# Init config for logging purposes
-initConfig = Config()
+def get_user_app(config: Config) -> FastAPI:
+    # This object holds the server object
+    app = FastAPI(lifespan=lifespan)
 
-init_logging(
-    name="lomas_server", level=initConfig.server.log_level, lomas_level=initConfig.server.lomas_log_level
-)
+    # Setting metrics middleware
+    app.add_middleware(FastAPIMetricMiddleware, app_name=config.telemetry.service_name)
+    app.add_middleware(LoggingAndTracingMiddleware)
 
-logger = get_lomas_logger(__name__)
+    # Add custom exception handlers
+    add_exception_handlers(app)
+
+    # Instrument the FastAPI app
+    FastAPIInstrumentor.instrument_app(app)
+
+    # Add endpoints
+    app.include_router(routes_dp.router)
+    app.include_router(routes_user.router)
+
+    return app
 
 
-# Initalise telemetry
-if initConfig.telemetry.enabled:
-    LoggingInstrumentor().instrument(set_logging_format=True)
-    AioPikaInstrumentor().instrument()
+def get_admin_app(config: Config) -> FastAPI:
+    # This object holds the server object
+    app = FastAPI(lifespan=lifespan)
 
-    init_telemetry(initConfig.telemetry)
+    # Setting metrics middleware
+    app.add_middleware(FastAPIMetricMiddleware, app_name=config.telemetry.service_name)
+    app.add_middleware(LoggingAndTracingMiddleware)
 
-# This object holds the server object
-app = FastAPI(lifespan=lifespan)
+    # Add custom exception handlers
+    add_exception_handlers(app)
 
-# Setting metrics middleware
-app.add_middleware(FastAPIMetricMiddleware, app_name=initConfig.telemetry.service_name)
-app.add_middleware(LoggingAndTracingMiddleware)
+    # Instrument the FastAPI app
+    FastAPIInstrumentor.instrument_app(app)
 
-# Add custom exception handlers
-add_exception_handlers(app)
+    # Add endpoints
+    app.include_router(routes_admin.router)
+    app.include_router(routes_worker.router)
 
-# Instrument the FastAPI app
-FastAPIInstrumentor.instrument_app(app)
-
-# Add endpoints
-app.include_router(routes_dp.router)
-app.include_router(routes_admin.router)
-app.include_router(routes_worker.router)
+    return app

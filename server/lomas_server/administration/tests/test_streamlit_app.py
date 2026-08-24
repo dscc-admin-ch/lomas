@@ -12,7 +12,7 @@ from lomas_core.models.collections import User, UserId
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
-from lomas_server.app import app
+from lomas_server.app import get_admin_app
 from lomas_server.models.config import Config
 from lomas_server.tests.utils import free_pass_env
 from lomas_server.utils.query import query_lomas
@@ -52,7 +52,7 @@ def client() -> TestClient:
     # we need to be admin from there on
     user_name = "lomas_admin"
     headers = {"Authorization": f"Bearer {user_name}"}
-    with free_pass_env(), TestClient(app, headers=headers) as client:
+    with free_pass_env(), TestClient(get_admin_app(Config()), headers=headers) as client:
         yield client
 
 

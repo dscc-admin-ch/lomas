@@ -165,7 +165,7 @@ in
           # mutually exclusive probes in process-compose
           http.get = mkIf false {
             inherit (cfg) host;
-            port = lib.toInt config.ports.lomas.apiService;
+            port = lib.toInt config.ports.lomas.userApiService;
             path = "/live";
           };
           failure_threshold = if (config.env.LOMAS_SERVICE_server__reload == "true") then 100 else 3;

@@ -35,7 +35,7 @@ from lomas_core.models.responses import (
     DummyDsResponse,
     QueryResponse,
 )
-from lomas_server.app import app
+from lomas_server.app import get_user_app
 from lomas_server.tests.test_api_root import (
     INITIAL_BUDGET,
     TestSetupRootAPIEndpoint,
@@ -48,7 +48,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_root(self) -> None:
         """Test root endpoint redirection to state endpoint."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             response_root = client.get("/")
             response_state = client.get("/state")
             assert response_root.status_code == response_state.status_code
@@ -56,23 +56,23 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_notify(self) -> None:
         os.environ["NOTIFY_SOCKET"] = ""
-        with TestClient(app, headers=self.headers):
+        with TestClient(get_user_app(self.config), headers=self.headers):
             pass
 
         del os.environ["NOTIFY_SOCKET"]
-        with TestClient(app, headers=self.headers):
+        with TestClient(get_user_app(self.config), headers=self.headers):
             pass
 
         os.environ["NOTIFY_SOCKET"] = "invalidSocket"
         with pytest.raises(OSError):
-            with TestClient(app, headers=self.headers):
+            with TestClient(get_user_app(self.config), headers=self.headers):
                 pass
 
         os.environ["NOTIFY_SOCKET"] = "/tmp/valid.sock"
         Path(os.environ["NOTIFY_SOCKET"]).unlink(missing_ok=True)
         with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM | socket.SOCK_CLOEXEC) as sock:
             sock.bind(os.environ["NOTIFY_SOCKET"])
-            with TestClient(app, headers=self.headers):
+            with TestClient(get_user_app(self.config), headers=self.headers):
                 pass
 
         # cleanup
@@ -80,21 +80,21 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_state(self) -> None:
         """Test state endpoint."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             response = client.get("/live")
             assert response.status_code == status.HTTP_200_OK
             assert response.json() == {"status": "alive"}
 
     def test_unknown_endpoint(self) -> None:
         """Test endpoint that does not exist."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             response = client.get("/idonotexist", headers=self.headers)
             assert response.status_code == status.HTTP_404_NOT_FOUND
             assert response.json() == {"detail": "Not Found"}
 
     def test_get_dataset_metadata(self) -> None:
         """Test_get_dataset_metadata."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post("/get_dataset_metadata", json=EXAMPLE_GET_ADMIN_DB_DATA)
             assert response.status_code == status.HTTP_200_OK
@@ -125,7 +125,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_get_dummy_dataset(self) -> None:
         """Test_get_dummy_dataset."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/get_dummy_dataset",
@@ -228,7 +228,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_get_initial_budget(self) -> None:
         """Test_get_initial_budget."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post("/get_initial_budget", json=EXAMPLE_GET_ADMIN_DB_DATA)
             assert response.status_code == status.HTTP_200_OK
@@ -246,7 +246,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_get_total_spent_budget(self) -> None:
         """Test_get_total_spent_budget."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/get_total_spent_budget", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
@@ -275,7 +275,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_get_remaining_budget(self) -> None:
         """Test_get_remaining_budget."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/get_remaining_budget", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
@@ -304,7 +304,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_get_previous_queries(self) -> None:
         """Test_get_previous_queries."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/get_previous_queries", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
@@ -351,7 +351,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
     @pytest.mark.skip
     def test_subsequent_budget_limit_logic(self) -> None:
         """Test_subsequent_budget_limit_logic."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Should fail: too much budget after three queries
             smartnoise_body = dict(EXAMPLE_SMARTNOISE_SQL)
             smartnoise_body["epsilon"] = 4.0

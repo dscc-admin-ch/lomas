@@ -28,7 +28,7 @@ from lomas_core.models.responses import (
     QueryResponse,
     SmartnoiseSQLQueryResult,
 )
-from lomas_server.app import app
+from lomas_server.app import get_user_app
 from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
 
@@ -38,7 +38,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
 
     def test_smartnoise_sql_query_base(self) -> None:
         """Test smartnoise-sql query."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             job = submit_job_wait(client, "/smartnoise_sql_query", json=EXAMPLE_SMARTNOISE_SQL)
             r_model = QueryResponse.model_validate(job.result)
@@ -52,7 +52,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
     @pytest.mark.long
     def test_smartnoise_sql_query_expected_fail(self) -> None:
         """Test smartnoise-sql query with multiple queries on same column."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to fail: missing parameters: delta and mechanisms
             response = client.post(
                 "/smartnoise_sql_query",
@@ -132,7 +132,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
 
     def test_smartnoise_sql_query_double_same_column(self) -> None:
         """Test smartnoise-sql query with multiple queries on same column."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             input_smartnoise = dict(EXAMPLE_SMARTNOISE_SQL)
             input_smartnoise["query_str"] = (
                 "SELECT AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"
@@ -146,7 +146,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
     @pytest.mark.long
     def test_smartnoise_sql_query_parameters(self) -> None:
         """Test smartnoise-sql query parameters."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Change the Query
             body = dict(EXAMPLE_SMARTNOISE_SQL)
             body["query_str"] = "SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"
@@ -169,7 +169,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
     @pytest.mark.long
     def test_smartnoise_sql_postprocess_parameter(self) -> None:
         """Test smartnoise-sql postprocess parameters."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Try postprocess False
             body = dict(EXAMPLE_SMARTNOISE_SQL)
             body["postprocess"] = False
@@ -182,7 +182,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
 
     def test_smartnoise_sql_query_datetime(self) -> None:
         """Test smartnoise-sql query on datetime."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work: query with datetimes and another user
             new_headers = {**self.headers, "Authorization": "Bearer BirthdayGirl"}
             body = dict(EXAMPLE_SMARTNOISE_SQL)
@@ -199,7 +199,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
 
     def test_smartnoise_sql_query_on_s3_dataset(self) -> None:
         """Test smartnoise-sql on s3 dataset."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             input_smartnoise = dict(EXAMPLE_SMARTNOISE_SQL)
             input_smartnoise["dataset_name"] = "TINTIN_S3_TEST"
@@ -219,7 +219,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
 
     def test_dummy_smartnoise_sql_query(self) -> None:
         """Test_dummy_smartnoise_sql_query."""
-        with TestClient(app) as client:
+        with TestClient(get_user_app(self.config)) as client:
             input_dummy = dict(EXAMPLE_DUMMY_SMARTNOISE_SQL)
             input_dummy["epsilon"] = 1
             # Expect to work
@@ -249,7 +249,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
 
     def test_smartnoise_sql_cost(self) -> None:
         """Test_smartnoise_sql_cost."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             job = submit_job_wait(
                 client,

@@ -48,7 +48,8 @@ class Server(BaseModel):
     submit_limit: float = Field(default=300.0)
     """A limit on the rate which users can submit queries."""
     host_ip: str = Field(default="localhost")
-    host_port: int = Field(default=48080)
+    user_host_port: int = Field(default=48080)
+    admin_host_port: int = Field(default=48081)
     log_level: str = Field(default="INFO")
     lomas_log_level: str = Field(default="INFO")
     reload: bool = Field(default=False)

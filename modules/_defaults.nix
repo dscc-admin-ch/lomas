@@ -27,10 +27,16 @@ in
     };
 
     ports.lomas = {
-      apiService = lib.mkOption {
+      userApiService = lib.mkOption {
         type = portStr;
         default = 8080;
-        description = "Default (Service/Exposed) port Lomas HTTP(s) API";
+        description = "Default (Service/Exposed) port Lomas HTTP(s) user API";
+      };
+
+      adminApiService = lib.mkOption {
+        type = portStr;
+        default = 8080;
+        description = "Default (Service/Exposed) port Lomas HTTP(s) admin API";
       };
 
       dex = {

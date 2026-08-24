@@ -31,7 +31,7 @@ from lomas_core.models.responses import (
     DiffPrivLibQueryResult,
     QueryResponse,
 )
-from lomas_server.app import app
+from lomas_server.app import get_user_app
 from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait, wait_for_job
 
@@ -58,7 +58,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
     @pytest.mark.long
     def test_diffprivlib_query(self) -> None:
         """Test diffprivlib query."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/diffprivlib_query",
@@ -105,7 +105,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
     @pytest.mark.long
     def test_diffprivlib_privacy_leak(self) -> None:
         """Test diffprivlib privacy leak error."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Should still work: automatically added for first step
             warnings.simplefilter("error", PrivacyLeakWarning)
             diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
@@ -198,7 +198,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
 
     def test_logistic_regression_models(self) -> None:
         """Test diffprivlib query: Logistic Regression."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
 
             # Test Logistic Regression
@@ -225,7 +225,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
 
     def test_linear_regression_models(self) -> None:
         """Test diffprivlib query: Linear Regression."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Test Linear Regression
             pipeline = Pipeline(
                 [
@@ -274,7 +274,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
 
     def test_linear_regression_models_same_columns(self) -> None:
         """Test diffprivlib query: Same columns."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Test Linear Regression
             pipeline = Pipeline(
                 [
@@ -309,7 +309,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
 
     def test_naives_bayes_model(self) -> None:
         """Test diffprivlib query: Gaussian Naives Bayes."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
             # Test Gaussian Naives Bayes
             pipeline = Pipeline(
@@ -335,7 +335,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
 
     def test_trees_models(self) -> None:
         """Test diffprivlib query: Random Forest, Decision Tree."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
 
             # Test Random Forest
@@ -385,7 +385,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
 
     def test_clustering_models(self) -> None:
         """Test diffprivlib query: K-Means."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
 
             # Test K-MEANS
@@ -416,7 +416,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
 
     def test_dimension_reduction_models(self) -> None:
         """Test diffprivlib query: PCA."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
             # Test PCA
             pipeline = Pipeline(
@@ -443,7 +443,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
 
     def test_dummy_diffprivlib_query(self) -> None:
         """Test_dummy_diffprivlib_query."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             job = submit_job_wait(
                 client,
@@ -470,7 +470,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
 
     def test_diffprivlib_cost(self) -> None:
         """Test_diffprivlib_cost."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             job = submit_job_wait(
                 client,

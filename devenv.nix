@@ -36,7 +36,8 @@ in
   ];
 
   # Actually don't use the default for the dev env
-  ports.lomas.apiService = 48080;
+  ports.lomas.userApiService = 48080;
+  ports.lomas.adminApiService = 48081;
 
   lomas = {
     enable = true;
@@ -203,7 +204,8 @@ in
 
     # Lomas Server Runtime
     LOMAS_SERVICE_server__host_ip = config.lomas.host;
-    LOMAS_SERVICE_server__host_port = config.ports.lomas.apiService;
+    LOMAS_SERVICE_server__host_port = config.ports.lomas.userApiService;
+    LOMAS_SERVICE_server_admin_host_port = config.ports.lomas.adminApiService;
     LOMAS_SERVICE_server__log_level = "INFO";
     LOMAS_SERVICE_server__lomas_log_level = "DEBUG";
     LOMAS_SERVICE_server__reload = "true";
@@ -228,11 +230,11 @@ in
     # Lomas client environment
     LOMAS_CLIENT_OIDC_DISCOVERY_URL = config.lomas.oidc.discoveryUrl;
     LOMAS_CLIENT_USE_PASSWORD_FLOW = "true";
-    LOMAS_CLIENT_APP_URL = "http://localhost:${config.ports.lomas.apiService}";
+    LOMAS_CLIENT_APP_URL = "http://localhost:${config.ports.lomas.userApiService}";
 
     # Lomas demo setup
-    LOMAS_ADMIN_server_url = "http://localhost:${config.ports.lomas.apiService}"; # public lomas service url from dashboard
-    LOMAS_ADMIN_server_service = "http://localhost:${config.ports.lomas.apiService}";
+    LOMAS_ADMIN_server_url = "http://localhost:${config.ports.lomas.adminApiService}"; # public lomas service url from dashboard
+    LOMAS_ADMIN_server_service = "http://localhost:${config.ports.lomas.adminApiService}";
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
     LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${config.lomas.dex.adminAddress}:${config.ports.lomas.dex.admin}";

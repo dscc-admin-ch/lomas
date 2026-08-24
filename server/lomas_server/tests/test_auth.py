@@ -18,7 +18,7 @@ from lomas_core.exceptions import LomasAPIException, UnauthorizedAccessException
 from lomas_core.models.requests_examples import EXAMPLE_GET_ADMIN_DB_DATA
 from lomas_server.administration.dex.dex_admin import del_all_dex_users
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
-from lomas_server.app import app
+from lomas_server.app import get_admin_app, get_user_app
 from lomas_server.models.config import AdminConfig, Config
 from lomas_server.utils.query import query_lomas
 
@@ -59,7 +59,9 @@ def test_bootstrap(demo_setup: None) -> None:
     config = Config()
 
     # Test bootstrap creds
-    with TestClient(app, headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
+    with TestClient(
+        get_admin_app(Config()), headers={"Authorization": f"Bearer {config.bootstrap}"}
+    ) as client:
         response = client.get("/dataset/PENGUIN")
         assert response.status_code == status.HTTP_200_OK
 
@@ -73,7 +75,9 @@ def test_bootstrap(demo_setup: None) -> None:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     # Check response codes with proper admin headers once bootstrap removed
-    with TestClient(app, headers=get_auth_header("lomas_admin@example.com", "lomas_admin")) as client:
+    with TestClient(
+        get_admin_app(Config()), headers=get_auth_header("lomas_admin@example.com", "lomas_admin")
+    ) as client:
         response = client.delete("/bootstrap")
         assert response.status_code == status.HTTP_410_GONE
 
@@ -125,7 +129,7 @@ def switch_query_userinfo(request):
 def test_valid_token(demo_setup: None, switch_query_userinfo: None):
     headers = get_auth_header("dr.antartica@example.com", "dr.antartica")
 
-    with TestClient(app, headers=headers) as client:
+    with TestClient(get_user_app(Config()), headers=headers) as client:
         response = client.post("/get_dataset_metadata", json=EXAMPLE_GET_ADMIN_DB_DATA)
         assert response.status_code == status.HTTP_200_OK
 
@@ -134,7 +138,7 @@ def test_valid_token(demo_setup: None, switch_query_userinfo: None):
 def test_invalid_token(switch_query_userinfo: None):
     headers = {"Authorization": "Bearer abc"}
 
-    with TestClient(app, headers=headers) as client:
+    with TestClient(get_user_app(Config()), headers=headers) as client:
         response = client.post("/get_dataset_metadata", json=EXAMPLE_GET_ADMIN_DB_DATA)
         assert response.status_code == status.HTTP_403_FORBIDDEN
         match_string = str(UnauthorizedAccessException("Failed bearer token verification"))
@@ -146,10 +150,11 @@ def test_invalid_token(switch_query_userinfo: None):
 def test_admin_scope(demo_setup: None, switch_query_userinfo: None) -> None:
     headers = get_auth_header("lomas_admin@example.com", "lomas_admin")
 
-    with TestClient(app, headers=headers) as client:
+    with TestClient(get_admin_app(Config()), headers=headers) as client:
         response = client.get("/state")
         assert response.status_code == status.HTTP_200_OK
 
+    with TestClient(get_user_app(Config()), headers=headers) as client:
         response = client.post("/get_dataset_metadata", json=EXAMPLE_GET_ADMIN_DB_DATA)
         assert response.status_code == status.HTTP_403_FORBIDDEN
         # lomas_admin user has no access to Penguin
@@ -159,7 +164,7 @@ def test_admin_scope(demo_setup: None, switch_query_userinfo: None) -> None:
 
     headers = get_auth_header("dr.antartica@example.com", "dr.antartica")
 
-    with TestClient(app, headers=headers) as client:
+    with TestClient(get_admin_app(Config()), headers=headers) as client:
         response = client.get("/state")
         assert response.status_code == status.HTTP_403_FORBIDDEN
         match_string = str(UnauthorizedAccessException("Only admin users can query this endpoint."))

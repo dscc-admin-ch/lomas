@@ -98,7 +98,6 @@ def update_job(
         case DummyQueryModel():
             admin_database.update_job(job_update)
         case QueryModel():
-            print("adjust cost and more")
             set_query_result(admin_database, job_update)
         case _:  # Cost or dummy
             admin_database.update_job(job_update)

@@ -22,6 +22,7 @@
               services.lomas = {
                 enable = true;
                 port = 8080;
+                adminPort = 8081;
                 openFirewall = true;
                 listenAddress = "0.0.0.0";
                 initUsers = lib.mkDefault ../server/data/collections/user_collection.yaml;

@@ -1,12 +1,12 @@
 from typing import Any, Protocol
 
-import opendp.prelude as dp
 import pandas as pd
 import polars as pl
 from csvw_eo.constants import COL_LIST, COL_NAME, MAXIMUM, MINIMUM, TABLE_SCHEMA
 from csvw_eo.csvw_to_opendp_context import csvw_to_opendp_context
 from csvw_eo.metadata_structure import TableMetadata
 from fastapi import status
+from opendp.context import Context
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from pydantic import ValidationError
 
@@ -173,7 +173,7 @@ class Client:
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
-    ) -> dp.Context:
+    ) -> Context:
         """
         Create an OpenDP context based on a dummy dataset.
 
@@ -194,7 +194,7 @@ class Client:
                 epsilon is provided.
 
         Returns:
-            dp.Context: OpenDP context object initialized with metadata and
+            Context: OpenDP context object initialized with metadata and
             user-provided privacy parameters.
         """
         dummy_lf = self.get_dummy_dataset(lazy=True)

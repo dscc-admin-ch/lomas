@@ -178,7 +178,7 @@ async def process_message(config: Config) -> None:
                 status.update(status=f"Polling ... {consecutive_sleep}")
             consecutive_sleep += 1
             await asyncio.sleep(2)
-
+            logger.info("Trying to get job...")
             res = query_lomas("/w/job/pending", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY})
             match res:
                 case Success(None):

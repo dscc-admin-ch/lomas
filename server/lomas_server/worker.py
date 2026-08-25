@@ -14,9 +14,7 @@ from csvw_eo.metadata_structure import TableMetadata
 from fastapi import status
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
-from returns.io import IOFailure, IOSuccess
-from returns.result import Success
-from returns.unsafe import unsafe_perform_io
+from returns.result import Failure, Success
 from rich.progress import BarColumn, Progress, SpinnerColumn, TimeElapsedColumn
 from watchfiles import awatch
 
@@ -78,7 +76,7 @@ def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
                 headers={LomasHeaders.APIKEY: TEST_APIKEY, LomasHeaders.FORUSER: user_name},
                 json={"dataset_name": dataset_name},
             ).map(Budget.model_validate)
-            return unsafe_perform_io(res.value_or(None))
+            return res.value_or(None)
 
         case ("get_dataset_metadata", {"dataset_name": dataset_name}):
             res = query_lomas(
@@ -86,20 +84,20 @@ def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
                 httpx2.get,
                 headers={LomasHeaders.APIKEY: TEST_APIKEY},
             ).map(TableMetadata.model_validate)
-            return unsafe_perform_io(res.value_or(None))
+            return res.value_or(None)
 
         case ("get_dataset", {"dataset_name": dataset_name}):
             res = query_lomas(
                 f"/w/dataset/{dataset_name}", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY}
             ).map(DSInfo.model_validate)
-            return unsafe_perform_io(res.value_or(None))
+            return res.value_or(None)
 
         case ("get_user", {"user_name": user_name}):
             # TODO: should this mechanic be changed ? do we even want to attempt Semaphore over network ?
             res = query_lomas(
                 f"/w/users/{user_name}", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY}
             ).map(User.model_validate)
-            return unsafe_perform_io(res.value_or(None))
+            return res.value_or(None)
 
         case _:
             raise ValueError(f"Invalid Proxy method: {method_name}")
@@ -186,10 +184,10 @@ async def process_message(config: Config) -> None:
 
             res = query_lomas("/w/job/pending", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY})
             match res:
-                case IOSuccess(Success(None)):
+                case Success(None):
                     if not config.tui:
                         logger.debug("No pending Jobs - Waiting")
-                case IOSuccess(Success(job_json)):
+                case Success(job_json):
                     job = Job.model_validate(job_json)
 
                     task_id = job_progress.add_task(
@@ -214,7 +212,7 @@ async def process_message(config: Config) -> None:
                         ),  # Requires json mode to make UUID (not json serializable) into str.
                     )
                     consecutive_sleep = 0
-                case IOFailure(e):
+                case Failure(e):
                     logger.warning(str(e))
 
 

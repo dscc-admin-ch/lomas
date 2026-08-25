@@ -1,7 +1,6 @@
 import httpx2
 import streamlit as st
 from returns.converters import maybe_to_result
-from returns.io import IOFailure, IOSuccess
 from returns.maybe import Maybe
 from returns.pipeline import flow
 from returns.pointfree import alt, bind_result, lash, map_
@@ -79,17 +78,17 @@ def about() -> None:
     st.header("Server Status")
 
     match query_lomas_auth("/state", httpx2.get):
-        case IOSuccess(Success({"state": state})):
+        case Success({"state": state}):
             status = f":green-badge[{state}]"
-        case IOSuccess(Success(unexpected)):
+        case Success(unexpected):
             status = f":orange-badge[unexpected state: {unexpected}]"
-        case IOFailure(Failure(e)):
+        case Failure(e):
             status = f":red-badge[unavailable]: {e}"
 
     match get_config().map(lambda config: config.server_url):
-        case IOSuccess(Success(server_url)):
+        case Success(server_url):
             st.write(f"{status} at {server_url}")
-        case IOFailure(Failure(e)):
+        case Failure(e):
             st.error(f"Configuration Error: {e}")
 
     flow(

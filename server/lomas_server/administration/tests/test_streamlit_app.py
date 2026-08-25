@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 from csvw_eo.metadata_structure import TableMetadata
 from fastapi.testclient import TestClient
-from returns.io import IOResultE, IOSuccess
 from returns.pipeline import is_successful
+from returns.result import ResultE, Success
 from streamlit.testing.v1 import AppTest
 
 from lomas_core.models.collections import User, UserId
@@ -79,9 +79,9 @@ def test_about_page(dashbord_dir: Path) -> None:
 
 
 def test_admin_page(dashbord_dir: Path, client: TestClient, demo_setup) -> None:
-    assert query_lomas("/live", client.get) == IOSuccess({"status": "alive"})
+    assert query_lomas("/live", client.get) == Success({"status": "alive"})
 
-    assert query_lomas("/datasets", client.get) == IOSuccess(
+    assert query_lomas("/datasets", client.get) == Success(
         ["IRIS", "PENGUIN", "PUMS", "TITANIC", "FSO_INCOME_SYNTHETIC", "COVID_SYNTHETIC", "BIRTHDAYS"]
     )
 
@@ -91,7 +91,7 @@ def test_admin_page(dashbord_dir: Path, client: TestClient, demo_setup) -> None:
     user_name = "Dr.Antartica"
     assert users.map(
         lambda user_list: len([u for u in user_list if u["id"]["name"] == user_name])
-    ) == IOSuccess(1), f"{user_name} not found in /users"
+    ) == Success(1), f"{user_name} not found in /users"
 
     budgetReq = LomasBudgetRequest(dataset_name="PUMS", epsilon=0.3, delta=0.005)
     assert is_successful(
@@ -100,7 +100,7 @@ def test_admin_page(dashbord_dir: Path, client: TestClient, demo_setup) -> None:
 
     assert query_lomas("/dataset/PUMS/metadata", client.get).map(
         lambda meta: len(meta.keys()) > 5
-    ) == IOSuccess(True)
+    ) == Success(True)
 
 
 def test_add_rm_user(client: TestClient, demo_setup) -> None:
@@ -108,7 +108,7 @@ def test_add_rm_user(client: TestClient, demo_setup) -> None:
 
     new_user = User(id=UserId(name=username, email="new@user.com"), may_query=True, datasets={})
     assert is_successful(query_lomas("/users", client.post, json=new_user.model_dump()))
-    assert query_lomas(f"/users/{username}/archive", client.get) == IOSuccess([])
+    assert query_lomas(f"/users/{username}/archive", client.get) == Success([])
     assert is_successful(query_lomas(f"/users/{username}", client.delete))
 
 
@@ -132,7 +132,7 @@ def test_add_rm_dataset(client: TestClient, demo_setup) -> None:
     # Ensure dataset is present
     assert query_lomas(f"/dataset/{ds_name}", client.get).map(
         lambda res: res.get("dataset_name") == ds_name
-    ) == IOSuccess(True)
+    ) == Success(True)
 
     assert is_successful(
         query_lomas(
@@ -144,7 +144,7 @@ def test_add_rm_dataset(client: TestClient, demo_setup) -> None:
     # Ensure <user> has the new dataset in their list
     assert query_lomas("/users", client.get).map(
         lambda user_list: next(u["datasets"] for u in user_list if u["id"]["name"] == user_name)
-    ).map(lambda ds_dict: ds_name in ds_dict) == IOSuccess(1)
+    ).map(lambda ds_dict: ds_name in ds_dict) == Success(1)
 
     assert is_successful(query_lomas(f"/dataset/{ds_name}", client.delete))
     # Ensure dataset deletion
@@ -160,7 +160,7 @@ def test_add_rm_dataset(client: TestClient, demo_setup) -> None:
     # Ensure <user> no longer has the new dataset in their list
     assert query_lomas("/users", client.get).map(
         lambda user_list: next(u["datasets"] for u in user_list if u["id"]["name"] == user_name)
-    ).map(lambda ds_dict: ds_name in ds_dict) == IOSuccess(0)
+    ).map(lambda ds_dict: ds_name in ds_dict) == Success(0)
 
 
 def test_add_user_yaml(client: TestClient, demo_setup) -> None:
@@ -187,7 +187,7 @@ def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> No
     assert is_successful(post_result)
 
     ds_name = "PUMS"
-    old_metadata: IOResultE[TableMetadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get)
+    old_metadata: ResultE[TableMetadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get)
     assert is_successful(old_metadata)
     validated = old_metadata.map(TableMetadata.model_validate)
     assert is_successful(validated)

@@ -5,11 +5,10 @@ from pathlib import Path
 import httpx2
 from pydantic import Field
 from pydantic_settings import CliApp, SettingsConfigDict
-from returns.io import IOFailure, IOResultE, IOSuccess
 from returns.maybe import Maybe
 from returns.pipeline import flow
 from returns.pointfree import bind, map_
-from returns.result import Failure
+from returns.result import Failure, ResultE, Success
 from rich.pretty import pprint
 
 from lomas_server.admin_database.constants import TopDBKey as TK
@@ -42,7 +41,7 @@ class DemoAdminConfig(AdminConfig):
     bootstrap: str = Field(description="Bootstrap secret to bypass auth during initial setup")
 
 
-def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
+def add_lomas_demo_data(config: DemoAdminConfig) -> ResultE:
     """
     Adds the demo data to the admindb as well as the keycloak instance if required.
 
@@ -53,7 +52,7 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
     """
     pprint(config)
 
-    add_users: IOResultE = query_lomas(
+    add_users: ResultE = query_lomas(
         "/usersfile",
         httpx2.post,
         data={"clean": True, "overwrite": False},
@@ -61,17 +60,17 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
 
-    add_dex_users: IOResultE = flow(
+    add_dex_users: ResultE = flow(
         config.dex_config,  # DexAdminConfig | None
         Maybe.from_optional,  # Maybe[DexAdminConfig]
-        map_(  # Maybe[IOResultE]
-            partial(  # DexAdminConfig -> IOResultE
+        map_(  # Maybe[ResultE]
+            partial(  # DexAdminConfig -> ResultE
                 add_dex_users_via_yaml, yaml_file=config.user_yaml, clean=False, overwrite=True
             )
         ),
-    ).value_or(IOSuccess("No Dex config"))
+    ).value_or(Success("No Dex config"))
 
-    add_datasets: IOResultE = query_lomas(
+    add_datasets: ResultE = query_lomas(
         "/dataset/bulk",
         httpx2.post,
         data={"clean": True},
@@ -79,14 +78,14 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
 
-    delete_archives: IOResultE = query_lomas(
+    delete_archives: ResultE = query_lomas(
         f"/collections/{TK.ARCHIVE}",
         httpx2.delete,
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
 
     result = flow(
-        IOSuccess(()),
+        Success(()),
         map_(lambda _: pprint("Creating user collection from Config")),
         bind(lambda _: add_users),
         map_(lambda _: pprint("Adding Dex Users")),
@@ -109,9 +108,9 @@ def lomas_demo_setup(demo_config: DemoAdminConfig | None = None) -> int:
         demo_config = DemoAdminConfig()
 
     match add_lomas_demo_data(demo_config):
-        case IOSuccess(_):
+        case Success(_):
             return Status.EX_OK
-        case IOFailure(Failure(e)):
+        case Failure(Failure(e)):
             return e
     return Status.EX_IOERR
 

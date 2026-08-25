@@ -7,9 +7,9 @@ import pytest
 from authlib.integrations.requests_client import OAuth2Session
 from fastapi import status
 from fastapi.testclient import TestClient
-from returns.io import IOSuccess
 from returns.iterables import Fold
 from returns.pipeline import is_successful
+from returns.result import Success
 
 from lomas_client.constants import OIDC_REQUIRED_SCOPES
 from lomas_client.models.config import ClientConfig
@@ -50,7 +50,7 @@ def demo_setup():
             ),
             del_all_dex_users(dex_config),
         ],
-        IOSuccess(()),
+        Success(()),
     )
     assert is_successful(cleanup)
 

@@ -9,7 +9,7 @@ from lomas_core.models.constants import get_lomas_logger
 from lomas_server.app import get_admin_app, get_user_app
 from lomas_server.models.config import Config
 from lomas_server.utils.notify import notify
-from lomas_server.utils.startup import get_uvicorn_log_config
+from lomas_server.utils.startup import get_uvicorn_log_config, startup_tasks
 from lomas_server.worker import WorkerConfig
 
 logger = get_lomas_logger(__name__)
@@ -58,6 +58,9 @@ async def serve(config: Config) -> None:
 
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, _handle_exit)
+
+    # Startup tasks
+    startup_tasks(config)
 
     # Start servers
     user_task = asyncio.create_task(user_server.serve())

@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -13,7 +14,6 @@ from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,
     LoggingAndTracingMiddleware,
 )
-from lomas_server.utils.notify import notify
 
 logger = get_lomas_logger(__name__)
 
@@ -50,16 +50,19 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     except InternalServerException as e:
         logger.exception(f"Failed at startup: {e!s}")
 
-    notify(b"READY=1")
+    lomas_app.state.ready_event.set()
     try:
         yield  # lomas_app is handling requests
     finally:
-        notify(b"STOPPING=1")
+        logger.error("Unrecoverable exception, failing server")
 
 
 def get_user_app(config: Config) -> FastAPI:
     # This object holds the server object
     app = FastAPI(lifespan=lifespan)
+
+    # Add ready event
+    app.state.ready_event = asyncio.Event()
 
     # Setting metrics middleware
     app.add_middleware(FastAPIMetricMiddleware, app_name=config.telemetry.service_name)
@@ -81,6 +84,9 @@ def get_user_app(config: Config) -> FastAPI:
 def get_admin_app(config: Config) -> FastAPI:
     # This object holds the server object
     app = FastAPI(lifespan=lifespan)
+
+    # Add ready event
+    app.state.ready_event = asyncio.Event()
 
     # Setting metrics middleware
     app.add_middleware(FastAPIMetricMiddleware, app_name=config.telemetry.service_name)

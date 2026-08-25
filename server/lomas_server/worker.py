@@ -215,7 +215,7 @@ async def process_message(config: Config) -> None:
                     )
                     consecutive_sleep = 0
                 case IOFailure(e):
-                    logger.warn(str(e))
+                    logger.warning(str(e))
 
 
 class TerminateTaskGroup(Exception):

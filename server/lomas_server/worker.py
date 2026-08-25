@@ -1,12 +1,7 @@
 import asyncio
 import contextlib
-import functools
-import os
-import signal
-import sys
 import time
-from pathlib import Path
-from typing import Any, Never
+from typing import Any
 
 import httpx2
 from aio_pika.patterns.rpc import Proxy
@@ -16,7 +11,6 @@ from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from returns.result import Failure, Success
 from rich.progress import BarColumn, Progress, SpinnerColumn, TimeElapsedColumn
-from watchfiles import awatch
 
 from lomas_core.exceptions import InternalServerException
 from lomas_core.instrumentation import init_telemetry
@@ -47,8 +41,11 @@ from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.error_handler import model_from_lomas_exception
 from lomas_server.routes.utils import get_dataset_connector
-from lomas_server.utils.notify import notify
 from lomas_server.utils.query import query_lomas
+from lomas_server.utils.startup import (
+    interruptible_notify_taskgroup,
+    restart_self_on_change,
+)
 
 logger = get_lomas_logger(__name__)
 
@@ -216,62 +213,10 @@ async def process_message(config: Config) -> None:
                     logger.warning(str(e))
 
 
-class TerminateTaskGroup(Exception):
-    """Exception raised to terminate a task group."""
-
-
-class ReloadTaskGroup(Exception):
-    """Exception raised to reload a task group."""
-
-
-async def force_terminate_task_group() -> Never:
-    """Used to force termination of a task group."""
-    raise TerminateTaskGroup
-
-
-def ask_exit(signame: str, tg: asyncio.TaskGroup) -> None:
-    """Signal handler for TaskGroup termination."""
-    logger.info(f"got signal {signame}: exit")
-    tg.create_task(force_terminate_task_group())
-
-
-async def reload_on_change() -> None:
-    includes = ["*.py"]
-    excludes = [".*", ".py[cod]", ".sw.*", "~*"]
-    watch_root = Path.cwd()
-    async for changes in awatch(
-        watch_root, watch_filter=None, yield_on_timeout=True, ignore_permission_denied=True
-    ):
-        unique_paths = {Path(p) for (_, p) in changes}
-        change_paths = [
-            p for p in unique_paths if any(map(p.match, includes)) and not any(map(p.match, excludes))
-        ]
-        if len(change_paths) > 0:
-            logger.debug(f"Changes detected in {[str(p.relative_to(watch_root)) for p in change_paths]}")
-            raise ReloadTaskGroup
-
-
 async def process_queue(config: Config) -> None:
     """Handle & await all pika processing queues."""
-    loop = asyncio.get_running_loop()
-    try:
-        async with asyncio.TaskGroup() as tg:
-            tg.create_task(process_message(config))
-
-            # register signal for polite TaskGroup termination
-            for signame in ["SIGINT", "SIGTERM"]:
-                loop.add_signal_handler(getattr(signal, signame), functools.partial(ask_exit, signame, tg))
-
-            tg.create_task(reload_on_change())
-            notify(b"READY=1")
-        # All tasks in Taskgroup are awaited here (aexit of TaskGroup context)
-    except* ReloadTaskGroup:
-        logger.info("Reloading")
-        notify(b"RELOADING=1")
-        raise
-    except* TerminateTaskGroup:
-        logger.info("Terminated")
-        notify(b"STOPPING=1")
+    async with interruptible_notify_taskgroup(reload=True) as tg:
+        tg.create_task(process_message(config))
 
 
 class WorkerConfig(Config):
@@ -299,10 +244,8 @@ def run(config: Config | None = None) -> None:
         init_telemetry(config.telemetry)
 
     logger.info("Waiting for messages. To exit press CTRL+C")
-    try:
+    with restart_self_on_change():
         asyncio.run(process_queue(config))
-    except* ReloadTaskGroup:
-        os.execl(sys.executable, "python", *sys.argv)
 
 
 if __name__ == "__main__":

@@ -8,8 +8,12 @@ from pydantic_settings import BaseSettings, CliApp, CliSubCommand, SettingsConfi
 from lomas_core.models.constants import get_lomas_logger
 from lomas_server.app import get_admin_app, get_user_app
 from lomas_server.models.config import Config
-from lomas_server.utils.notify import notify
-from lomas_server.utils.startup import get_uvicorn_log_config, startup_tasks
+from lomas_server.utils.startup import (
+    get_uvicorn_log_config,
+    interruptible_notify_taskgroup,
+    restart_self_on_change,
+    startup_tasks,
+)
 from lomas_server.worker import WorkerConfig
 
 logger = get_lomas_logger(__name__)
@@ -63,23 +67,17 @@ async def serve(config: Config) -> None:
     startup_tasks(config)
 
     # Start servers
-    user_task = asyncio.create_task(user_server.serve())
-    admin_task = asyncio.create_task(admin_server.serve())
-
-    # Wait until both started
-    await asyncio.gather(user_app.state.ready_event.wait(), admin_app.state.ready_event.wait())
-
-    notify(b"READY=1")
-
-    await asyncio.gather(user_task, admin_task)
-
-    notify(b"STOPPING=1")
+    async with interruptible_notify_taskgroup(reload=True) as tg:
+        tg.create_task(user_server.serve())
+        tg.create_task(admin_server.serve())
+        await asyncio.gather(user_app.state.ready_event.wait(), admin_app.state.ready_event.wait())
 
 
 class ServiceConfig(Config):
     def cli_cmd(self) -> None:
         """Start the ASGI server for lomas."""
-        asyncio.run(serve(self))
+        with restart_self_on_change():
+            asyncio.run(serve(self))
 
 
 class LomasCli(BaseSettings):

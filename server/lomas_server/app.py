@@ -53,8 +53,12 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     lomas_app.state.ready_event.set()
     try:
         yield  # lomas_app is handling requests
+    except asyncio.CancelledError:
+        logger.info("Cancelled")
+    except BaseException as e:
+        logger.exception(e)
     finally:
-        logger.error("Unrecoverable exception, failing server")
+        logger.info("Shutting down")
 
 
 def get_user_app(config: Config) -> FastAPI:

@@ -1,13 +1,23 @@
+import asyncio
+import contextlib
+import functools
+import os
+import signal
+import sys
 from copy import deepcopy
+from pathlib import Path
+from typing import Never
 
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from uvicorn.config import LOGGING_CONFIG
+from watchfiles import awatch
 
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.constants import FilterOutLiveSuccess, get_lomas_logger, init_logging
 from lomas_server.dp_queries.dp_libraries.opendp import set_opendp_features_config
 from lomas_server.models.config import Config
+from lomas_server.utils.notify import notify
 
 logger = get_lomas_logger(__name__)
 
@@ -65,3 +75,70 @@ def get_uvicorn_log_config() -> dict:
         log_config["formatters"][formatter]["datefmt"] = "[%H:%M:%S]"
 
     return log_config
+
+
+class TerminateTaskGroup(Exception):
+    """Exception raised to terminate a task group."""
+
+
+async def force_terminate_task_group() -> Never:
+    """Used to force termination of a task group."""
+    raise TerminateTaskGroup
+
+
+def ask_exit(signame: str, tg: asyncio.TaskGroup) -> None:
+    """Signal handler for TaskGroup termination."""
+    logger.info(f"got signal {signame}: exit")
+    tg.create_task(force_terminate_task_group())
+
+
+class ReloadTaskGroup(Exception):
+    """Exception raised to reload a task group."""
+
+
+async def reload_on_change() -> None:
+    includes = ["*.py"]
+    excludes = [".*", ".py[cod]", ".sw.*", "~*"]
+    watch_root = Path.cwd()
+    async for changes in awatch(
+        watch_root, watch_filter=None, yield_on_timeout=True, ignore_permission_denied=True
+    ):
+        unique_paths = {Path(p) for (_, p) in changes}
+        change_paths = [
+            p for p in unique_paths if any(map(p.match, includes)) and not any(map(p.match, excludes))
+        ]
+        if len(change_paths) > 0:
+            logger.debug(f"Changes detected in {[str(p.relative_to(watch_root)) for p in change_paths]}")
+            raise ReloadTaskGroup
+
+
+@contextlib.contextmanager
+def restart_self_on_change():
+    try:
+        yield
+    except* ReloadTaskGroup:
+        os.execl(sys.executable, "python", *sys.argv)
+
+
+@contextlib.asynccontextmanager
+async def interruptible_notify_taskgroup(reload=False):
+    loop = asyncio.get_running_loop()
+    try:
+        async with asyncio.TaskGroup() as tg:
+            yield tg
+
+            # register signal for polite TaskGroup termination
+            for signame in ["SIGINT", "SIGTERM"]:
+                loop.add_signal_handler(getattr(signal, signame), functools.partial(ask_exit, signame, tg))
+
+            if reload:
+                tg.create_task(reload_on_change())
+            notify(b"READY=1")
+        # All tasks in Taskgroup are awaited here (aexit of TaskGroup context)
+    except* ReloadTaskGroup:
+        logger.info("Reloading")
+        notify(b"RELOADING=1")
+        raise
+    except* TerminateTaskGroup:
+        logger.info("Terminated")
+        notify(b"STOPPING=1")

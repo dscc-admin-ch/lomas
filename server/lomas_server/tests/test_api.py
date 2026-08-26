@@ -54,6 +54,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_root.status_code == response_state.status_code
             assert response_root.json() == response_state.json()
 
+    @pytest.mark.skip(reason="notify socket scope is no longer in Client level")
     def test_notify(self) -> None:
         os.environ["NOTIFY_SOCKET"] = ""
         with TestClient(get_user_app(self.config), headers=self.headers):

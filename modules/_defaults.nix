@@ -35,7 +35,7 @@ in
 
       adminApiService = lib.mkOption {
         type = portStr;
-        default = 8080;
+        default = 8081;
         description = "Default (Service/Exposed) port Lomas HTTP(s) admin API";
       };
 

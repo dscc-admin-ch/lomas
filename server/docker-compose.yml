@@ -4,6 +4,7 @@ services:
   lomas_server:
     image: lomas-oci:latest
     container_name: lomas_server_dev
+    command: lomas start
     ports:
       - ${LOMAS_SERVICE_USER_PORT}:${LOMAS_SERVICE_USER_PORT}
       - ${LOMAS_SERVICE_ADMIN_PORT}:${LOMAS_SERVICE_ADMIN_PORT}
@@ -43,8 +44,8 @@ services:
     environment:
       - LOMAS_SERVICE_server__user_host_port=${LOMAS_SERVICE_USER_PORT}
       - LOMAS_SERVICE_server__admin_host_port=${LOMAS_SERVICE_ADMIN_PORT}
-      - LOMAS_CLIENT_APP_URL=http://lomas_server:${LOMAS_SERVICE_USER_PORT}
       - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVICE_ADMIN_PORT}
+      - LOMAS_SERVICE_server__lomas_log_level=DEBUG
     restart: always
     command: lomas work
     volumes:
@@ -120,7 +121,7 @@ services:
   lomas_client:
     image: lomas-oci:latest
     container_name: lomas_client
-    command: ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root", "--port", "${LOMAS_CLIENT_PORT}"]
+    command : ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root", "--port", "${LOMAS_CLIENT_PORT}"]
     ports:
       - ${LOMAS_CLIENT_PORT}:${LOMAS_CLIENT_PORT}
     environment:

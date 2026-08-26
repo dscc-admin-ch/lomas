@@ -4,6 +4,7 @@ import functools
 import os
 import signal
 import sys
+from collections.abc import AsyncIterator, Iterator
 from copy import deepcopy
 from pathlib import Path
 from typing import Never
@@ -113,7 +114,7 @@ async def reload_on_change() -> None:
 
 
 @contextlib.contextmanager
-def restart_self_on_change():
+def restart_self_on_change() -> Iterator[None]:
     try:
         yield
     except* ReloadTaskGroup:
@@ -121,7 +122,7 @@ def restart_self_on_change():
 
 
 @contextlib.asynccontextmanager
-async def interruptible_notify_taskgroup(reload=False):
+async def interruptible_notify_taskgroup(reload: bool = False) -> AsyncIterator[asyncio.TaskGroup]:
     loop = asyncio.get_running_loop()
     try:
         async with asyncio.TaskGroup() as tg:

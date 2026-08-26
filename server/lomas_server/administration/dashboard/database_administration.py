@@ -253,7 +253,7 @@ with st.form("Add user"):
     submit = st.form_submit_button()
 
 if submit:
-    if any(list_users().map(lambda usernames: au_username in usernames)):
+    if au_username in list_users():
         st.warning(f"User {au_username} already in the database.")
     elif au_username and au_email:
         new_user = User(
@@ -298,8 +298,7 @@ if u_file and st.button("Import"):
     )
 
     st.success("Users imported")
-
-    list_users().map(lambda usernames: [st.toast(f"(+) **{username}**") for username in usernames])
+    [st.toast(f"(+) **{username}**") for username in list_users()]
 
 
 st.divider()
@@ -409,11 +408,11 @@ with center:
 
 col1, col2 = st.columns(2)
 with col1:
+    usernames = list_users()
     user_select_d: ResultE[str] = (
-        list_users()
-        .map(lambda usernames: st.selectbox("Username", usernames, key="user_select_d"))
-        .map(Maybe.from_optional)
-        .bind(maybe_to_result)
+        Success(st.selectbox("Username", usernames, key="user_select_d"))
+        if len(usernames) > 0
+        else Failure(None)
     )
 
 with col2:

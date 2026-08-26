@@ -1,6 +1,4 @@
 import asyncio
-import signal
-from typing import Any
 
 import uvicorn
 from pydantic_settings import BaseSettings, CliApp, CliSubCommand, SettingsConfigDict
@@ -53,15 +51,15 @@ async def serve(config: Config) -> None:
     admin_server = uvicorn.Server(admin_config)
 
     # Catch exit signal to kill both servers (not just one)
-    user_server.install_signal_handlers = lambda: None
-    admin_server.install_signal_handlers = lambda: None
+    # user_server.install_signal_handlers = lambda: None
+    # admin_server.install_signal_handlers = lambda: None
 
-    def _handle_exit(signum: int, frame: Any) -> None:
-        user_server.should_exit = True
-        admin_server.should_exit = True
+    # def _handle_exit(signum: int, frame: Any) -> None:
+    #     user_server.should_exit = True
+    #     admin_server.should_exit = True
 
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        signal.signal(sig, _handle_exit)
+    # for sig in (signal.SIGINT, signal.SIGTERM):
+    #     signal.signal(sig, _handle_exit)
 
     # Startup tasks
     startup_tasks(config)

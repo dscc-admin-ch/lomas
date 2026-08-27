@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from functools import partial
 
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -19,7 +20,7 @@ logger = get_lomas_logger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
+async def lifespan(config: Config, lomas_app: FastAPI) -> AsyncGenerator[None]:
     """
     Lifespan function for the server.
 
@@ -31,8 +32,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     side effects on the return values of the "depends"
     functions, which check the server state.
     """
-    # Load Config
-    config = Config()
+    # Store Config
     lomas_app.state.config = config
 
     # Load admin database
@@ -63,7 +63,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 
 def get_user_app(config: Config) -> FastAPI:
     # This object holds the server object
-    app = FastAPI(lifespan=lifespan)
+    app = FastAPI(lifespan=partial(lifespan, config))
 
     # Add ready event
     app.state.ready_event = asyncio.Event()
@@ -87,7 +87,7 @@ def get_user_app(config: Config) -> FastAPI:
 
 def get_admin_app(config: Config) -> FastAPI:
     # This object holds the server object
-    app = FastAPI(lifespan=lifespan)
+    app = FastAPI(lifespan=partial(lifespan, config))
 
     # Add ready event
     app.state.ready_event = asyncio.Event()

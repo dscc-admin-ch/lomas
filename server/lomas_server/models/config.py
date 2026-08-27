@@ -54,7 +54,11 @@ class Server(BaseModel):
     lomas_log_level: str = Field(default="INFO")
     reload: bool = Field(default=False)
     forwarded_allow_ips: list[str] | str = Field(default="*")
-    root_path: str = Field(default="/api")
+    root_path: str = Field(default="/")
+
+    @computed_field
+    def admin_api(self) -> HttpUrl:
+        return HttpUrl(url=f"http://{self.host_ip}:{self.admin_host_port}")
 
 
 class Config(BaseSettings):

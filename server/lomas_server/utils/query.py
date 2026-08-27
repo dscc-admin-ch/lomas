@@ -2,9 +2,13 @@ from collections.abc import Callable
 from typing import Any
 
 import httpx2
+from pydantic import (
+    HttpUrl,
+)
+from returns.converters import maybe_to_result
 from returns.maybe import Maybe, Some
 from returns.pipeline import flow
-from returns.pointfree import bind, map_
+from returns.pointfree import bind, lash, map_
 from returns.result import Failure, ResultE, Success, safe
 
 from lomas_core.utils import url_append
@@ -35,13 +39,14 @@ def recover_if_410(e: Exception, default: Any = None) -> ResultE:
 
 
 def query_lomas(
-    endpoint: str, verb: Callable[..., httpx2.Response], **kwargs: dict[str, Any]
+    endpoint: str, verb: Callable[..., httpx2.Response], host: HttpUrl | None = None, **kwargs: dict[str, Any]
 ) -> ResultE[str | None]:
     return flow(
+        maybe_to_result(Maybe.from_optional(host)),
         # get/parse our config from environment/files
-        get_config(),
+        lash(lambda _: get_config().map(lambda config: config.server_service)),
         # build complete API endpoint
-        map_(lambda config: url_append(config.server_service, endpoint)),
+        map_(lambda host: url_append(host, endpoint)),
         # do the request while capturing Errors
         bind(lambda url: safe(verb)(str(url), **kwargs)),
         # ensure HTTP 200 and parse

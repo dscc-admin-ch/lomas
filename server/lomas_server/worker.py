@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import time
+from functools import partial
 from typing import Any
 
 import httpx2
@@ -65,12 +66,13 @@ job_progress = Progress(
 )
 
 
-def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
+def admin_database_proxy(config: Config, method_name: str, kwargs: dict[str, Any]) -> Any:
     match (method_name, kwargs):
         case ("get_remaining_budget", {"user_name": user_name, "dataset_name": dataset_name}):
             res = query_lomas(
                 "/w/get_remaining_budget",
                 httpx2.post,
+                host=config.server.admin_api,
                 headers={LomasHeaders.APIKEY: TEST_APIKEY, LomasHeaders.FORUSER: user_name},
                 json={"dataset_name": dataset_name},
             ).map(Budget.model_validate)
@@ -79,18 +81,25 @@ def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
             res = query_lomas(
                 f"/w/dataset/{dataset_name}/metadata",
                 httpx2.get,
+                host=config.server.admin_api,
                 headers={LomasHeaders.APIKEY: TEST_APIKEY},
             ).map(TableMetadata.model_validate)
 
         case ("get_dataset", {"dataset_name": dataset_name}):
             res = query_lomas(
-                f"/w/dataset/{dataset_name}", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY}
+                f"/w/dataset/{dataset_name}",
+                httpx2.get,
+                host=config.server.admin_api,
+                headers={LomasHeaders.APIKEY: TEST_APIKEY},
             ).map(DSInfo.model_validate)
 
         case ("get_user", {"user_name": user_name}):
             # TODO: should this mechanic be changed ? do we even want to attempt Semaphore over network ?
             res = query_lomas(
-                f"/w/users/{user_name}", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY}
+                f"/w/users/{user_name}",
+                httpx2.get,
+                host=config.server.admin_api,
+                headers={LomasHeaders.APIKEY: TEST_APIKEY},
             ).map(User.model_validate)
 
         case _:
@@ -179,7 +188,12 @@ async def process_message(config: Config) -> None:
             consecutive_sleep += 1
             await asyncio.sleep(2)
 
-            res = query_lomas("/w/job/pending", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY})
+            res = query_lomas(
+                "/w/job/pending",
+                httpx2.get,
+                host=config.server.admin_api,
+                headers={LomasHeaders.APIKEY: TEST_APIKEY},
+            )
             match res:
                 case Success(None):
                     if not config.tui:
@@ -195,7 +209,7 @@ async def process_message(config: Config) -> None:
                         job=job,
                     )
 
-                    job_done = handle_query(config, Proxy(admin_database_proxy), job)
+                    job_done = handle_query(config, Proxy(partial(admin_database_proxy, config)), job)
                     job_progress.update(task_id, completed=1)
                     if job_done.status == JobStatus.FAILED:
                         job_progress.update(task_id, description="[red]FAILED")
@@ -203,6 +217,7 @@ async def process_message(config: Config) -> None:
                     res = query_lomas(
                         "/w/job",
                         httpx2.put,
+                        host=config.server.admin_api,
                         headers={LomasHeaders.APIKEY: TEST_APIKEY},
                         json=job_done.model_dump(
                             exclude_unset=True, mode="json"

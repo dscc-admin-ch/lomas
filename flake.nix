@@ -7,13 +7,6 @@
     };
     import-tree.url = "github:vic/import-tree";
 
-    kubenix = {
-      url = "github:hall/kubenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-parts.follows = "flake-parts";
-      inputs.import-tree.follows = "import-tree";
-    };
-
     pyproject-nix = {
       url = "github:pyproject-nix/pyproject.nix";
       inputs.nixpkgs.follows = "nixpkgs";

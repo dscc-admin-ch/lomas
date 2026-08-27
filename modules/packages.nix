@@ -50,6 +50,7 @@
               file
               bind
               git
+              tini
               ;
             inherit (pyEnv) lomasEnv;
             lomas-dashboard = (
@@ -70,6 +71,11 @@
             cp -r --no-preserve=all ${../server/data/datasets/covid_synthetic_data.csv} data/datasets/covid_synthetic_data.csv
           '';
           config = {
+            Entrypoint = [
+              "${pkgs.tini}/bin/tini"
+              "-g"
+              "--"
+            ];
             Cmd = [
               "lomas"
               "start"
@@ -90,6 +96,11 @@
           tag = "latest";
           fromImage = self'.packages.lomas-oci-raw;
           config = {
+            Entrypoint = [
+              "${pkgs.tini}/bin/tini"
+              "-g"
+              "--"
+            ];
             Cmd = [
               "lomas"
               "start"

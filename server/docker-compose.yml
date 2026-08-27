@@ -4,7 +4,7 @@ services:
   lomas_server:
     image: lomas-oci:latest
     container_name: lomas_server_dev
-    command: lomas start
+    command: ["lomas", "start"]
     ports:
       - ${LOMAS_SERVICE_USER_PORT}:${LOMAS_SERVICE_USER_PORT}
       - ${LOMAS_SERVICE_ADMIN_PORT}:${LOMAS_SERVICE_ADMIN_PORT}
@@ -46,7 +46,7 @@ services:
       - LOMAS_SERVICE_server__admin_host_port=${LOMAS_SERVICE_ADMIN_PORT}
       - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVICE_ADMIN_PORT}
     restart: always
-    command: lomas work
+    command: ["lomas", "work"]
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core

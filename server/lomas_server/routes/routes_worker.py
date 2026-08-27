@@ -67,8 +67,10 @@ def set_query_result(admin_database: LocalAdminDatabase, job_update: Job) -> Non
             admin_database.update_job(job_update, conn)
 
         except Exception as exc:  # pylint: disable=broad-exception-caught
-            # If anything goes bad, just fail the job
+            # Be safe and rollback
+            conn.rollback()
 
+            # If anything goes bad, just fail the job
             error_model, status_code = model_from_lomas_exception(exc)
 
             job_update.error = error_model

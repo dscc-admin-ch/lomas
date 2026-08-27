@@ -173,16 +173,11 @@ async def process_message(config: Config) -> None:
             status = stack.enter_context(job_progress.console.status("Polling ..."))
             stack.enter_context(job_progress)
 
-        logger.debug("handling messages...")
-
         while True:
-            logger.debug("1")
             if status is not None:
                 status.update(status=f"Polling ... {consecutive_sleep}")
-            logger.debug("2")
             consecutive_sleep += 1
             await asyncio.sleep(2)
-            logger.debug("Trying to get job...")
 
             res = query_lomas("/w/job/pending", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY})
             match res:

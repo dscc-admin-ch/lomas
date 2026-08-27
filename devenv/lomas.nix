@@ -139,7 +139,7 @@ in
           exec = ''
             mkdir -p ${notifyRoot}
             ${lib.getExe pkgs.socat} -t3 -u UNIX-RECV:$NOTIFY_SOCKET,unlink-early OPEN:${notifyRoot}/${name}.log,creat,trunc &
-            exec lomas work
+            exec lomas work --reload
           '';
           cwd = "${config.git.root}/server/lomas_server";
           env.NOTIFY_SOCKET = "${notifyRoot}/${name}.sock";
@@ -156,7 +156,7 @@ in
         exec = ''
           mkdir -p ${notifyRoot}
           ${lib.getExe pkgs.socat} -t3 -u UNIX-RECV:$NOTIFY_SOCKET,unlink-early OPEN:${notifyRoot}/lomas.log,creat,trunc &
-          exec python cli.py start
+          exec lomas start --reload
         '';
         cwd = "${config.git.root}/server/lomas_server";
         env.NOTIFY_SOCKET = "${notifyRoot}/lomas.sock";

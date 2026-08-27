@@ -9,6 +9,7 @@ from csvw_eo.metadata_structure import TableMetadata
 from fastapi import status
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from returns.functions import raise_exception
 from returns.result import Failure, Success
 from rich.progress import BarColumn, Progress, SpinnerColumn, TimeElapsedColumn
 
@@ -73,7 +74,6 @@ def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
                 headers={LomasHeaders.APIKEY: TEST_APIKEY, LomasHeaders.FORUSER: user_name},
                 json={"dataset_name": dataset_name},
             ).map(Budget.model_validate)
-            return res.value_or(None)
 
         case ("get_dataset_metadata", {"dataset_name": dataset_name}):
             res = query_lomas(
@@ -81,23 +81,23 @@ def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
                 httpx2.get,
                 headers={LomasHeaders.APIKEY: TEST_APIKEY},
             ).map(TableMetadata.model_validate)
-            return res.value_or(None)
 
         case ("get_dataset", {"dataset_name": dataset_name}):
             res = query_lomas(
                 f"/w/dataset/{dataset_name}", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY}
             ).map(DSInfo.model_validate)
-            return res.value_or(None)
 
         case ("get_user", {"user_name": user_name}):
             # TODO: should this mechanic be changed ? do we even want to attempt Semaphore over network ?
             res = query_lomas(
                 f"/w/users/{user_name}", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY}
             ).map(User.model_validate)
-            return res.value_or(None)
 
         case _:
             raise ValueError(f"Invalid Proxy method: {method_name}")
+    # Exceptions will end up wrapped in InternalServerExceptions and result in failed jobs.
+    # Rationale: scenarios from which we can recover are too few and rather unlikely.
+    return res.alt(raise_exception).unwrap()
 
 
 def handle_query(config: Config, admin_database: Proxy, job: Job) -> Job:

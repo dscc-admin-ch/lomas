@@ -20,7 +20,7 @@ logger = get_lomas_logger(__name__)
 
 
 async def serve(config: Config) -> None:
-    """Start lomas server"""
+    """Start lomas server."""
     user_app = get_user_app(config)
     admin_app = get_admin_app(config)
 

@@ -220,7 +220,7 @@ async def process_message(config: Config) -> None:
 
 async def process_queue(config: Config) -> None:
     """Handle & await all pika processing queues."""
-    async with interruptible_notify_taskgroup(reload=True) as tg:
+    async with interruptible_notify_taskgroup(reload=config.reload) as tg:
         tg.create_task(process_message(config))
 
 

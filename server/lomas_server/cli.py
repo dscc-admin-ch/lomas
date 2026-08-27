@@ -67,7 +67,7 @@ async def serve(config: Config) -> None:
     startup_tasks(config)
 
     # Start servers
-    async with interruptible_notify_taskgroup(reload=True) as tg:
+    async with interruptible_notify_taskgroup(reload=config.reload) as tg:
         tg.create_task(user_server.serve())
         tg.create_task(admin_server.serve())
         await asyncio.gather(user_app.state.ready_event.wait(), admin_app.state.ready_event.wait())

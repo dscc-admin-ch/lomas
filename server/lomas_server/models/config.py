@@ -94,6 +94,8 @@ class Config(BaseSettings):
 
     tui: bool = Field(default=False, description="Terminal friendly output")
 
+    reload: bool = Field(default=False, description="Reload Process on file change")
+
     @computed_field
     def database(self) -> AdminDatabase:
         return LocalAdminDatabase(directory=self.database_directory)

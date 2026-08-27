@@ -486,3 +486,14 @@ class AdminDatabase(ABC):
         Returns:
             bool: The bootstrap disabled value. False by default if not set in the DB.
         """
+
+    @abstractmethod
+    def backup(self) -> bytes:
+        """Creates a backup of the database and returns it as a Zip archive.
+
+        The backup is a zip archive containing snapshots of the underlying storage (db, archives, misc).
+        It can be stored locally or in a S3.
+
+        Returns:
+            bytes: A zip archive containing the backup.
+        """

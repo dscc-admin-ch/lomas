@@ -1,9 +1,13 @@
+import io
 import json
 import sqlite3
+import zipfile
 from collections.abc import Generator
 from contextlib import AbstractContextManager, closing, contextmanager, nullcontext
+from datetime import UTC, datetime
+from functools import wraps
 from pathlib import Path
-from tempfile import SpooledTemporaryFile
+from tempfile import SpooledTemporaryFile, TemporaryDirectory
 from typing import Any, BinaryIO, override
 from uuid import UUID
 
@@ -964,3 +968,54 @@ class LocalAdminDatabase(AdminDatabase):
                 case _:
                     ADMINDB_ERROR_COUNTER.add(1, {"operation": "invalid_misc_value_return"})
                     raise InternalServerException("Invalid Query Returns")
+
+    # Backup
+    ###########################################################################
+
+    def _sqlite_paths_to_backup(self) -> list[Path]:
+        """Paths of the sqlite files that make up the database state to snapshot."""
+        return [self._db_path, self._archives_db_path, self._misc_db_path]
+
+    @staticmethod
+    def _snapshot_sqlite_file(src_path: Path, dest_path: Path) -> None:
+        """Writes a point-in-time copy of a live sqlite db to dest_path.
+
+        Args:
+            src_path (Path): Path of the sqlite database to copy.
+            dest_path (Path): Path to write the snapshot to.
+        """
+        with (
+            closing(sqlite3.connect(src_path)) as src_conn,
+            closing(sqlite3.connect(dest_path)) as dest_conn,
+        ):
+            src_conn.backup(dest_conn)
+
+    @override
+    @db_span("db.backup", table="admin-db")
+    def backup(self) -> bytes:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "backup"})
+
+        with TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            buffer = io.BytesIO()
+
+            with zipfile.ZipFile(buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
+                for src_path in self._sqlite_paths_to_backup():
+                    if not src_path.exists():
+                        # If nothing writtenm, we don't save
+                        continue
+
+                    snapshot_path = tmp_path / src_path.name
+                    self._snapshot_sqlite_file(src_path, snapshot_path)
+                    archive.write(snapshot_path, arcname=src_path.name)
+
+            return buffer.getvalue()
+
+    def backup_filename(self) -> str:
+        """Generates a timestamped filename.
+
+        Returns:
+            str: filename for the backup.
+        """
+        timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+        return f"lomas-admin-backup-{timestamp}.zip"

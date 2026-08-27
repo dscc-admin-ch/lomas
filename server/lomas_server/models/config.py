@@ -32,6 +32,28 @@ class S3CredentialsConfig(PrivateDBCredentials):
     secret_access_key: str
 
 
+class BackupS3Config(BaseModel):
+    """S3 destination for admin database backups."""
+
+    bucket: str
+    key_prefix: str = Field(default="lomas-backups/")
+    endpoint_url: str | None = Field(default=None)
+    access_key_id: str
+    secret_access_key: str
+
+
+class BackupConfig(BaseModel):
+    """Destination configuration for admin database backups.
+
+    If `s3` is set, backups are uploaded to S3. Otherwise, they are written
+    to `local_directory` (falling back to a 'backups' subdirectory of the
+    server's database_directory if not set).
+    """
+
+    local_directory: Path | None = Field(default=None)
+    s3: BackupS3Config | None = Field(default=None)
+
+
 class DexAdminConfig(BaseModel):
     url: Url = Field(description="Dex OIDC server addresse")
 
@@ -64,6 +86,8 @@ class Config(BaseSettings):
     worker_api_key: str
 
     private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
+
+    backup: BackupConfig = Field(default_factory=BackupConfig)
 
     opendp_features: OpenDPFeatures = Field(default=["contrib", "idealized-numerics", "honest-but-curious"])
 

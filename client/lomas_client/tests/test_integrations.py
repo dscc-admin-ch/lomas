@@ -15,6 +15,7 @@ from authlib.integrations.base_client.errors import OAuthError
 from bs4 import BeautifulSoup
 from csvw_eo.constants import COL_NAME, TABLE_SCHEMA
 from diffprivlib import models
+from fastapi.testclient import TestClient
 from opendp.mod import enable_features
 from sklearn.pipeline import Pipeline
 
@@ -27,6 +28,7 @@ from lomas_server.administration.dex.dex_admin import (
     del_all_dex_users,
 )
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
+from lomas_server.app import get_admin_app
 from lomas_server.models.config import AdminConfig, ServerConfig
 
 enable_features("contrib")
@@ -377,6 +379,13 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
 
     assert len(predictions) == 2
     assert predictions == pytest.approx([20, 20], abs=20)
+
+    breakpoint()
+    config = Config()
+    with TestClient(
+        get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}
+    ) as client_admin:
+        response = client_admin.post("/backup")
 
 
 @pytest.mark.long

@@ -1,4 +1,5 @@
 import io
+import os
 import re
 import sys
 import time
@@ -380,13 +381,6 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
     assert len(predictions) == 2
     assert predictions == pytest.approx([20, 20], abs=20)
 
-    breakpoint()
-    config = Config()
-    with TestClient(
-        get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}
-    ) as client_admin:
-        response = client_admin.post("/backup")
-
 
 @pytest.mark.long
 def test_demo_opendp_polars(dex_config, demo_setup) -> None:
@@ -424,3 +418,43 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
     assert response_archives is not None
     assert response_archives.epsilon == DEFAULT_EPSILON
     assert response_archives.delta == pytest.approx(0.0, abs=0.1)
+
+
+def test_backup():
+    # With S3
+    config = Config()
+    config.database.wipe()
+    config.database.set_bootstrap(config.bootstrap)
+
+    with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
+        response = client.post("/backup")
+        body = response.json()
+        assert body["is_s3"] is True
+        assert body["location"].startswith("s3://")
+
+    # No s3 is configured, falls back to local saved (tmp)
+    for var in (
+        "LOMAS_SERVICE_backup__s3__bucket",
+        "LOMAS_SERVICE_backup__s3__key_prefix",
+        "LOMAS_SERVICE_backup__s3__endpoint_url",
+        "LOMAS_SERVICE_backup__s3__access_key_id",
+        "LOMAS_SERVICE_backup__s3__secret_access_key",
+    ):
+        os.environ.pop(var, None)
+    config = Config()
+
+    with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
+        response = client.post("/backup")
+        assert response.json()["is_s3"] is False
+        assert os.path.exists(response.json()["location"])
+
+    # With local_directory setup
+    os.environ["LOMAS_SERVICE_backup__local_directory"] = "/tmp/lomas-custom-backups"
+    config = Config()
+
+    with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
+        response = client.post("/backup")
+        body = response.json()
+        assert body["is_s3"] is False
+        assert body["location"].startswith("/tmp/lomas-custom-backups/")
+        assert os.path.exists(body["location"])

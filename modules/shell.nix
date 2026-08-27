@@ -1,6 +1,11 @@
 {
   perSystem =
-    { self', pkgs, ... }:
+    {
+      self',
+      pkgs,
+      lib,
+      ...
+    }:
     {
       devShells = {
         default = pkgs.mkShell {
@@ -19,5 +24,8 @@
           '';
         };
       };
+
+      # add shells to (nix flake) check
+      checks = lib.mapAttrs' (name: lib.nameValuePair "devShell-${name}") self'.devShells;
     };
 }

@@ -22,6 +22,9 @@
       LOMAS_ADMIN_DATASET_YAML = "${workingDir}/collections/dataset_collection.yaml";
     in
     {
+      # add expose packages to (nix flake) check
+      checks = lib.mapAttrs' (name: lib.nameValuePair "package-${name}") self'.packages;
+
       packages = {
         # make loams python packages available
         inherit (pyEnv)

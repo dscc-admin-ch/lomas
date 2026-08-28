@@ -307,6 +307,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             ):
                 job.error.raise_exception()
 
+    @pytest.mark.long
     def test_naives_bayes_model(self) -> None:
         """Test diffprivlib query: Gaussian Naives Bayes."""
         with TestClient(get_user_app(self.config), headers=self.headers) as client:
@@ -333,6 +334,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             )
             validate_pipeline(client, response)
 
+    @pytest.mark.long
     def test_trees_models(self) -> None:
         """Test diffprivlib query: Random Forest, Decision Tree."""
         with TestClient(get_user_app(self.config), headers=self.headers) as client:

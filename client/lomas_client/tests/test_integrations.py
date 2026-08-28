@@ -186,6 +186,7 @@ def test_device_flow(demo_setup) -> None:
     assert init_budget.delta == pytest.approx(0.2, rel=0.01)
 
 
+@pytest.mark.long
 def test_oauth2_demo(dex_config, demo_setup) -> None:
     user_name = "Jack"
     client = Client(
@@ -378,6 +379,7 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
     assert predictions == pytest.approx([20, 20], abs=20)
 
 
+@pytest.mark.long
 def test_demo_opendp_polars(dex_config, demo_setup) -> None:
     user_name = "Dr.FSO"
     client = Client(

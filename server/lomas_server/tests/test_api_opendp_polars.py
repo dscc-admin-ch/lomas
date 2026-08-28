@@ -173,6 +173,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             )
             assert job.status == JobStatus.FAILED
 
+    @pytest.mark.long
     def test_opendp_polars_cost(self) -> None:
         """Test_opendp_polars_cost."""
         with TestClient(get_user_app(self.config), headers=self.headers) as client:
@@ -262,6 +263,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
+    @pytest.mark.long
     def test_polars_features(self) -> None:
         """Test_opendp_polars_query with different polars features (cut, filter, n_unique)."""
         with TestClient(get_user_app(self.config), headers=self.headers) as client:

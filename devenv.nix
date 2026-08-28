@@ -204,12 +204,12 @@ in
     # PYTHONWARNDEFAULTENCODING = 1;
 
     # Config for sqlite backup (S3)
-    LOMAS_SERVICE_backup__s3__bucket = "bucket";
-    LOMAS_SERVICE_backup__s3__key_prefix = "backup";
-    LOMAS_SERVICE_backup__s3__endpoint_url = "http://${config.lomas.garage.host}:${toString config.lomas.garage.port}";
-    LOMAS_SERVICE_backup__s3__access_key_id = config.lomas.garage.keyId;
-    LOMAS_SERVICE_backup__s3__secret_access_key = config.lomas.garage.secretKey;
-    
+    LOMAS_SERVER_backup__s3__bucket = "bucket";
+    LOMAS_SERVER_backup__s3__key_prefix = "backup";
+    LOMAS_SERVER_backup__s3__endpoint_url = "http://${config.lomas.garage.host}:${toString config.lomas.garage.port}";
+    LOMAS_SERVER_backup__s3__access_key_id = config.lomas.garage.keyId;
+    LOMAS_SERVER_backup__s3__secret_access_key = config.lomas.garage.secretKey;
+
     # Lomas Runtime
     LOMAS_SERVER_log_level = "INFO";
     LOMAS_SERVER_lomas_log_level = "DEBUG";

@@ -23,7 +23,7 @@ from lomas_core.models.responses import (
 )
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.local_database import LocalAdminDatabase
-from lomas_server.models.config import Config
+from lomas_server.models.config import ServerConfig
 from lomas_server.models.responses import BackupResponse, ConfigResponse
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES
 from lomas_server.routes.utils import get_user_id_from_authenticator
@@ -355,7 +355,7 @@ def backup_admin_database(
 ) -> BackupResponse:
 
     db: LocalAdminDatabase = request.app.state.admin_database
-    config = Config()
+    config = ServerConfig()
 
     data = db.backup()
     destination = store_backup(data, db.backup_filename(), config.database_directory, config.backup)

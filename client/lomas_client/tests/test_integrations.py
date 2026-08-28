@@ -1,9 +1,13 @@
 import io
 import os
 import re
+import sqlite3
 import sys
+import tempfile
 import time
+import zipfile
 from dataclasses import dataclass
+from pathlib import Path
 from urllib.parse import urljoin
 
 import numpy as np
@@ -422,7 +426,7 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
 
 def test_backup():
     # With S3
-    config = Config()
+    config = ServerConfig()
     config.database.wipe()
     config.database.set_bootstrap(config.bootstrap)
 
@@ -434,14 +438,14 @@ def test_backup():
 
     # No s3 is configured, falls back to local saved (tmp)
     for var in (
-        "LOMAS_SERVICE_backup__s3__bucket",
-        "LOMAS_SERVICE_backup__s3__key_prefix",
-        "LOMAS_SERVICE_backup__s3__endpoint_url",
-        "LOMAS_SERVICE_backup__s3__access_key_id",
-        "LOMAS_SERVICE_backup__s3__secret_access_key",
+        "LOMAS_SERVER_backup__s3__bucket",
+        "LOMAS_SERVER_backup__s3__key_prefix",
+        "LOMAS_SERVER_backup__s3__endpoint_url",
+        "LOMAS_SERVER_backup__s3__access_key_id",
+        "LOMAS_SERVER_backup__s3__secret_access_key",
     ):
         os.environ.pop(var, None)
-    config = Config()
+    config = ServerConfig()
 
     with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
         response = client.post("/backup")
@@ -449,12 +453,66 @@ def test_backup():
         assert os.path.exists(response.json()["location"])
 
     # With local_directory setup
-    os.environ["LOMAS_SERVICE_backup__local_directory"] = "/tmp/lomas-custom-backups"
-    config = Config()
+    os.environ["LOMAS_SERVER_backup__local_directory"] = "/tmp/lomas-custom-backups"
+    config = ServerConfig()
 
     with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
+        # Create one query to test backup content
+        lomas_demo_setup()
+        user_name = "Jack"
+        client_u = Client(
+            user_name=f"{user_name}@example.com", user_password=user_name.lower(), dataset_name="TITANIC"
+        )
+
+        context = client_u.get_context(epsilon=DEFAULT_EPSILON)
+        plan = context.query().select(pl.col("Age").dp.mean(bounds=(0, 120)), dp.len())
+        client_u.opendp.query(plan, epsilon=DEFAULT_EPSILON)
+
+        # Backup bew db state
         response = client.post("/backup")
         body = response.json()
+
+        # Check if custom location works
         assert body["is_s3"] is False
         assert body["location"].startswith("/tmp/lomas-custom-backups/")
         assert os.path.exists(body["location"])
+
+        # Test that we have correct tables saved in backup
+        # Load each sqlite db out of the backup zip and check its tables
+        backup_path = Path(body["location"])
+        expected_tables_by_file = {
+            "db.sqlite3": {"jobs", "users"},
+            "archives.sqlite3": {"archives"},
+            "misc.sqlite3": {"misc"},
+        }
+
+        with zipfile.ZipFile(backup_path) as archive, tempfile.TemporaryDirectory() as extract_dir:
+            assert set(archive.namelist()) == set(expected_tables_by_file)
+
+            for filename, expected_tables in expected_tables_by_file.items():
+                db_path = Path(extract_dir) / filename
+                db_path.write_bytes(archive.read(filename))
+
+                conn = sqlite3.connect(db_path)
+                try:
+                    # Check tables are correctly saved in each db
+                    tables = {
+                        row[0]
+                        for row in conn.execute(
+                            "SELECT name FROM sqlite_master WHERE type='table'"
+                        ).fetchall()
+                    }
+
+                    # Check that the client query is saved in backup
+                    if tables == {"archives"}:
+                        row = conn.execute(
+                            "SELECT uid, user_name, dataset_name, status FROM archives;"
+                        ).fetchone()
+
+                        assert row[1] == user_name
+                        assert row[2] == "TITANIC"
+                        assert row[3] == "complete"
+
+                finally:
+                    conn.close()
+                assert expected_tables <= tables, f"{filename} missing tables {expected_tables - tables}"

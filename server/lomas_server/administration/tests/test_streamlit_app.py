@@ -176,7 +176,7 @@ def test_add_user_yaml(client: TestClient, demo_setup) -> None:
     assert is_successful(query_result)
 
 
-def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> None:
+def test_add_dataset_yaml(switch_data_dir, client: TestClient, demo_setup) -> None:
     dataset_collection = test_data_folder / "test_datasets.yaml"
     post_result = query_lomas(
         "/dataset/bulk",

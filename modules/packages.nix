@@ -109,10 +109,11 @@
               "start"
             ];
             Env = lib.mapAttrsToList (name: value: "${name}=${toString value}") {
-              LOMAS_SERVER_host_ip = "0.0.0.0";
+              LOMAS_SERVER_bind_ip = "0.0.0.0";
               LOMAS_SERVER_user_host_port = ports.lomas.userApiService;
               LOMAS_SERVER_admin_host_port = ports.lomas.adminApiService;
               LOMAS_SERVER_bootstrap = "deadbeef";
+              LOMAS_SERVER_worker_api_key = "workerdeadbeef";
               LOMAS_SERVER_data_directory = workingDir;
               # LOMAS_SERVER_database_directory="/tmp/lomas-db/";
               LOMAS_SERVER_authenticator__authentication_type = "oidc";

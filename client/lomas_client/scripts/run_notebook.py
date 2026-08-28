@@ -9,7 +9,7 @@ try:
     from lomas_server.administration.scripts.lomas_demo_setup import (
         lomas_demo_setup,
     )
-    from lomas_server.models.config import Config as ServerConfig
+    from lomas_server.models.config import ServerConfig
 except ImportError:
     pass
 

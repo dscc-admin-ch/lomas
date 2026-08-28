@@ -40,7 +40,7 @@ from lomas_server.dp_queries.dp_libraries.opendp import OpenDPQuerier, set_opend
 from lomas_server.dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
-from lomas_server.models.config import Config
+from lomas_server.models.config import WorkerConfig
 from lomas_server.routes.error_handler import model_from_lomas_exception
 from lomas_server.routes.utils import get_dataset_connector
 from lomas_server.utils.query import query_lomas
@@ -66,14 +66,14 @@ job_progress = Progress(
 )
 
 
-def admin_database_proxy(config: Config, method_name: str, kwargs: dict[str, Any]) -> Any:
+def admin_database_proxy(config: WorkerConfig, method_name: str, kwargs: dict[str, Any]) -> Any:
     match (method_name, kwargs):
         case ("get_remaining_budget", {"user_name": user_name, "dataset_name": dataset_name}):
             res = query_lomas(
                 "/w/get_remaining_budget",
                 httpx2.post,
-                host=config.server.admin_api,
-                headers={LomasHeaders.APIKEY: TEST_APIKEY, LomasHeaders.FORUSER: user_name},
+                host=config.admin_api,
+                headers={LomasHeaders.APIKEY: config.worker_api_key, LomasHeaders.FORUSER: user_name},
                 json={"dataset_name": dataset_name},
             ).map(Budget.model_validate)
 
@@ -81,16 +81,16 @@ def admin_database_proxy(config: Config, method_name: str, kwargs: dict[str, Any
             res = query_lomas(
                 f"/w/dataset/{dataset_name}/metadata",
                 httpx2.get,
-                host=config.server.admin_api,
-                headers={LomasHeaders.APIKEY: TEST_APIKEY},
+                host=config.admin_api,
+                headers={LomasHeaders.APIKEY: config.worker_api_key},
             ).map(TableMetadata.model_validate)
 
         case ("get_dataset", {"dataset_name": dataset_name}):
             res = query_lomas(
                 f"/w/dataset/{dataset_name}",
                 httpx2.get,
-                host=config.server.admin_api,
-                headers={LomasHeaders.APIKEY: TEST_APIKEY},
+                host=config.admin_api,
+                headers={LomasHeaders.APIKEY: config.worker_api_key},
             ).map(DSInfo.model_validate)
 
         case ("get_user", {"user_name": user_name}):
@@ -98,8 +98,8 @@ def admin_database_proxy(config: Config, method_name: str, kwargs: dict[str, Any
             res = query_lomas(
                 f"/w/users/{user_name}",
                 httpx2.get,
-                host=config.server.admin_api,
-                headers={LomasHeaders.APIKEY: TEST_APIKEY},
+                host=config.admin_api,
+                headers={LomasHeaders.APIKEY: config.worker_api_key},
             ).map(User.model_validate)
 
         case _:
@@ -109,7 +109,7 @@ def admin_database_proxy(config: Config, method_name: str, kwargs: dict[str, Any
     return res.alt(raise_exception).unwrap()
 
 
-def handle_query(config: Config, admin_database: Proxy, job: Job) -> Job:
+def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
     """Handle queries."""
     start_sec = time.time()
     logger.debug("Handling query.")
@@ -173,7 +173,7 @@ def handle_query(config: Config, admin_database: Proxy, job: Job) -> Job:
         return job
 
 
-async def process_message(config: Config) -> None:
+async def process_message(config: WorkerConfig) -> None:
     """General Job processing loop."""
     with contextlib.ExitStack() as stack:
         consecutive_sleep = 0
@@ -191,7 +191,7 @@ async def process_message(config: Config) -> None:
             res = query_lomas(
                 "/w/job/pending",
                 httpx2.get,
-                host=config.server.admin_api,
+                host=config.admin_api,
                 headers={LomasHeaders.APIKEY: TEST_APIKEY},
             )
             match res:
@@ -217,7 +217,7 @@ async def process_message(config: Config) -> None:
                     res = query_lomas(
                         "/w/job",
                         httpx2.put,
-                        host=config.server.admin_api,
+                        host=config.admin_api,
                         headers={LomasHeaders.APIKEY: TEST_APIKEY},
                         json=job_done.model_dump(
                             exclude_unset=True, mode="json"
@@ -228,26 +228,26 @@ async def process_message(config: Config) -> None:
                     logger.warning(str(e))
 
 
-async def process_queue(config: Config) -> None:
+async def process_queue(config: WorkerConfig) -> None:
     """Handle & await all pika processing queues."""
     async with interruptible_notify_taskgroup(reload=config.reload) as tg:
         tg.create_task(process_message(config))
 
 
-class WorkerConfig(Config):
+class WorkerCliConfig(WorkerConfig):
     def cli_cmd(self) -> None:
         run(self)
 
 
-def run(config: Config | None = None) -> None:
+def run(config: WorkerConfig | None = None) -> None:
     """Start the Worker loop."""
     if config is None:
-        config = Config()
+        config = WorkerConfig()
 
     init_logging(
         name="lomas_server",
-        level=config.server.log_level,
-        lomas_level=config.server.lomas_log_level,
+        level=config.log_level,
+        lomas_level=config.lomas_log_level,
         console=job_progress.console if config.tui else None,
     )
 

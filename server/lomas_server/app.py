@@ -8,7 +8,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from lomas_core.exceptions import InternalServerException
 from lomas_core.models.constants import get_lomas_logger
-from lomas_server.models.config import Config
+from lomas_server.models.config import ServerConfig
 from lomas_server.routes import routes_admin, routes_dp, routes_user, routes_worker
 from lomas_server.routes.error_handler import add_exception_handlers
 from lomas_server.routes.middlewares import (
@@ -20,7 +20,7 @@ logger = get_lomas_logger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(config: Config, lomas_app: FastAPI) -> AsyncGenerator[None]:
+async def lifespan(config: ServerConfig, lomas_app: FastAPI) -> AsyncGenerator[None]:
     """
     Lifespan function for the server.
 
@@ -61,7 +61,7 @@ async def lifespan(config: Config, lomas_app: FastAPI) -> AsyncGenerator[None]:
         logger.info("Shutting down")
 
 
-def get_user_app(config: Config) -> FastAPI:
+def get_user_app(config: ServerConfig) -> FastAPI:
     # This object holds the server object
     app = FastAPI(lifespan=partial(lifespan, config))
 
@@ -85,7 +85,7 @@ def get_user_app(config: Config) -> FastAPI:
     return app
 
 
-def get_admin_app(config: Config) -> FastAPI:
+def get_admin_app(config: ServerConfig) -> FastAPI:
     # This object holds the server object
     app = FastAPI(lifespan=partial(lifespan, config))
 

@@ -112,7 +112,7 @@ def get_auth_header(user_name: str, user_password: str) -> dict[str, str]:
 
 @pytest.fixture
 def switch_query_userinfo(request):
-    userinfo_key = "LOMAS_SERVICE_authenticator__query_userinfo"
+    userinfo_key = "LOMAS_SERVER_authenticator__query_userinfo"
     if request.param:
         query_userinfo = os.getenv(userinfo_key)
         assert isinstance(query_userinfo, str)

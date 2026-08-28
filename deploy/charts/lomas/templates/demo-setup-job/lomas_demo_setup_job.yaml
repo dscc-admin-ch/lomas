@@ -48,7 +48,7 @@ spec:
             - name: LOMAS_ADMIN_DATASET_YAML
               value: {{ .Values.demoSetupJob.config.datasetYamlPath }}
             - name: LOMAS_ADMIN_SERVER_URL
-              value: "https://{{ .Values.demoSetupJob.config.serverUrl }}/"
+              value: "https://{{ .Values.demoSetupJob.configUrl }}/"
             - name: LOMAS_ADMIN_SERVER_SERVICE
               value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
             - name: LOMAS_ADMIN_BOOTSTRAP

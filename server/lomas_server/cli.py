@@ -7,45 +7,45 @@ from pydantic_settings import BaseSettings, CliApp, CliSubCommand, SettingsConfi
 
 from lomas_core.models.constants import get_lomas_logger
 from lomas_server.app import get_admin_app, get_user_app
-from lomas_server.models.config import Config
+from lomas_server.models.config import ServerConfig
 from lomas_server.utils.startup import (
     get_uvicorn_log_config,
     interruptible_notify_taskgroup,
     restart_self_on_change,
     startup_tasks,
 )
-from lomas_server.worker import WorkerConfig
+from lomas_server.worker import WorkerCliConfig
 
 logger = get_lomas_logger(__name__)
 
 
-async def serve(config: Config) -> None:
+async def serve(config: ServerConfig) -> None:
     """Start lomas server."""
     user_app = get_user_app(config)
     admin_app = get_admin_app(config)
 
     user_config = uvicorn.Config(
         user_app,
-        host=config.server.host_ip,
-        port=config.server.user_host_port,
+        host=config.bind_ip,
+        port=config.user_host_port,
         log_config=get_uvicorn_log_config(),
-        log_level=config.server.log_level,
+        log_level=config.log_level,
         workers=1,
-        reload=config.server.reload,
-        forwarded_allow_ips=config.server.forwarded_allow_ips,
-        root_path=config.server.root_path.removeprefix("/"),
+        reload=False,
+        forwarded_allow_ips=config.forwarded_allow_ips,
+        root_path=config.root_path.removeprefix("/"),
         use_colors=True,
     )
     admin_config = uvicorn.Config(
         admin_app,
-        host=config.server.host_ip,
-        port=config.server.admin_host_port,
+        host=config.bind_ip,
+        port=config.admin_host_port,
         log_config=get_uvicorn_log_config(),
-        log_level=config.server.log_level,
+        log_level=config.log_level,
         workers=1,
-        reload=config.server.reload,
-        forwarded_allow_ips=config.server.forwarded_allow_ips,
-        root_path=config.server.root_path.removeprefix("/"),
+        reload=False,
+        forwarded_allow_ips=config.forwarded_allow_ips,
+        root_path=config.root_path.removeprefix("/"),
         use_colors=True,
     )
 
@@ -73,7 +73,7 @@ async def serve(config: Config) -> None:
         await asyncio.gather(user_app.state.ready_event.wait(), admin_app.state.ready_event.wait())
 
 
-class ServiceConfig(Config):
+class ServiceCliConfig(ServerConfig):
     def cli_cmd(self) -> None:
         """Start the ASGI server for lomas."""
         with restart_self_on_change():
@@ -93,10 +93,10 @@ class LomasCli(BaseSettings):
         cli_implicit_flags="toggle",
     )
 
-    start: CliSubCommand[ServiceConfig]
+    start: CliSubCommand[ServiceCliConfig]
     """Starts the Lomas Service."""
 
-    work: CliSubCommand[WorkerConfig]
+    work: CliSubCommand[WorkerCliConfig]
     """Starts a Lomas Worker."""
 
     def cli_cmd(config) -> None:

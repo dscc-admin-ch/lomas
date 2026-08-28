@@ -17,22 +17,20 @@ from watchfiles import awatch
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.constants import FilterOutLiveSuccess, get_lomas_logger, init_logging
 from lomas_server.dp_queries.dp_libraries.opendp import set_opendp_features_config
-from lomas_server.models.config import Config
+from lomas_server.models.config import ServerConfig
 from lomas_server.utils.notify import notify
 
 logger = get_lomas_logger(__name__)
 
 
-def startup_tasks(config: Config) -> None:
+def startup_tasks(config: ServerConfig) -> None:
     """Runs all server startup tasks (logging setup, db wipe if needed, bootstrat, etc.).
 
     Args:
         config (Config): A server config.
     """
     # Init logging
-    init_logging(
-        name="lomas_server", level=config.server.log_level, lomas_level=config.server.lomas_log_level
-    )
+    init_logging(name="lomas_server", level=config.log_level, lomas_level=config.lomas_log_level)
 
     # Initalise telemetry
     if config.telemetry.enabled:

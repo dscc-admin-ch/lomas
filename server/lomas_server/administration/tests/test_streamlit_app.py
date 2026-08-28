@@ -13,7 +13,7 @@ from lomas_core.models.constants import PrivateDatabaseType
 from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import get_admin_app
-from lomas_server.models.config import Config
+from lomas_server.models.config import ServerConfig
 from lomas_server.tests.utils import free_pass_env
 from lomas_server.utils.query import query_lomas
 
@@ -22,7 +22,7 @@ test_data_folder = (Path(__file__).parent / "../../tests/test_data").resolve()
 
 @pytest.fixture
 def demo_setup():
-    config = Config()
+    config = ServerConfig()
     config.database.set_bootstrap(config.bootstrap)
 
     lomas_demo_setup()
@@ -34,7 +34,7 @@ def demo_setup():
 
 @pytest.fixture
 def switch_data_dir():
-    key = "LOMAS_SERVICE_data_directory"
+    key = "LOMAS_SERVER_data_directory"
     prev_data_dir = os.environ.get(key, "")
     # Server graciously allow Datase collection to have relative path to the `data_directory`
     os.environ[key] = str(test_data_folder)
@@ -52,7 +52,7 @@ def client() -> TestClient:
     # we need to be admin from there on
     user_name = "lomas_admin"
     headers = {"Authorization": f"Bearer {user_name}"}
-    with free_pass_env(), TestClient(get_admin_app(Config()), headers=headers) as client:
+    with free_pass_env(), TestClient(get_admin_app(ServerConfig()), headers=headers) as client:
         yield client
 
 

@@ -29,7 +29,7 @@ from lomas_server.auth.auth import authorize_user, ensure_dataset_access
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
-from lomas_server.models.config import Config, PrivateDBCredentials, S3CredentialsConfig
+from lomas_server.models.config import PrivateDBCredentials, S3CredentialsConfig, ServerConfig
 
 logger = get_lomas_logger(__name__)
 
@@ -39,20 +39,20 @@ def timing_protection(func):  # type: ignore[no-untyped-def]
 
     @wraps(func)
     def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
-        config = Config()
+        config = ServerConfig()
 
         start_time = time.time()
         response = func(*args, **kwargs)
         process_time = time.time() - start_time
 
-        match config.server.time_attack.method:
+        match config.time_attack.method:
             case TimeAttackMethod.STALL:
                 # Slows to a minimum response time defined by magnitude
-                if process_time < config.server.time_attack.magnitude:
-                    time.sleep(config.server.time_attack.magnitude - process_time)
+                if process_time < config.time_attack.magnitude:
+                    time.sleep(config.time_attack.magnitude - process_time)
             case TimeAttackMethod.JITTER:
                 # Adds some time between 0 and magnitude secs
-                time.sleep(config.server.time_attack.magnitude * random.uniform(0, 1))
+                time.sleep(config.time_attack.magnitude * random.uniform(0, 1))
         return response
 
     return wrapper

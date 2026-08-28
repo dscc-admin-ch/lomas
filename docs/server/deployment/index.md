@@ -13,4 +13,4 @@ You can choose the deployment option that best suits your needs:
 
 The Lomas server is configured exclusively via environment variables. This allows to inject sensitive values (e.g. credentials, etc.) via Kubernetes secrets.
 
-Upon startup, the server loads its configuration via a [pydantic-settings](https://pydantic.dev/docs/validation/latest/concepts/pydantic_settings/) model defined in `server/lomas_server/models/config.py`. Environment variables for the server config are prefixed with `LOMAS_SERVICE_`, you can have a look by running `env | grep LOMAS_SERVICE` in an active Lomas devenv shell (see [here](../../concepts/contributing.md)).
+Upon startup, the server loads its configuration via a [pydantic-settings](https://pydantic.dev/docs/validation/latest/concepts/pydantic_settings/) model defined in `server/lomas_server/models/config.py`. Environment variables for the server config are prefixed with `LOMAS_SERVER_`, you can have a look by running `env | grep LOMAS_SERVER` in an active Lomas devenv shell (see [here](../../concepts/contributing.md)).

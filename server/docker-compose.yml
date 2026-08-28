@@ -6,20 +6,19 @@ services:
     container_name: lomas_server_dev
     command: ["lomas", "start"]
     ports:
-      - ${LOMAS_SERVICE_USER_PORT}:${LOMAS_SERVICE_USER_PORT}
-      - ${LOMAS_SERVICE_ADMIN_PORT}:${LOMAS_SERVICE_ADMIN_PORT}
+      - ${LOMAS_SERVER_USER_PORT}:${LOMAS_SERVER_USER_PORT}
+      - ${LOMAS_SERVER_ADMIN_PORT}:${LOMAS_SERVER_ADMIN_PORT}
     environment:
-      - LOMAS_SERVICE_server__user_host_port=${LOMAS_SERVICE_USER_PORT}
-      - LOMAS_SERVICE_server__admin_host_port=${LOMAS_SERVICE_ADMIN_PORT}
-      - LOMAS_CLIENT_APP_URL=http://lomas_server:${LOMAS_SERVICE_USER_PORT}
-      - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVICE_USER_PORT}
+      - LOMAS_SERVER_user_host_port=${LOMAS_SERVER_USER_PORT}
+      - LOMAS_SERVER_admin_host_port=${LOMAS_SERVER_ADMIN_PORT}
+      - LOMAS_CLIENT_APP_URL=http://lomas_server:${LOMAS_SERVER_USER_PORT}
     restart: always
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
       - ./data/collections:/data/collections
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${LOMAS_SERVICE_ADMIN_PORT}/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:${LOMAS_SERVER_ADMIN_PORT}/live"]
       interval: 10s
       retries: 10
       timeout: 5s
@@ -42,9 +41,9 @@ services:
     image: lomas-oci:latest
     container_name: lomas_worker_dev
     environment:
-      - LOMAS_SERVICE_server__user_host_port=${LOMAS_SERVICE_USER_PORT}
-      - LOMAS_SERVICE_server__admin_host_port=${LOMAS_SERVICE_ADMIN_PORT}
-      - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVICE_ADMIN_PORT}
+      - LOMAS_SERVER_user_host_port=${LOMAS_SERVER_USER_PORT}
+      - LOMAS_SERVER_admin_host_port=${LOMAS_SERVER_ADMIN_PORT}
+      - LOMAS_SERVER_server_host_addr=lomas_server
     restart: always
     command: ["lomas", "work"]
     volumes:
@@ -80,7 +79,7 @@ services:
     container_name: demo_setup
     image: lomas-oci:latest
     environment:
-      - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVICE_ADMIN_PORT}
+      - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVER_ADMIN_PORT}
     depends_on:
       dex:
         condition: service_healthy
@@ -104,7 +103,7 @@ services:
     restart: always
     command: ["streamlit", "run", "/code/server/lomas_server/administration/dashboard/about.py"]
     environment:
-      - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVICE_ADMIN_PORT}
+      - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVER_ADMIN_PORT}
       - STREAMLIT_SERVER_PORT=${LOMAS_DASHBOARD_PORT}
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
       - STREAMLIT_BROWSER_GATHER_USAGE_STATS=0
@@ -124,7 +123,7 @@ services:
     ports:
       - ${LOMAS_CLIENT_PORT}:${LOMAS_CLIENT_PORT}
     environment:
-      - LOMAS_CLIENT_APP_URL=http://lomas_server:${LOMAS_SERVICE_USER_PORT}
+      - LOMAS_CLIENT_APP_URL=http://lomas_server:${LOMAS_SERVER_USER_PORT}
     volumes:
       - ../client/lomas_client/:/code/client/lomas_client
       - ../core/lomas_core/:/code/core/lomas_core

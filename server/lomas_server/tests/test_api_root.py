@@ -6,7 +6,7 @@ from opendp.mod import enable_features
 from lomas_core.models.constants import AuthenticationType
 from lomas_core.models.responses import Budget
 from lomas_server.auth.auth import FreePassAuthenticator
-from lomas_server.models.config import Config
+from lomas_server.models.config import ServerConfig
 
 INITIAL_BUDGET = Budget(epsilon=10, delta=0.005)
 
@@ -18,7 +18,7 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set Up Header and DB for test."""
-        self.config = Config(
+        self.config = ServerConfig(
             authenticator=FreePassAuthenticator(authentication_type=AuthenticationType.FREE_PASS)
         )
 

@@ -137,13 +137,13 @@
           ];
 
           environment = {
-            LOMAS_SERVICE_server__host_ip = cfg.listenAddress;
-            LOMAS_SERVICE_server__user_host_port = toString cfg.port;
-            LOMAS_SERVICE_server__admin_host_port = toString cfg.adminPort;
+            LOMAS_SERVER__host_ip = cfg.listenAddress;
+            LOMAS_SERVER__user_host_port = toString cfg.port;
+            LOMAS_SERVER__admin_host_port = toString cfg.adminPort;
             # Demo Setup
-            LOMAS_SERVICE_bootstrap = cfg.bootstrap;
-            LOMAS_SERVICE_authenticator__authentication_type = if (cfg.idpIssuer != null) then "oidc" else "free_pass";
-            LOMAS_SERVICE_authenticator__oidc_discovery_url = "${cfg.idpIssuer}/.well-known/openid-configuration";
+            LOMAS_SERVER_bootstrap = cfg.bootstrap;
+            LOMAS_SERVER_authenticator__authentication_type = if (cfg.idpIssuer != null) then "oidc" else "free_pass";
+            LOMAS_SERVER_authenticator__oidc_discovery_url = "${cfg.idpIssuer}/.well-known/openid-configuration";
             LOMAS_ADMIN_bootstrap = cfg.bootstrap;
             LOMAS_ADMIN_server_url = cfg.externalUrl;
             LOMAS_ADMIN_dex_config__url = cfg.dexGrpc;
@@ -209,7 +209,7 @@
           environment = {
             LOMAS_ADMIN_server_url = cfg.externalUrl;
             LOMAS_ADMIN_server_service = cfg.externalUrl;
-            LOMAS_SERVICE_authenticator__authentication_type = lib.mkDefault "free_pass";
+            LOMAS_SERVER_authenticator__authentication_type = lib.mkDefault "free_pass";
           };
 
           serviceConfig = {

@@ -12,7 +12,7 @@ from lomas_core.models.responses import Job
 
 
 @contextmanager
-def free_pass_env(*, auth_env_key="LOMAS_SERVICE_authenticator__authentication_type"):
+def free_pass_env(*, auth_env_key="LOMAS_SERVER_authenticator__authentication_type"):
     """Enter a context with modified os environment using free_pass authentication."""
     previous_auth = os.getenv(auth_env_key, "")
     os.environ[auth_env_key] = AuthenticationType.FREE_PASS

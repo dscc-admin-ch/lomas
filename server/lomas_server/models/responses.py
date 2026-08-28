@@ -3,11 +3,11 @@ from pydantic import (
     Field,
 )
 
-from lomas_server.models.config import Config
+from lomas_server.models.config import ServerConfig
 
 
 class ConfigResponse(BaseModel):
     """Model for response to server config queries."""
 
-    config: Config = Field(default_factory=Config)
+    config: ServerConfig = Field(default_factory=ServerConfig)
     """The server config."""

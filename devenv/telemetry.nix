@@ -61,11 +61,11 @@ in
     }) cfg.services;
 
     env = {
-      LOMAS_SERVICE_telemetry__enabled = "true";
-      LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
-      LOMAS_SERVICE_telemetry__service_id = "default-host";
-      LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${config.ports.otlp.grpc}";
-      LOMAS_SERVICE_telemetry__collector_insecure = "true";
+      LOMAS_SERVER_telemetry__enabled = "true";
+      LOMAS_SERVER_telemetry__service_name = "lomas-server-app";
+      LOMAS_SERVER_telemetry__service_id = "default-host";
+      LOMAS_SERVER_telemetry__collector_endpoint = "http://localhost:${config.ports.otlp.grpc}";
+      LOMAS_SERVER_telemetry__collector_insecure = "true";
 
       LOMAS_CLIENT_telemetry__enabled = "true";
       LOMAS_CLIENT_telemetry__service_name = "lomas-server-app";

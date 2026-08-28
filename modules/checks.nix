@@ -12,7 +12,7 @@
         let
           commonConfig = {
             environment.sessionVariables = {
-              LOMAS_SERVICE_authenticator__authentication_type = lib.mkDefault "free_pass";
+              LOMAS_SERVER_authenticator__authentication_type = lib.mkDefault "free_pass";
             };
           };
 

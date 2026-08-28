@@ -109,15 +109,15 @@
               "start"
             ];
             Env = lib.mapAttrsToList (name: value: "${name}=${toString value}") {
-              LOMAS_SERVICE_server__host_ip = "0.0.0.0";
-              LOMAS_SERVICE_server__user_host_port = ports.lomas.userApiService;
-              LOMAS_SERVICE_server__admin_host_port = ports.lomas.adminApiService;
-              LOMAS_SERVICE_bootstrap = "deadbeef";
-              LOMAS_SERVICE_data_directory = workingDir;
-              # LOMAS_SERVICE_database_directory="/tmp/lomas-db/";
-              LOMAS_SERVICE_authenticator__authentication_type = "oidc";
-              LOMAS_SERVICE_authenticator__oidc_discovery_url = "http://dex:${ports.lomas.dex.api}/dex/.well-known/openid-configuration";
-              LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${ports.otlp.grpc}";
+              LOMAS_SERVER_host_ip = "0.0.0.0";
+              LOMAS_SERVER_user_host_port = ports.lomas.userApiService;
+              LOMAS_SERVER_admin_host_port = ports.lomas.adminApiService;
+              LOMAS_SERVER_bootstrap = "deadbeef";
+              LOMAS_SERVER_data_directory = workingDir;
+              # LOMAS_SERVER_database_directory="/tmp/lomas-db/";
+              LOMAS_SERVER_authenticator__authentication_type = "oidc";
+              LOMAS_SERVER_authenticator__oidc_discovery_url = "http://dex:${ports.lomas.dex.api}/dex/.well-known/openid-configuration";
+              LOMAS_SERVER_telemetry__collector_endpoint = "http://otel-collector:${ports.otlp.grpc}";
               LOMAS_CLIENT_APP_URL = "http://lomas_server:${ports.lomas.userApiService}";
               LOMAS_CLIENT_OIDC_DISCOVERY_URL = "http://dex:${ports.lomas.dex.api}/dex/.well-known/openid-configuration";
               LOMAS_CLIENT_USE_PASSWORD_FLOW = true;

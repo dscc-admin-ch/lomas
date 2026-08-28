@@ -49,59 +49,57 @@ spec:
             subPath: {{ .Values.global.configCABundle.filename }}
           {{- end }}
         env:
-          - name: LOMAS_SERVICE_BOOtSTRAP
+          - name: LOMAS_SERVER_BOOtSTRAP
             valueFrom:
               secretKeyRef:
                 name: {{ include "lomas.server.secretName" . }}
                 key: {{ include "lomas.server.bootstrapSecretKey" . }}
-          - name: LOMAS_SERVICE_SERVER__HOST_IP
+          - name: LOMAS_SERVER_SERVER__HOST_IP
             value: "0.0.0.0"
-          - name: LOMAS_SERVICE_SERVER__HOST_PORT
+          - name: LOMAS_SERVER_SERVER__HOST_PORT
             value: "{{ .Values.server.runtime_args.server.host_port }}"
-          - name: LOMAS_SERVICE_SERVER__ROOT_PATH
+          - name: LOMAS_SERVER_SERVER__ROOT_PATH
             value: "{{ .Values.server.runtime_args.server.root_path }}"
-          - name: LOMAS_SERVICE_SERVER__LOG_LEVEL
+          - name: LOMAS_SERVER_SERVER__LOG_LEVEL
             value: "{{ .Values.server.runtime_args.server.log_level }}"
-          - name: LOMAS_SERVICE_SERVER__LOMAS_LOG_LEVEL
+          - name: LOMAS_SERVER_SERVER__LOMAS_LOG_LEVEL
             value: "{{ .Values.server.runtime_args.server.lomas_log_level }}"
-          - name: LOMAS_SERVICE_SERVER__RELOAD
-            value: "false"
-          - name: LOMAS_SERVICE_SERVER__SUBMIT_LIMIT
+          - name: LOMAS_SERVER_SERVER__SUBMIT_LIMIT
             value: "{{ .Values.server.runtime_args.server.submit_limit }}"
-          - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__METHOD
+          - name: LOMAS_SERVER_SERVER__TIME_ATTACK__METHOD
             value: "{{ .Values.server.runtime_args.server.time_attack.method }}"
-          - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__MAGNITUDE
+          - name: LOMAS_SERVER_SERVER__TIME_ATTACK__MAGNITUDE
             value: "{{ .Values.server.runtime_args.server.time_attack.magnitude }}"
-          - name: LOMAS_SERVICE_ADMIN_DATABASE_URL
+          - name: LOMAS_SERVER_ADMIN_DATABASE_URL
             value: "/db/admin.db"
-          - name: LOMAS_SERVICE_CLEAN_ADMIN_DATABASE
+          - name: LOMAS_SERVER_CLEAN_ADMIN_DATABASE
             value: "{{ .Values.server.runtime_args.clean_admin_database }}"
-          - name: LOMAS_SERVICE_DATA_DIRECTORY
+          - name: LOMAS_SERVER_DATA_DIRECTORY
             value: "/data"
-          - name: LOMAS_SERVICE_AUTHENTICATOR__AUTHENTICATION_TYPE
+          - name: LOMAS_SERVER_AUTHENTICATOR__AUTHENTICATION_TYPE
             value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"
-          - name: LOMAS_SERVICE_AUTHENTICATOR__OIDC_DISCOVERY_URL
+          - name: LOMAS_SERVER_AUTHENTICATOR__OIDC_DISCOVERY_URL
             value: "{{ .Values.server.runtime_args.authenticator.oidc_discovery_url }}"
-          - name: LOMAS_SERVICE_AUTHENTICATOR__QUERY_USERINFO
+          - name: LOMAS_SERVER_AUTHENTICATOR__QUERY_USERINFO
             value: "{{ .Values.server.runtime_args.authenticator.query_userinfo }}"
           {{- range $i, $credSecretName := (include "lomas.server.private-db-credentials-secrets" $) | fromYamlArray }}
-          - name: LOMAS_SERVICE_PRIVATE_DB_CREDENTIALS__{{ $i }}
+          - name: LOMAS_SERVER_PRIVATE_DB_CREDENTIALS__{{ $i }}
             valueFrom:
               secretKeyRef:
                 name: {{ $credSecretName }}
                 key: private-db-credentials
           {{- end }}
-          - name: LOMAS_SERVICE_TELEMETRY__ENABLED
+          - name: LOMAS_SERVER_TELEMETRY__ENABLED
             value: "{{ .Values.server.runtime_args.telemetry.enabled }}"
-          - name: LOMAS_SERVICE_TELEMETRY__SERVICE_NAME
+          - name: LOMAS_SERVER_TELEMETRY__SERVICE_NAME
             value: "{{ .Values.server.runtime_args.telemetry.service_name }}"
-          - name: LOMAS_SERVICE_TELEMETRY__SERVICE_ID
+          - name: LOMAS_SERVER_TELEMETRY__SERVICE_ID
             value: "{{ .Values.server.runtime_args.telemetry.service_id}}"
-          - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_ENDPOINT
+          - name: LOMAS_SERVER_TELEMETRY__COLLECTOR_ENDPOINT
             value: "http://{{ include "lomas.otel.fullname" . }}:{{ .Values.otel.service.port }}"
-          - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_INSECURE
+          - name: LOMAS_SERVER_TELEMETRY__COLLECTOR_INSECURE
             value: "true"
-          - name: LOMAS_SERVICE_OPENDP_FEATURES
+          - name: LOMAS_SERVER_OPENDP_FEATURES
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
           {{- if .Values.global.configCABundle.enabled }}
           - name: REQUESTS_CA_BUNDLE

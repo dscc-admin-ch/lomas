@@ -41,32 +41,12 @@ class DexAdminConfig(BaseModel):
         return self.url.scheme == "https"
 
 
-class Server(BaseModel):
-    """BaseModel for uvicorn server configs."""
-
-    time_attack: TimeAttack = Field(default=TimeAttack(method="jitter", magnitude=1.0))
-    submit_limit: float = Field(default=300.0)
-    """A limit on the rate which users can submit queries."""
-    host_ip: str = Field(default="localhost")
-    user_host_port: int = Field(default=48080)
-    admin_host_port: int = Field(default=48081)
-    log_level: str = Field(default="INFO")
-    lomas_log_level: str = Field(default="INFO")
-    reload: bool = Field(default=False)
-    forwarded_allow_ips: list[str] | str = Field(default="*")
-    root_path: str = Field(default="/")
-
-    @computed_field
-    def admin_api(self) -> HttpUrl:
-        return HttpUrl(url=f"http://{self.host_ip}:{self.admin_host_port}")
-
-
 class Config(BaseSettings):
-    """Server runtime config."""
+    """Base class for lomas service config."""
 
     model_config = SettingsConfigDict(
         extra="ignore",
-        env_prefix="lomas_service_",
+        env_prefix="lomas_server_",
         env_nested_delimiter="__",
         case_sensitive=False,
         cli_kebab_case=True,
@@ -75,12 +55,42 @@ class Config(BaseSettings):
         cli_implicit_flags="toggle",
     )
 
-    # Server configs
-    server: Server = Field(default=Server())
+    log_level: str = Field(default="INFO")
+    lomas_log_level: str = Field(default="INFO")
+
+    user_host_port: int = Field(default=48080)
+    admin_host_port: int = Field(default=48081)
+
+    worker_api_key: str
+
+    private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
+
+    opendp_features: OpenDPFeatures = Field(default=["contrib", "idealized-numerics", "honest-but-curious"])
+
+    telemetry: Telemetry = Field(default_factory=Telemetry, description=CLI_SUPPRESS)
+
+    reload: bool = Field(default=False, description="Reload Process on file change")
+
+
+class ServerConfig(Config):
+    """Lomas server config."""
+
+    bind_ip: str = Field(default="localhost")
+
+    forwarded_allow_ips: list[str] | str = Field(default="*")
+
+    root_path: str = Field(default="/")
+
+    time_attack: TimeAttack = Field(default=TimeAttack(method="jitter", magnitude=1.0))
+
+    # TODO implement rate limiter
+    submit_limit: float = Field(default=300.0)
+    """A limit on the rate which users can submit queries.
+
+    Not implemented.
+    """
 
     authenticator: AuthenticatorT
-
-    dex_config: Annotated[DexAdminConfig | None, Field(default=None)]
 
     bootstrap: str | None = Field(default=None)
 
@@ -90,19 +100,19 @@ class Config(BaseSettings):
 
     data_directory: Path = Field(default=Path("../data"))
 
-    private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
+    @computed_field
+    def database(self) -> AdminDatabase:  # server
+        return LocalAdminDatabase(directory=self.database_directory)
 
-    opendp_features: OpenDPFeatures = Field(default=["contrib", "idealized-numerics", "honest-but-curious"])
 
-    telemetry: Telemetry = Field(default_factory=Telemetry, description=CLI_SUPPRESS)
-
+class WorkerConfig(Config):
     tui: bool = Field(default=False, description="Terminal friendly output")
 
-    reload: bool = Field(default=False, description="Reload Process on file change")
+    server_host_addr: str = Field(default="localhost")
 
     @computed_field
-    def database(self) -> AdminDatabase:
-        return LocalAdminDatabase(directory=self.database_directory)
+    def admin_api(self) -> HttpUrl:
+        return HttpUrl(url=f"http://{self.server_host_addr}:{self.admin_host_port}")
 
 
 class AdminConfig(BaseSettings):

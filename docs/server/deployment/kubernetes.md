@@ -35,7 +35,7 @@ The following outlines the steps required for a basic deployment:
 3. __Update the values file:__ You need to update at least the following urls for the chart to work:
     - `server.runtime_args.server.authenticator.oidc_discovery_url`, set this to your IdP's discovery url, or Dex's if enabled.
     - `server.ingress.hostname`: Choose a hostname supported by your cluster.
-    - `demoSetupJob.config.serverUrl`: Set this to the server hostname.
+    - `demoSetupJob.configUrl`: Set this to the server hostname.
     - `dashboard.streamlitServerSecrets`: Set the `redirectUri`s address to the dashboard ingress and the `serverMetadataUrl` to your IdP's discovery endpoint.
     - `dashboard.ingress.hostname`: Choose a hostname supported by your cluster.
     - `dex.ingress.hosts.host`: Choose a hostname supported by your cluster. Reminder, Dex is only included for testing purposes, do not use in production!

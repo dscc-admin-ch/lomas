@@ -46,11 +46,24 @@ in
   options.lomas = {
     enable = mkEnableOption "Enable Lomas Itself";
 
-    host = mkOption {
+    reload = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Reload server and worker on filechange if set to true.";
+    };
+
+    serverHostAddr = mkOption {
       type = types.str;
       default = "localhost";
       example = "lomas-server.domain";
       description = "Lomas Server address";
+    };
+
+    serverBindIp = mkOption {
+      type = types.str;
+      default = "localhost";
+      example = "0.0.0.0";
+      description = "Lomas Server bind ip";
     };
 
     baseUrl = mkOption {
@@ -58,6 +71,13 @@ in
       default = "/";
       example = "/api, /api/v1, /";
       description = "Lomas Api base Url";
+    };
+
+    workerApiKey = mkOption {
+      type = types.str;
+      default = "workerdeadbeef";
+      example = "supersecretworkerkey";
+      description = "Api key for worker calls to server worker api.";
     };
 
     worker.replicas = mkOption {
@@ -139,7 +159,7 @@ in
           exec = ''
             mkdir -p ${notifyRoot}
             ${lib.getExe pkgs.socat} -t3 -u UNIX-RECV:$NOTIFY_SOCKET,unlink-early OPEN:${notifyRoot}/${name}.log,creat,trunc &
-            exec lomas work --reload
+            exec lomas work
           '';
           cwd = "${config.git.root}/server/lomas_server";
           env.NOTIFY_SOCKET = "${notifyRoot}/${name}.sock";
@@ -156,7 +176,7 @@ in
         exec = ''
           mkdir -p ${notifyRoot}
           ${lib.getExe pkgs.socat} -t3 -u UNIX-RECV:$NOTIFY_SOCKET,unlink-early OPEN:${notifyRoot}/lomas.log,creat,trunc &
-          exec lomas start --reload
+          exec lomas start
         '';
         cwd = "${config.git.root}/server/lomas_server";
         env.NOTIFY_SOCKET = "${notifyRoot}/lomas.sock";
@@ -165,10 +185,10 @@ in
           # mutually exclusive probes in process-compose
           http.get = mkIf false {
             inherit (cfg) host;
-            port = lib.toInt config.ports.lomas.userApiService;
+            port = lib.toInt config.ports.lomas.adminApiService;
             path = "/live";
           };
-          failure_threshold = if (config.env.LOMAS_SERVICE_server__reload == "true") then 100 else 3;
+          failure_threshold = if (config.env.LOMAS_SERVER_reload == "true") then 100 else 3;
         };
       };
 

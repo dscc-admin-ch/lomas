@@ -23,7 +23,6 @@ from lomas_core.models.responses import (
 )
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.local_database import LocalAdminDatabase
-from lomas_server.models.config import Config
 from lomas_server.models.responses import ConfigResponse
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES
 from lomas_server.routes.utils import get_user_id_from_authenticator
@@ -52,7 +51,7 @@ async def health_handler(request: Request) -> JSONResponse:
     """
     # TODO query user server
     config = request.app.state.config
-    port = config.server.user_host_port
+    port = config.user_host_port
     url = f"http://localhost:{port}/live"
 
     try:
@@ -216,7 +215,7 @@ def add_dataset_bulk(
     clean: Annotated[bool, Form()],
 ) -> None:
     db: LocalAdminDatabase = request.app.state.admin_database
-    config = Config()
+    config = request.app.state.config
     return db.add_datasets_via_yaml(file.file, clean=clean, path_prefix=config.data_directory)
 
 

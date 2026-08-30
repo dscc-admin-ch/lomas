@@ -13,6 +13,7 @@
           commonConfig = {
             environment.sessionVariables = {
               LOMAS_SERVER_authenticator__authentication_type = lib.mkDefault "free_pass";
+              LOMAS_SERVER_worker_api_key = "workerdeadbeef";
             };
           };
 

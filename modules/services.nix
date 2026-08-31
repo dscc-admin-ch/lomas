@@ -72,6 +72,12 @@
             type = types.str;
           };
 
+          workerApiKey = mkOption {
+            default = "workerdeadbeef";
+            description = "Api Key for worker to authenticate to the server admin API";
+            type = types.str;
+          };
+
           dataDir = mkOption {
             type = types.path;
             default = "/var/lib/lomas";
@@ -137,9 +143,10 @@
           ];
 
           environment = {
-            LOMAS_SERVER__host_ip = cfg.listenAddress;
-            LOMAS_SERVER__user_host_port = toString cfg.port;
-            LOMAS_SERVER__admin_host_port = toString cfg.adminPort;
+            LOMAS_SERVER_bind_ip = cfg.listenAddress;
+            LOMAS_SERVER_user_host_port = toString cfg.port;
+            LOMAS_SERVER_admin_host_port = toString cfg.adminPort;
+            LOMAS_SERVER_worker_api_key = cfg.workerApiKey;
             # Demo Setup
             LOMAS_SERVER_bootstrap = cfg.bootstrap;
             LOMAS_SERVER_authenticator__authentication_type = if (cfg.idpIssuer != null) then "oidc" else "free_pass";
@@ -207,9 +214,10 @@
           ];
 
           environment = {
-            LOMAS_ADMIN_server_url = cfg.externalUrl;
-            LOMAS_ADMIN_server_service = cfg.externalUrl;
+            LOMAS_SERVER_server_host_addr = "server";
+            LOMAS_SERVER_admin_host_port = toString cfg.adminPort;
             LOMAS_SERVER_authenticator__authentication_type = lib.mkDefault "free_pass";
+            LOMAS_SERVER_worker_api_key = cfg.workerApiKey;
           };
 
           serviceConfig = {

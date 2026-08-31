@@ -3,6 +3,7 @@ import signal
 from typing import Any
 
 import uvicorn
+from pydantic import ValidationError
 from pydantic_settings import BaseSettings, CliApp, CliSubCommand, SettingsConfigDict
 
 from lomas_core.models.constants import get_lomas_logger
@@ -104,7 +105,11 @@ class LomasCli(BaseSettings):
 
 
 def run() -> None:
-    CliApp.run(LomasCli)
+    try:
+        CliApp.run(LomasCli)
+    except ValidationError as exc:
+        for err in exc.errors():
+            logger.error(f"{err['msg']}: {err['loc'][-1]}")
 
 
 if __name__ == "__main__":

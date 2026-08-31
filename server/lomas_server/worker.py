@@ -51,9 +51,6 @@ from lomas_server.utils.startup import (
 
 logger = get_lomas_logger(__name__)
 
-# TODO: deployment key & fun
-TEST_APIKEY = "worker-api-key"
-
 job_progress = Progress(
     "[turquoise2]{task.description}",
     "[pink1]{task.fields[job].query.library}",
@@ -192,7 +189,7 @@ async def process_message(config: WorkerConfig) -> None:
                 "/w/job/pending",
                 httpx2.get,
                 host=config.admin_api,
-                headers={LomasHeaders.APIKEY: TEST_APIKEY},
+                headers={LomasHeaders.APIKEY: config.worker_api_key},
             )
             match res:
                 case Success(None):
@@ -218,7 +215,7 @@ async def process_message(config: WorkerConfig) -> None:
                         "/w/job",
                         httpx2.put,
                         host=config.admin_api,
-                        headers={LomasHeaders.APIKEY: TEST_APIKEY},
+                        headers={LomasHeaders.APIKEY: config.worker_api_key},
                         json=job_done.model_dump(
                             exclude_unset=True, mode="json"
                         ),  # Requires json mode to make UUID (not json serializable) into str.

@@ -17,6 +17,8 @@
             UV_NO_SYNC = "1";
             UV_PYTHON = "${self'.packages.lomasEnvDev}/bin/python";
             UV_PYTHON_DOWNLOADS = "never";
+            # some editor uses this to find py sources
+            VIRTUAL_ENV = ".devenv/profile";
           };
           shellHook = ''
             unset PYTHONPATH

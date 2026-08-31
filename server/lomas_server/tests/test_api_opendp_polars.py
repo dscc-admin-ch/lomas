@@ -113,7 +113,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
                 json=example_opendp_polars,
             )
             response_model = QueryResponse.model_validate(job.result)
-            # print(response_model.result)
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 

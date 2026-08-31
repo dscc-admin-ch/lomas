@@ -195,27 +195,6 @@ class AdminDatabase(ABC):
             user_name, dataset_name
         )
 
-    def update_budget(
-        self,
-        user_name: str,
-        dataset_name: str,
-        spent_epsilon: float,
-        spent_delta: float,
-    ) -> None:
-        """
-        Update current epsilon and delta delta spent by user.
-
-        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
-
-        Args:
-            user_name (str): name of the user
-            dataset_name (str): name of the dataset
-            spent_epsilon (float): value of epsilon spent on last query
-            spent_delta (float): value of delta spent on last query
-        """
-        # FIXME
-        return
-
     @abstractmethod
     def get_dataset(self, dataset_name: str) -> DSInfo:
         """

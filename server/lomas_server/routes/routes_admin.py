@@ -49,7 +49,6 @@ async def health_handler(request: Request) -> JSONResponse:
     Returns:
         JSONResponse: "live"
     """
-    # TODO query user server
     config = request.app.state.config
     port = config.user_host_port
     url = f"http://localhost:{port}/live"
@@ -164,10 +163,8 @@ def add_users_yaml(
             True if drop current user collection
             False if keep current user collection
     """
-    # print(request.)
     db: LocalAdminDatabase = request.app.state.admin_database
     try:
-        print(db.does_user_exist("Dr.Antartica"))
         return db.add_users_via_yaml(file.file, clean=clean, overwrite=overwrite)
     except KeyError as e:
         raise InvalidQueryException(str(e)) from e

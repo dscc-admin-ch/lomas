@@ -9,13 +9,19 @@
     }:
     let
       # Eval our defaults (as options) and get the resulting config
-      inherit ((lib.evalModules { modules = [ ./_defaults.nix ]; }).config) ports;
+      inherit ((lib.evalModules { modules = [ ../_defaults.nix ]; }).config) ports;
 
       # Build our python package & environments from local root (uv.lock)
-      pyEnv = pkgs.callPackage ../devenv/lib.nix {
-        inherit (inputs) pyproject-nix pyproject-build-systems uv2nix;
-        workspaceRoot = ../.;
-      };
+      pyEnvs = lib.genAttrs' [ "12" "13" "14" ] (
+        version:
+        lib.nameValuePair ("py3${version}") (
+          pkgs.callPackage ./_lib.nix {
+            inherit (inputs) pyproject-nix pyproject-build-systems uv2nix;
+            python3 = pkgs."python3${version}";
+            workspaceRoot = ../../.;
+          }
+        )
+      );
 
       workingDir = "/data";
       LOMAS_ADMIN_USER_YAML = "${workingDir}/collections/user_collection.yaml";
@@ -25,14 +31,25 @@
       # add expose packages to (nix flake) check
       checks = lib.mapAttrs' (name: lib.nameValuePair "package-${name}") self'.packages;
 
-      packages = {
+      packages = rec {
         # make loams python packages available
-        inherit (pyEnv)
-          lomasEnv
-          lomasEnvDev
-          lomasService
-          lomasClient
-          ;
+        lomasService = lomasService_3_14;
+        lomasClient = lomasClient_3_14;
+        lomasEnv = lomasEnv_3_14;
+        lomasEnvDev = lomasEnvDev_3_14;
+
+        lomasEnv_3_12 = pyEnvs.py312.lomasEnv;
+        lomasEnvDev_3_12 = pyEnvs.py312.lomasEnvDev;
+        lomasService_3_12 = pyEnvs.py312.lomasService;
+        lomasClient_3_12 = pyEnvs.py312.lomasClient;
+        lomasEnv_3_13 = pyEnvs.py313.lomasEnv;
+        lomasEnvDev_3_13 = pyEnvs.py313.lomasEnvDev;
+        lomasService_3_13 = pyEnvs.py313.lomasService;
+        lomasClient_3_13 = pyEnvs.py313.lomasClient;
+        lomasEnv_3_14 = pyEnvs.py314.lomasEnv;
+        lomasEnvDev_3_14 = pyEnvs.py314.lomasEnvDev;
+        lomasService_3_14 = pyEnvs.py314.lomasService;
+        lomasClient_3_14 = pyEnvs.py314.lomasClient;
 
         ##############################
         # OCI-docker images for RHOS #
@@ -55,23 +72,23 @@
               git
               tini
               ;
-            inherit (pyEnv) lomasEnv;
+            inherit lomasEnv;
             lomas-dashboard = (
               pkgs.writeShellScriptBin "lomas-dashboard" ''
-                cd ${pyEnv.lomasEnv}/lib/python*/site-packages/
+                cd ${lomasEnv}/lib/python*/site-packages/
                 streamlit run lomas_server/administration/dashboard/about.py
               ''
             );
           };
           extraCommands = ''
             install -dm 1777 tmp
-            install -Dm 644 ${../server/data/collections/user_collection.yaml} ${lib.removePrefix "/" LOMAS_ADMIN_USER_YAML}
-            install -Dm 644 ${../server/data/collections/dataset_collection.yaml} ${lib.removePrefix "/" LOMAS_ADMIN_DATASET_YAML}
+            install -Dm 644 ${../../server/data/collections/user_collection.yaml} ${lib.removePrefix "/" LOMAS_ADMIN_USER_YAML}
+            install -Dm 644 ${../../server/data/collections/dataset_collection.yaml} ${lib.removePrefix "/" LOMAS_ADMIN_DATASET_YAML}
 
             install -dm 755 data/collections/
-            cp -r --no-preserve=all ${../server/data/collections}/metadata data/collections/
+            cp -r --no-preserve=all ${../../server/data/collections}/metadata data/collections/
             install -dm 755 data/datasets/
-            cp -r --no-preserve=all ${../server/data/datasets/covid_synthetic_data.csv} data/datasets/covid_synthetic_data.csv
+            cp -r --no-preserve=all ${../../server/data/datasets/covid_synthetic_data.csv} data/datasets/covid_synthetic_data.csv
           '';
           config = {
             Entrypoint = [

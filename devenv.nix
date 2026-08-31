@@ -160,7 +160,7 @@ in
 
   lomas.pyenv = {
     enable = true;
-    package = lib.mkDefault pkgs.python3;
+    version = lib.mkDefault "3.14";
   };
 
   dockerEnv.enable = true;

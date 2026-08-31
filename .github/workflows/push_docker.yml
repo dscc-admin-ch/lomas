@@ -19,7 +19,7 @@ jobs:
           name: lomas
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - name: Install devenv.sh
-        run: nix profile add nixpkgs/64c08a7ca051951c8eae34e3e3cb1e202fe36786#devenv
+        run: nix profile add nixpkgs/e8be7818e19ada32105a8af937a6a473b38167ca#devenv
 
       - name: Docker meta
         id: meta

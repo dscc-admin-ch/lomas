@@ -38,9 +38,9 @@ def add_exception_handlers(app: FastAPI) -> None:
 def model_from_lomas_exception(exc: Exception) -> tuple[LomasAPIErrorModel, int]:
     # Log exception
     if not isinstance(exc, LomasAPIException):
-        logger.exception(f"Unforseen exception occured: {exc}")
+        logger.error(f"Unforseen exception occured: {exc}")
     else:
-        logger.exception(exc)
+        logger.error(exc)
 
     # Attribute status code
     match exc:

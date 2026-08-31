@@ -164,10 +164,6 @@ in
           cwd = "${config.git.root}/server/lomas_server";
           env.NOTIFY_SOCKET = "${notifyRoot}/${name}.sock";
           ready.exec = "${pkgs.ripgrep}/bin/rg -q 'READY=1' ${notifyRoot}/${name}.log";
-          watch = {
-            paths = [ config.git.root ];
-            extensions = [ "py" ];
-          };
         });
     }
 

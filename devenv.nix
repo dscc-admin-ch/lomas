@@ -237,8 +237,8 @@ in
     LOMAS_CLIENT_APP_URL = "http://localhost:${config.ports.lomas.userApiService}";
 
     # Lomas demo setup
-    LOMAS_ADMIN_server_url = "http://localhost:${config.ports.lomas.adminApiService}"; # public lomas service url from dashboard
-    LOMAS_ADMIN_server_service = "http://localhost:${config.ports.lomas.adminApiService}";
+    LOMAS_ADMIN_external_url = "http://localhost:${config.ports.lomas.adminApiService}"; # public lomas service url from dashboard
+    LOMAS_ADMIN_service_url = "http://localhost:${config.ports.lomas.adminApiService}";
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
     LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${config.lomas.dex.adminAddress}:${config.ports.lomas.dex.admin}";

@@ -44,7 +44,7 @@ def query_lomas(
     return flow(
         maybe_to_result(Maybe.from_optional(host)),
         # get/parse our config from environment/files
-        lash(lambda _: get_config().map(lambda config: config.server_service)),
+        lash(lambda _: get_config().map(lambda config: config.service_url)),
         # build complete API endpoint
         map_(lambda host: url_append(host, endpoint)),
         # do the request while capturing Errors

@@ -47,9 +47,9 @@ spec:
               value: "/data/collections/user_collection.yaml"
             - name: LOMAS_ADMIN_DATASET_YAML
               value: {{ .Values.demoSetupJob.config.datasetYamlPath }}
-            - name: LOMAS_ADMIN_SERVER_URL
+            - name: LOMAS_ADMIN_EXTERNAL_URL
               value: "https://{{ .Values.demoSetupJob.configUrl }}/"
-            - name: LOMAS_ADMIN_SERVER_SERVICE
+            - name: LOMAS_ADMIN_SERVICE_URL
               value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
             - name: LOMAS_ADMIN_BOOTSTRAP
               valueFrom:

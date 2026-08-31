@@ -152,7 +152,7 @@
             LOMAS_SERVER_authenticator__authentication_type = if (cfg.idpIssuer != null) then "oidc" else "free_pass";
             LOMAS_SERVER_authenticator__oidc_discovery_url = "${cfg.idpIssuer}/.well-known/openid-configuration";
             LOMAS_ADMIN_bootstrap = cfg.bootstrap;
-            LOMAS_ADMIN_server_url = cfg.externalUrl;
+            LOMAS_ADMIN_external_url = cfg.externalUrl;
             LOMAS_ADMIN_dex_config__url = cfg.dexGrpc;
             LOMAS_ADMIN_user_yaml = cfg.initUsers;
             LOMAS_ADMIN_dataset_yaml = cfg.initDatasets;

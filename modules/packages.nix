@@ -125,7 +125,7 @@
               LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${ports.otlp.grpc}";
               inherit LOMAS_ADMIN_USER_YAML LOMAS_ADMIN_DATASET_YAML;
               LOMAS_ADMIN_DEX_CONFIG__URL = "http://dex:${ports.lomas.dex.admin}";
-              LOMAS_ADMIN_server_url = "http://lomas_server:${ports.lomas.adminApiService}";
+              LOMAS_ADMIN_external_url = "http://lomas_server:${ports.lomas.adminApiService}";
               LOMAS_ADMIN_BOOTSTRAP = "deadbeef";
               STREAMLIT_BROWSER_GATHER_USAGE_STATS = 0;
               STREAMLIT_SERVER_PORT = ports.streamlit;

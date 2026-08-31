@@ -85,9 +85,9 @@ def about() -> None:
         case Failure(e):
             status = f":red-badge[unavailable]: {e}"
 
-    match get_config().map(lambda config: config.server_url):
-        case Success(server_url):
-            st.write(f"{status} at {server_url}")
+    match get_config().map(lambda config: config.external_url):
+        case Success(external_url):
+            st.write(f"{status} at {external_url}")
         case Failure(e):
             st.error(f"Configuration Error: {e}")
 

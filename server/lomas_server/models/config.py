@@ -126,11 +126,11 @@ class AdminConfig(BaseSettings):
         case_sensitive=False,
     )
 
-    # We keep both url and service for the following reason
-    #   - url is the address to reach the server from the client/user
+    # We keep both external and service for the following reason
+    #   - external is the address to reach the server from the client/user
     #   - service is the address to reach the server from the dashboard/admin job
     # These two can sometimes differ, e.g. if the user is not in the same K8 cluster,
     # or if Lomas is deployed with its own docker network (docker compose case).
-    server_url: HttpUrl = Field(description="Lomas server addresse reacheable from the client")
-    server_service: HttpUrl = Field(default_factory=lambda data: data["server_url"], description=CLI_SUPPRESS)
+    external_url: HttpUrl = Field(description="Lomas server addresse reacheable from the client")
+    service_url: HttpUrl = Field(default_factory=lambda data: data["external_url"], description=CLI_SUPPRESS)
     dex_config: DexAdminConfig | None = Field(default=None)

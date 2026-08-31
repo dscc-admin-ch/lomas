@@ -30,7 +30,7 @@ class DemoAdminConfig(AdminConfig):
         cli_avoid_json=True,
         cli_implicit_flags="toggle",
         cli_shortcuts={
-            "server-url": "s",
+            "external-url": "s",
             "user-yaml": "u",
             "dataset-yaml": "d",
         },

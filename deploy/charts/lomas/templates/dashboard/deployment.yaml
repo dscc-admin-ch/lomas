@@ -60,9 +60,9 @@ spec:
             value: "/dev/null"
           - name: LOMAS_ADMIN_DATASET_YAML
             value: "/dev/null" # dashboard does not need this.
-          - name: LOMAS_ADMIN_SERVER_URL
+          - name: LOMAS_ADMIN_EXTERNAL_URL
             value: "{{ .Values.dashboard.configUrl }}"
-          - name: LOMAS_ADMIN_SERVER_SERVICE
+          - name: LOMAS_ADMIN_SERVICE_URL
             value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
           - name: LOMAS_ADMIN_BOOTSTRAP
             value: "" # dashboard does not need bootstrap

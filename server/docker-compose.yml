@@ -79,7 +79,7 @@ services:
     container_name: demo_setup
     image: lomas-oci:latest
     environment:
-      - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVER_ADMIN_PORT}
+      - LOMAS_ADMIN_external_url=http://lomas_server:${LOMAS_SERVER_ADMIN_PORT}
     depends_on:
       dex:
         condition: service_healthy
@@ -103,7 +103,7 @@ services:
     restart: always
     command: ["streamlit", "run", "/code/server/lomas_server/administration/dashboard/about.py"]
     environment:
-      - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVER_ADMIN_PORT}
+      - LOMAS_ADMIN_external_url=http://lomas_server:${LOMAS_SERVER_ADMIN_PORT}
       - STREAMLIT_SERVER_PORT=${LOMAS_DASHBOARD_PORT}
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
       - STREAMLIT_BROWSER_GATHER_USAGE_STATS=0

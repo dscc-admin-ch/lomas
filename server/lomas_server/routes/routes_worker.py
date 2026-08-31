@@ -7,8 +7,6 @@ from fastapi.security import APIKeyHeader
 
 from lomas_core.exceptions import (
     DatasetNotFoundException,
-    InternalServerException,
-    InvalidQueryException,
     JobNotFoundException,
 )
 from lomas_core.models.collections import DSInfo, User, UserId
@@ -19,8 +17,8 @@ from lomas_core.models.constants import (
 from lomas_core.models.requests import DummyQueryModel, LomasRequestModel, QueryModel
 from lomas_core.models.responses import Budget, Job
 from lomas_server.admin_database.local_database import LocalAdminDatabase
-from lomas_server.routes.error_handler import API_ERROR_RESPONSES, model_from_lomas_exception
-from lomas_server.routes.utils import get_user_id_from_api_key
+from lomas_server.routes.error_handler import API_ERROR_RESPONSES
+from lomas_server.routes.utils import get_user_id_from_api_key, set_query_result
 
 router = APIRouter(
     prefix="/w",
@@ -29,60 +27,6 @@ router = APIRouter(
     dependencies=[Depends(APIKeyHeader(name=LomasHeaders.APIKEY))],
     responses=API_ERROR_RESPONSES,
 )
-
-
-def set_query_result(admin_database: LocalAdminDatabase, job_update: Job) -> None:
-    with admin_database.get_db_conn() as conn:
-        job = admin_database.get_job(job_update.uid, conn)
-
-        if not job.status == JobStatus.IN_PROGRESS:
-            raise InvalidQueryException(f"Job with uid {job_update.uid} not in progress anymore")
-
-        try:
-            # Make sure job did not fail
-            if job_update.status == JobStatus.FAILED:
-                return  # Finally still runs!
-
-            # Validate budget
-            user = admin_database.get_user(job.requested_by, conn)
-
-            dataset_of_user = user.datasets[job.dataset_name]
-            remaining_budget = dataset_of_user.initial_budget - dataset_of_user.total_spent_budget
-
-            if job_update.result is None:
-                raise InternalServerException(f"Job result for job {job_update.uid} is None.")
-
-            job_budget = Budget(epsilon=job_update.result.epsilon, delta=job_update.result.delta)
-
-            if not (job_budget <= remaining_budget):
-                raise InvalidQueryException(
-                    f"Not enough budget for this query. Requested: {job_budget} remaining: {remaining_budget}."
-                )
-
-            # Store updated budget
-            dataset_of_user.total_spent_budget += job_budget
-            admin_database.replace_user(user, conn)
-
-            # Store job
-            admin_database.update_job(job_update, conn)
-
-        except Exception as exc:  # pylint: disable=broad-exception-caught
-            # Be safe and rollback
-            conn.rollback()
-
-            # If anything goes bad, just fail the job
-            error_model, status_code = model_from_lomas_exception(exc)
-
-            job_update.error = error_model
-            job_update.status_code = status_code
-            job_update.status = JobStatus.FAILED
-
-            raise exc
-        finally:
-            # Always update job
-            admin_database.update_job(job_update, conn)
-
-        return
 
 
 @router.put("/job")

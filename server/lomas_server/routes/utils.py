@@ -11,9 +11,12 @@ from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBea
 from lomas_core.constants import DPLibraries
 from lomas_core.exceptions import (
     InternalServerException,
+    InvalidQueryException,
+    UnauthorizedAccessException,
 )
 from lomas_core.models.collections import DSPathAccess, DSS3Access, UserId
 from lomas_core.models.constants import (
+    JobStatus,
     LomasHeaders,
     PrivateDatabaseType,
     TimeAttackMethod,
@@ -24,12 +27,14 @@ from lomas_core.models.requests import (
     LomasRequestModel,
     QueryModel,
 )
-from lomas_core.models.responses import Job
+from lomas_core.models.responses import Budget, Job
+from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.auth.auth import authorize_user, ensure_dataset_access
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
 from lomas_server.models.config import PrivateDBCredentials, S3CredentialsConfig, ServerConfig
+from lomas_server.routes.error_handler import model_from_lomas_exception
 
 logger = get_lomas_logger(__name__)
 
@@ -62,7 +67,21 @@ def get_user_id_from_api_key(
     request: Request,
     api_key: Annotated[str, Depends(APIKeyHeader(name=LomasHeaders.APIKEY))],
 ) -> UserId:
-    # TODO: validate api_key
+    """Verifies worker api key and extracts user for which the operation must take place.
+
+    Args:
+        request (Request): The request to access a worker endpoint.
+        api_key (Annotated[str, Depends]): The worker api key from the request header.
+
+    Raises:
+        UnauthorizedAccessException: If the worker api key does not match.
+
+    Returns:
+        UserId: The user id the worker endpoint is called for.
+    """
+    if api_key != request.app.state.config.worker_api_key:
+        raise UnauthorizedAccessException("Invalid worker API key.")
+
     # Allow worker to impersonate Users Id for db queries
     name = request.headers.get(LomasHeaders.FORUSER, LomasHeaders.WORKERUSER)
     return UserId(name=name, email="api@noreply.com")
@@ -175,6 +194,73 @@ def handle_query_to_job(
     admin_database.put_job(new_task)
 
     return new_task
+
+
+def set_query_result(admin_database: LocalAdminDatabase, job_update: Job) -> None:
+    """Handles finished jobs returned by workers within a single database transaction.
+
+    Checks budget is sufficient and job was successfuly terminated.
+    If any error occurs, database changes are rolled back.
+
+    Args:
+        admin_database (LocalAdminDatabase): The admin database for this server.
+        job_update (Job): The job update received from the worker.
+
+    Raises:
+        InvalidQueryException: If job is already done or budget is insufficient.
+        InternalServerException: Any unexpected error.
+    """
+    with admin_database.get_db_conn() as conn:
+        job = admin_database.get_job(job_update.uid, conn)
+
+        if not job.status == JobStatus.IN_PROGRESS:
+            raise InvalidQueryException(f"Job with uid {job_update.uid} not in progress anymore")
+
+        try:
+            # Make sure job did not fail
+            if job_update.status == JobStatus.COMPLETE:
+                # If job fails, goes directly to finally
+
+                # Validate budget
+                user = admin_database.get_user(job.requested_by, conn)
+
+                dataset_of_user = user.datasets[job.dataset_name]
+                remaining_budget = dataset_of_user.initial_budget - dataset_of_user.total_spent_budget
+
+                if job_update.result is None:
+                    raise InternalServerException(f"Job result for job {job_update.uid} is None.")
+
+                job_budget = Budget(epsilon=job_update.result.epsilon, delta=job_update.result.delta)
+
+                if not (job_budget <= remaining_budget):
+                    raise InvalidQueryException(
+                        f"Not enough budget for this query. Requested: {job_budget} remaining: {remaining_budget}."
+                    )
+
+                # Store updated budget
+                dataset_of_user.total_spent_budget += job_budget
+                admin_database.replace_user(user, conn)
+
+                # Store job
+                admin_database.update_job(job_update, conn)
+
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            # Be safe and rollback
+            conn.rollback()
+
+            # If anything goes bad, just fail the job
+            error_model, status_code = model_from_lomas_exception(exc)
+
+            job_update.error = error_model
+            job_update.status_code = status_code
+            job_update.status = JobStatus.FAILED
+
+            raise exc
+        finally:
+            # Always update job
+            admin_database.update_job(job_update, conn)
+
+        return
 
 
 def get_dataset_connector(

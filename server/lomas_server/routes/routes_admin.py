@@ -273,7 +273,7 @@ def del_dataset_to_user(
 
 
 @router.patch("/users/{username}/dataset/budget", responses=API_ERROR_RESPONSES)
-def set_epsilon_delta(
+def set_budget(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
     username: str,
@@ -284,7 +284,7 @@ def set_epsilon_delta(
     if not db.does_user_exist(username):
         raise UserNotFoundException(username)
 
-    db.set_epsilon_or_delta(
+    db.set_budget(
         username, body.dataset_name, BudgetDBKey.INITIAL, Budget(epsilon=body.epsilon, delta=body.delta)
     )
 

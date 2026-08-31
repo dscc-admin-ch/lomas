@@ -328,11 +328,6 @@ class LocalAdminDatabase(AdminDatabase):
             if cursor.rowcount == 0:
                 raise KeyError(f"No job with uid {job_update.uid}")
 
-    # @override
-    @db_span("db.set_query_result", table="admin-db")
-    def set_query_result(self, job_update: Job) -> None:
-        ADMINDB_QUERY_COUNTER.add(1, {"operation": "set_query_result"})
-
     # Archives
     ###########################################################################
 
@@ -390,6 +385,10 @@ class LocalAdminDatabase(AdminDatabase):
     ###########################################################################
 
     def load_users_collection(self, users: list[User], overwrite: bool) -> None:
+        """Loads the list of Users into the database.
+
+        Set overwrite to true to ignore existing users and overwrite
+        """
         with _sqlite_connection(self._db_path) as conn:
             if overwrite:
                 for user in users:
@@ -564,30 +563,42 @@ class LocalAdminDatabase(AdminDatabase):
         return dataset_name in user.datasets
 
     @override
-    @db_span("db.get_epsilon_or_delta", table="admin-db")
-    def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> float:
-        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_epsilon_or_delta"})
+    @db_span("db.get_budget", table="admin-db")
+    def get_budget(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> Budget:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_budget"})
         user = self.get_user(user_name)
         return getattr(user.datasets[dataset_name], parameter)
 
-    @db_span("db.set_epsilon_or_delta", table="admin-db")
-    def set_epsilon_or_delta(
+    @db_span("db.set_budget", table="admin-db")
+    def set_budget(
         self,
         user_name: str,
         dataset_name: str,
         parameter: BudgetDBKey,
         value: Budget,
     ) -> None:
-        ADMINDB_INSERT_COUNTER.add(1, {"operation": "set_epsilon_or_delta"})
-        user = self.get_user(user_name)
-        setattr(user.datasets[dataset_name], parameter, value)
-        self.replace_user(user)
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "set_budget"})
+        with self.get_db_conn() as conn:
+            try:
+                user = self.get_user(user_name, conn)
+                setattr(user.datasets[dataset_name], parameter, value)
+                self.replace_user(user, conn)
+            except Exception as exc:  # pylint: disable=broad-exception-caught
+                conn.rollback()
+
+                raise exc
 
     # Datasets
     ###########################################################################
 
     @with_lock
     def load_dataset_collection(self, datasets: list[DSInfo], path_prefix: Path) -> None:
+        """Load a list of datasets.
+
+        Args:
+            datasets (list[DSInfo]): A list of dataset info.
+            path_prefix (Path): The path prefix to preprend to all paths specified in the dataset infos.
+        """
         with shelve.open(self._shelve_path, writeback=True) as db:
             # Step 1: add datasets
             new_datasets = {}
@@ -853,7 +864,7 @@ class LocalAdminDatabase(AdminDatabase):
 
     @db_span("db.drop_collection", table="admin-db")
     @with_lock
-    def drop_collection(self, collection: str) -> None:
+    def drop_collection(self, collection: TK) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "drop_collection"})
         with shelve.open(self._shelve_path, writeback=True) as db:
             if collection in db:

@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: {{ include "lomas.server.fullname" . }}
   labels:
@@ -30,11 +30,14 @@ spec:
         resources:
           {{- toYaml .Values.server.resources | nindent 10}}
         image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
-        command: ["lomas" "start"]
-        imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+        command: ["lomas", "start"]
+        imagePullPolicy: {{ .Values.server.image.imagePullPolicy }}
         ports:
-          - name: http
-            containerPort: {{ .Values.server.runtime_args.server.host_port }}
+          - name: user-http
+            containerPort: {{ .Values.server.runtime_args.user_host_port }}
+            protocol: TCP
+          - name: admin-http
+            containerPort: {{ .Values.server.runtime_args.admin_host_port }}
             protocol: TCP
         volumeMounts:
           - name: db
@@ -49,29 +52,36 @@ spec:
             subPath: {{ .Values.global.configCABundle.filename }}
           {{- end }}
         env:
-          - name: LOMAS_SERVER_BOOtSTRAP
+          - name: LOMAS_SERVER_BOOTSTRAP
             valueFrom:
               secretKeyRef:
-                name: {{ include "lomas.server.secretName" . }}
+                name: {{ include "lomas.server.bootstrapSecretName" . }}
                 key: {{ include "lomas.server.bootstrapSecretKey" . }}
-          - name: LOMAS_SERVER_SERVER__HOST_IP
+          - name: LOMAS_SERVER_SERVER_BIND_IP
             value: "0.0.0.0"
-          - name: LOMAS_SERVER_SERVER__HOST_PORT
-            value: "{{ .Values.server.runtime_args.server.host_port }}"
-          - name: LOMAS_SERVER_SERVER__ROOT_PATH
-            value: "{{ .Values.server.runtime_args.server.root_path }}"
-          - name: LOMAS_SERVER_SERVER__LOG_LEVEL
-            value: "{{ .Values.server.runtime_args.server.log_level }}"
-          - name: LOMAS_SERVER_SERVER__LOMAS_LOG_LEVEL
-            value: "{{ .Values.server.runtime_args.server.lomas_log_level }}"
-          - name: LOMAS_SERVER_SERVER__SUBMIT_LIMIT
-            value: "{{ .Values.server.runtime_args.server.submit_limit }}"
-          - name: LOMAS_SERVER_SERVER__TIME_ATTACK__METHOD
-            value: "{{ .Values.server.runtime_args.server.time_attack.method }}"
-          - name: LOMAS_SERVER_SERVER__TIME_ATTACK__MAGNITUDE
-            value: "{{ .Values.server.runtime_args.server.time_attack.magnitude }}"
-          - name: LOMAS_SERVER_ADMIN_DATABASE_URL
-            value: "/db/admin.db"
+          - name: LOMAS_SERVER_SERVER_USER_HOST_PORT
+            value: "{{ .Values.server.runtime_args.user_host_port }}"
+          - name: LOMAS_SERVER_SERVER_ADMIN_HOST_PORT
+            value: "{{ .Values.server.runtime_args.admin_host_port }}"
+          - name: LOMAS_SERVER_WORKER_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "lomas.server.workerApiKeySecretName" . }}
+                key: {{ include "lomas.server.workerApiKeySecretKey" . }}
+          - name: LOMAS_SERVER_SERVER_ROOT_PATH
+            value: "{{ .Values.server.runtime_args.root_path }}"
+          - name: LOMAS_SERVER_SERVER_LOG_LEVEL
+            value: "{{ .Values.server.runtime_args.log_level }}"
+          - name: LOMAS_SERVER_SERVER_LOMAS_LOG_LEVEL
+            value: "{{ .Values.server.runtime_args.lomas_log_level }}"
+          - name: LOMAS_SERVER_SERVER_SUBMIT_LIMIT
+            value: "{{ .Values.server.runtime_args.submit_limit }}"
+          - name: LOMAS_SERVER_SERVER_TIME_ATTACK__METHOD
+            value: "{{ .Values.server.runtime_args.time_attack.method }}"
+          - name: LOMAS_SERVER_SERVER_TIME_ATTACK__MAGNITUDE
+            value: "{{ .Values.server.runtime_args.time_attack.magnitude }}"
+          - name: LOMAS_SERVER_ADMIN_DATABASE_DIRECTORY
+            value: "/db/"
           - name: LOMAS_SERVER_CLEAN_ADMIN_DATABASE
             value: "{{ .Values.server.runtime_args.clean_admin_database }}"
           - name: LOMAS_SERVER_DATA_DIRECTORY

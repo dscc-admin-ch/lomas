@@ -5,7 +5,7 @@
 */}}
 {{ "\n" }}
 {{- $fullName := include "lomas.server.fullname" . -}}
-{{- $svcPort := .Values.server.service.port -}}
+{{- $svcPort := .Values.server.service.userPort -}}
 {{- if and .Values.server.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.server.ingress.annotations "kubernetes.io/ingress.class") }}
   {{- $_ := set .Values.server.ingress.annotations "kubernetes.io/ingress.class" .Values.server.ingress.className}}

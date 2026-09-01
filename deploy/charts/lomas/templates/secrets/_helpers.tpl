@@ -27,12 +27,6 @@
 {{- end -}}
 
 
-
-
-
-
-
-
 {{/* Admin users ----------------------------------------------------*/}}
 
 {{- define "lomas.admin.keycloak-setup.admin-user-secrets" -}}

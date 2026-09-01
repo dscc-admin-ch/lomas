@@ -44,12 +44,12 @@ app.kubernetes.io/component: {{ include "lomas.worker.name" . }}
 {{/* Secrets names and keys  ------------------------------------------------------------*/}}
 
 {{/* bootstrap secret */}}
-{{- define "lomas.server.secretName" -}}
+{{- define "lomas.server.bootstrapSecretName" -}}
 {{- $secretName := .Values.server.runtime_args.bootstrap.existingSecret -}}
 {{- if $secretName -}}
     {{- printf "%s" (tpl $secretName $) -}}
 {{- else -}}
-    {{- printf "%s-server-secret" (include "lomas.fullname" .) | trunc 63 | trimSuffix "-" -}}
+    {{- printf "%s-server-bootstrap-secret" (include "lomas.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 
@@ -58,6 +58,24 @@ app.kubernetes.io/component: {{ include "lomas.worker.name" . }}
         {{- printf "%s" (tpl .Values.server.runtime_args.bootstrap.existingKey $) -}}
     {{- else -}}
         {{- printf "bootstrap" -}}
+    {{- end -}}
+{{- end -}}
+
+{{/* woker api key secret */}}
+{{- define "lomas.server.workerApiKeySecretName" -}}
+{{- $secretName := .Values.server.runtime_args.worker_api_key.existingSecret -}}
+{{- if $secretName -}}
+    {{- printf "%s" (tpl $secretName $) -}}
+{{- else -}}
+    {{- printf "%s-server-worker-api-key-secret" (include "lomas.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "lomas.server.workerApiKeySecretKey" -}}
+    {{- if and .Values.server.runtime_args.worker_api_key.existingSecret .Values.server.runtime_args.worker_api_key.existingKey -}}
+        {{- printf "%s" (tpl .Values.server.runtime_args.worker_api_key.existingKey $) -}}
+    {{- else -}}
+        {{- printf "worker_api_key" -}}
     {{- end -}}
 {{- end -}}
 

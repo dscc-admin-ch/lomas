@@ -27,36 +27,39 @@ server:
 
   # Runtime args for server
   runtime_args:
-    bootstrap:
+    log_level: "INFO"
+    lomas_log_level: "DEBUG"
+    user_host_port: "48080"
+    admin_host_port: "48081"
+    worker_api_key:
       existingSecret: ""
       existingKey: ""
-      value: "deadbeef"
-    server:
-      host_port: "48080"
-      root_path: "/"
-      log_level: "INFO"
-      lomas_log_level: "DEBUG"
-      submit_limit: 300
-      time_attack:
-        method: "jitter" # or "stall"
-        magnitude: 1
-    authenticator:
-      oidc_discovery_url: https://lomas-dex.example.com/.well-known/openid-configuration
-      query_userinfo: true
-      authentication_type: oidc
-    clean_admin_database: false
-    opendp_features: ["contrib", "idealized-numerics", "honest-but-curious"]
+      value: "deadbear"
     private_db_credentials:
       # - existing_secret: "" # Set this if there is an existing secret.
       # - credentials_name: "s3" # Or set the credentials directly.
       #   db_type: "S3_DB"
       #   access_key_id: "abc"
       #   secret_access_key: "def"
+    opendp_features: ["contrib", "idealized-numerics", "honest-but-curious"]
     telemetry:
       enabled: false
       service_name: lomas_server_app
       service_id: default-host
-
+    root_path: "/"
+    time_attack:
+      method: "jitter" # or "stall"
+      magnitude: 1
+    submit_limit: 300
+    bootstrap:
+      existingSecret: ""
+      existingKey: ""
+      value: "deadbeef"
+    authenticator:
+      oidc_discovery_url: https://lomas-dex.example.com/.well-known/openid-configuration
+      query_userinfo: true
+      authentication_type: oidc
+    clean_admin_database: false # careful!
   pvc:
     db: # used for sqlite admin db
       storageClassName: "" # is not set if empty string
@@ -80,8 +83,10 @@ server:
 
   service:
     type: ClusterIP
-    port: 80
-    portName: http
+    userPort: 8080
+    userPortName: user-http
+    adminPort: 8081
+    adminPortName: admin-http
 
   ingress:
     enabled: false

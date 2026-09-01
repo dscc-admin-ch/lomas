@@ -48,13 +48,13 @@ spec:
             - name: LOMAS_ADMIN_DATASET_YAML
               value: {{ .Values.demoSetupJob.config.datasetYamlPath }}
             - name: LOMAS_ADMIN_EXTERNAL_URL
-              value: "https://{{ .Values.demoSetupJob.configUrl }}/"
+              value: "{{ .Values.demoSetupJob.serverUrl }}"
             - name: LOMAS_ADMIN_SERVICE_URL
-              value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
+              value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.adminPort }}/"
             - name: LOMAS_ADMIN_BOOTSTRAP
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "lomas.server.secretName" . }}
+                  name: {{ include "lomas.server.bootstrapSecretName" . }}
                   key: {{ include "lomas.server.bootstrapSecretKey" . }}
           resources:
             {{ toYaml .Values.demoSetupJob.resources | nindent 12}}

@@ -1,28 +1,27 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
 
 from aio_pika.patterns.rpc import Proxy
 
 from lomas_core.exceptions import (
     InvalidQueryException,
-    UnauthorizedAccessException,
 )
 from lomas_core.models.requests import (
     LomasRequestModel,
     QueryModel,
 )
 from lomas_core.models.responses import (
+    Budget,
     QueryResponse,
     QueryResultT,
 )
 from lomas_server.data_connector.data_connector import DataConnector
 
-RequestModelGeneric = TypeVar("RequestModelGeneric", bound=LomasRequestModel)
-QueryModelGeneric = TypeVar("QueryModelGeneric", bound=QueryModel)
-QueryResultGeneric = TypeVar("QueryResultGeneric", bound=QueryResultT)
 
-
-class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResultGeneric]):
+class DPQuerier[
+    RequestModelGeneric: LomasRequestModel,
+    QueryModelGeneric: QueryModel,
+    QueryResultGeneric: QueryResultT,
+](ABC):
     """
     Abstract Base Class for Queriers to external DP library.
 
@@ -45,7 +44,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
         self.admin_database = admin_database
 
     @abstractmethod
-    def cost(self, query_json: RequestModelGeneric) -> tuple[float, float]:
+    def cost(self, query_json: RequestModelGeneric) -> Budget:
         """
         Estimate cost of query.
 
@@ -71,7 +70,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                 The query result, to be added to the response dict.
         """
 
-    async def handle_query(
+    def handle_query(
         self,
         query_json: QueryModel,
         user_name: str,
@@ -96,55 +95,26 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                 - spent_epsilon (float): The amount of epsilon budget spent for the query.
                 - spent_delta (float): The amount of delta budget spent for the query.
         """
-        # Block access to other queries to user
-        if not await self.admin_database.get_and_set_may_user_query(user_name=user_name, may_query=False):
-            raise UnauthorizedAccessException(
-                f"User {user_name} is trying to query before end of previous query."
-            )
+        # Get cost of the query
+        query_cost = self.cost(query_json)
 
-        try:
-            # Get cost of the query
-            eps_cost, delta_cost = self.cost(query_json)
+        # Check that enough budget to do the query
+        # Note: This is only to create an early failure if budget is not enough to start with.
+        #       Budget check and update is done at the server in a single transaction once job is returned.
+        rem_budget = self.admin_database.get_remaining_budget(
+            user_name=user_name, dataset_name=query_json.dataset_name
+        )
 
-            # Check that enough budget to do the query
-            (
-                eps_remain,
-                delta_remain,
-            ) = await self.admin_database.get_remaining_budget(
-                user_name=user_name, dataset_name=query_json.dataset_name
-            )
+        if not (query_cost <= rem_budget):
+            raise InvalidQueryException(f"Not enough budget for this query epsilon remaining {rem_budget}")
 
-            if (eps_remain < eps_cost) or (delta_remain < delta_cost):
-                raise InvalidQueryException(
-                    "Not enough budget for this query epsilon remaining "
-                    f"{eps_remain}, delta remaining {delta_remain}."
-                )
+        # Query
+        query_result = self.query(query_json)
 
-            # Query
-            query_result = self.query(query_json)
-
-            # Deduce budget from user
-            await self.admin_database.update_budget(
-                user_name=user_name,
-                dataset_name=query_json.dataset_name,
-                spent_epsilon=eps_cost,
-                spent_delta=delta_cost,
-            )
-
-            response = QueryResponse(
-                requested_by=user_name,
-                result=query_result,
-                epsilon=eps_cost,
-                delta=delta_cost,
-            )
-
-            # Re-enable user to query
-            await self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
-
-        except Exception as e:
-            # Response is only sent back if nothing happens in the try catch, otherwise raise.
-            await self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
-            raise e
-
-        # Return response
-        return response
+        # Return query response
+        return QueryResponse(
+            requested_by=user_name,
+            result=query_result,
+            epsilon=query_cost.epsilon,
+            delta=query_cost.delta,
+        )

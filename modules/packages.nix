@@ -22,6 +22,9 @@
       LOMAS_ADMIN_DATASET_YAML = "${workingDir}/collections/dataset_collection.yaml";
     in
     {
+      # add expose packages to (nix flake) check
+      checks = lib.mapAttrs' (name: lib.nameValuePair "package-${name}") self'.packages;
+
       packages = {
         # make loams python packages available
         inherit (pyEnv)
@@ -50,6 +53,7 @@
               file
               bind
               git
+              tini
               ;
             inherit (pyEnv) lomasEnv;
             lomas-dashboard = (
@@ -70,6 +74,11 @@
             cp -r --no-preserve=all ${../server/data/datasets/covid_synthetic_data.csv} data/datasets/covid_synthetic_data.csv
           '';
           config = {
+            Entrypoint = [
+              "${pkgs.tini}/bin/tini"
+              "-g"
+              "--"
+            ];
             Cmd = [
               "lomas"
               "start"
@@ -90,29 +99,33 @@
           tag = "latest";
           fromImage = self'.packages.lomas-oci-raw;
           config = {
+            Entrypoint = [
+              "${pkgs.tini}/bin/tini"
+              "-g"
+              "--"
+            ];
             Cmd = [
               "lomas"
               "start"
             ];
             Env = lib.mapAttrsToList (name: value: "${name}=${toString value}") {
-              LOMAS_SERVICE_server__host_ip = "0.0.0.0";
-              LOMAS_SERVICE_server__host_port = ports.lomas.apiService;
-              LOMAS_SERVICE_bootstrap = "deadbeef";
-              LOMAS_SERVICE_data_directory = workingDir;
-              # LOMAS_SERVICE_database_directory="/tmp/lomas-db/";
-              LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${ports.rabbitmq.amqp}";
-              LOMAS_SERVICE_amqp__username = "lomas_guest";
-              LOMAS_SERVICE_amqp__password = "lomas_guest";
-              LOMAS_SERVICE_authenticator__authentication_type = "oidc";
-              LOMAS_SERVICE_authenticator__oidc_discovery_url = "http://dex:${ports.lomas.dex.api}/dex/.well-known/openid-configuration";
-              LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${ports.otlp.grpc}";
-              LOMAS_CLIENT_APP_URL = "http://lomas_server:${ports.lomas.apiService}";
+              LOMAS_SERVER_bind_ip = "0.0.0.0";
+              LOMAS_SERVER_user_host_port = ports.lomas.userApiService;
+              LOMAS_SERVER_admin_host_port = ports.lomas.adminApiService;
+              LOMAS_SERVER_bootstrap = "deadbeef";
+              LOMAS_SERVER_worker_api_key = "workerdeadbeef";
+              LOMAS_SERVER_data_directory = workingDir;
+              # LOMAS_SERVER_database_directory="/tmp/lomas-db/";
+              LOMAS_SERVER_authenticator__authentication_type = "oidc";
+              LOMAS_SERVER_authenticator__oidc_discovery_url = "http://dex:${ports.lomas.dex.api}/dex/.well-known/openid-configuration";
+              LOMAS_SERVER_telemetry__collector_endpoint = "http://otel-collector:${ports.otlp.grpc}";
+              LOMAS_CLIENT_APP_URL = "http://lomas_server:${ports.lomas.userApiService}";
               LOMAS_CLIENT_OIDC_DISCOVERY_URL = "http://dex:${ports.lomas.dex.api}/dex/.well-known/openid-configuration";
               LOMAS_CLIENT_USE_PASSWORD_FLOW = true;
               LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${ports.otlp.grpc}";
               inherit LOMAS_ADMIN_USER_YAML LOMAS_ADMIN_DATASET_YAML;
               LOMAS_ADMIN_DEX_CONFIG__URL = "http://dex:${ports.lomas.dex.admin}";
-              LOMAS_ADMIN_server_url = "http://lomas_server:${ports.lomas.apiService}";
+              LOMAS_ADMIN_external_url = "http://lomas_server:${ports.lomas.adminApiService}";
               LOMAS_ADMIN_BOOTSTRAP = "deadbeef";
               STREAMLIT_BROWSER_GATHER_USAGE_STATS = 0;
               STREAMLIT_SERVER_PORT = ports.streamlit;
@@ -120,7 +133,8 @@
               STREAMLIT_SERVER_HEADLESS = 1;
             };
             ExposedPorts = lib.genAttrs [
-              ports.lomas.apiService
+              ports.lomas.userApiService
+              ports.lomas.adminApiService
               ports.streamlit
               ports.jupyter
             ] (lib.const { });

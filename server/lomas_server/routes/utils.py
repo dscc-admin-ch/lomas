@@ -1,172 +1,42 @@
-import asyncio
-import posix as Status
 import random
-import sys
 import time
-from collections.abc import AsyncIterator, Coroutine
-from contextlib import asynccontextmanager
 from functools import wraps
 from pathlib import Path
 from typing import Annotated
-from uuid import UUID
 
-import aio_pika
-from aio_pika.abc import AbstractConnection, AbstractQueue
-from aio_pika.patterns.rpc import RPC, Proxy
-from fastapi import Depends, FastAPI, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
-from starlette import status
+from aio_pika.patterns.rpc import Proxy
+from fastapi import Depends, Request
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 
 from lomas_core.constants import DPLibraries
 from lomas_core.exceptions import (
     InternalServerException,
+    InvalidQueryException,
+    UnauthorizedAccessException,
 )
 from lomas_core.models.collections import DSPathAccess, DSS3Access, UserId
-from lomas_core.models.constants import JobStatus, PrivateDatabaseType, TimeAttackMethod, get_lomas_logger
-from lomas_core.models.exceptions import LomasAPIErrorModel
+from lomas_core.models.constants import (
+    JobStatus,
+    LomasHeaders,
+    PrivateDatabaseType,
+    TimeAttackMethod,
+    get_lomas_logger,
+)
 from lomas_core.models.requests import (
     DummyQueryModel,
     LomasRequestModel,
     QueryModel,
 )
-from lomas_core.models.responses import Job
-from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_core.models.responses import Budget, Job
+from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.auth.auth import authorize_user, ensure_dataset_access
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
-from lomas_server.models.config import Config, PrivateDBCredentials, S3CredentialsConfig
+from lomas_server.models.config import PrivateDBCredentials, S3CredentialsConfig, ServerConfig
+from lomas_server.routes.error_handler import model_from_lomas_exception
 
 logger = get_lomas_logger(__name__)
-
-
-async def process_response(queue: AbstractQueue, admin_database: AdminDatabase) -> None:
-    """Process responses from queues into Jobs."""
-    async with queue.iterator() as queue_iter:
-        async for message in queue_iter:
-            try:
-                async with message.process(ignore_processed=True):
-                    try:
-                        if not admin_database.does_job_exist(UUID(message.correlation_id)):
-                            await message.reject(requeue=True)
-                        else:
-                            await message.ack()
-
-                            message_body = message.body.decode()
-                            job_update = Job.model_validate_json(message_body)
-                            admin_database.update_job(job_update)
-                            admin_database.archive_job(job_update.uid)
-
-                    except Exception as e:
-                        # Fail the job if we cannot parse worker responses
-                        job_update = Job(
-                            uid=UUID(message.correlation_id),
-                            status=JobStatus.FAILED,
-                            error=LomasAPIErrorModel(
-                                message="InternalServerException: Could not parse response from worker."
-                            ),
-                            result=None,
-                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        )
-                        logger.exception(e)
-
-                        admin_database.update_job(job_update)
-                        admin_database.archive_job(job_update.uid)
-            except Exception:
-                # TODO is this right? -> ignore this message and proceed as if nothing happened?
-                logger.exception("Error while handling worker responses, continuuing...")
-                # raise InternalServerException from e
-
-
-async def rabbitmq_connect_queue(
-    config: Config, reconnect_interval: int = 10, timeout: int = 120
-) -> AbstractConnection:
-    """Attempt with retries to connect to the queue."""
-    try:
-        async with asyncio.timeout(timeout):
-            connection = await aio_pika.connect_robust(
-                str(config.amqp.dsn),
-                fail_fast=False,
-                reconnect_interval=reconnect_interval,
-            )
-            return connection
-    except TimeoutError:
-        logger.error(f"Couldn't connect to queue {config.amqp.base_url} in time")
-        sys.exit(Status.EX_UNAVAILABLE)
-
-
-@asynccontextmanager
-async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
-    """RabbitMQ queue context to connect and register callbacks."""
-    config = Config()
-    background_tasks = set()  # Avoid dangling asyncio.Task by storing them here
-
-    # Setting things up
-    try:
-        # Rabbit connection and single channel
-        connection = await rabbitmq_connect_queue(config)
-        channel = await connection.channel()
-
-        # Queue
-        await channel.declare_queue("task_queue", durable=True)
-        app.state.task_queue_channel = channel
-        queue = await channel.declare_queue("task_response", durable=True)
-
-        # Rpc stuff
-        rpc = await RPC.create(channel, durable=True)
-        await rpc.register(
-            "get_and_set_may_user_query", app.state.admin_database.get_and_set_may_user_query, durable=True
-        )
-        await rpc.register("set_may_user_query", app.state.admin_database.set_may_user_query, durable=True)
-        await rpc.register(
-            "get_remaining_budget", app.state.admin_database.get_remaining_budget, durable=True
-        )
-        await rpc.register("update_budget", app.state.admin_database.update_budget, durable=True)
-        await rpc.register(
-            "get_dataset_metadata", app.state.admin_database.get_dataset_metadata, durable=True
-        )
-        await rpc.register("get_dataset", app.state.admin_database.get_dataset, durable=True)
-
-    except Exception as e:
-        logger.exception(f"Failed to setup RabbitMQ context: {e!s}")
-        if connection:
-            await connection.close()
-        raise InternalServerException("Failed to setup RabbitMQ context") from e
-
-    # Utils
-    def on_task_done(task: asyncio.Task) -> None:
-        background_tasks.discard(task)  # drop reference
-
-        # Log and raise (server does not work anymore)
-        if task.cancelled():
-            logger.warning(f"Rabbit task {task.get_name()!r} cancelled")
-        elif exc := task.exception():
-            logger.error(f"Exception in rabbit task {task.get_name()!r}.", exc_info=exc)
-            raise InternalServerException from exc
-
-    def make_task(coroutine: Coroutine, name: str) -> None:
-        task = asyncio.create_task(coroutine, name=name)
-        # keep reference and add done callback
-        background_tasks.add(task)
-        task.add_done_callback(on_task_done)
-
-    # Handlers
-    make_task(process_response(queue, app.state.admin_database), "query_response")
-
-    try:
-        yield  # app is handling requests
-    finally:
-        # Cancel background tasks
-        for task in background_tasks:
-            task.cancel()
-        await asyncio.gather(*background_tasks, return_exceptions=True)
-
-        try:
-            await connection.close()
-        except Exception:
-            logger.exception("Error while closing RabbitMQ connection during shutdown")
-
-    await connection.close()
 
 
 def timing_protection(func):  # type: ignore[no-untyped-def]
@@ -174,23 +44,47 @@ def timing_protection(func):  # type: ignore[no-untyped-def]
 
     @wraps(func)
     def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
-        config = Config()
+        config = ServerConfig()
 
         start_time = time.time()
         response = func(*args, **kwargs)
         process_time = time.time() - start_time
 
-        match config.server.time_attack.method:
+        match config.time_attack.method:
             case TimeAttackMethod.STALL:
                 # Slows to a minimum response time defined by magnitude
-                if process_time < config.server.time_attack.magnitude:
-                    time.sleep(config.server.time_attack.magnitude - process_time)
+                if process_time < config.time_attack.magnitude:
+                    time.sleep(config.time_attack.magnitude - process_time)
             case TimeAttackMethod.JITTER:
                 # Adds some time between 0 and magnitude secs
-                time.sleep(config.server.time_attack.magnitude * random.uniform(0, 1))
+                time.sleep(config.time_attack.magnitude * random.uniform(0, 1))
         return response
 
     return wrapper
+
+
+def get_user_id_from_api_key(
+    request: Request,
+    api_key: Annotated[str, Depends(APIKeyHeader(name=LomasHeaders.APIKEY))],
+) -> UserId:
+    """Verifies worker api key and extracts user for which the operation must take place.
+
+    Args:
+        request (Request): The request to access a worker endpoint.
+        api_key (Annotated[str, Depends]): The worker api key from the request header.
+
+    Raises:
+        UnauthorizedAccessException: If the worker api key does not match.
+
+    Returns:
+        UserId: The user id the worker endpoint is called for.
+    """
+    if api_key != request.app.state.config.worker_api_key:
+        raise UnauthorizedAccessException("Invalid worker API key.")
+
+    # Allow worker to impersonate Users Id for db queries
+    name = request.headers.get(LomasHeaders.FORUSER, LomasHeaders.WORKERUSER)
+    return UserId(name=name, email="api@noreply.com")
 
 
 def get_user_id_from_authenticator(
@@ -263,7 +157,7 @@ def get_dataset_credentials(
 
 
 @timing_protection
-async def handle_query_to_job(
+def handle_query_to_job(
     request: Request,
     query: DummyQueryModel | QueryModel | LomasRequestModel,
     user: UserId,
@@ -299,18 +193,77 @@ async def handle_query_to_job(
     # app.state.jobs[str(new_task.uid)] = new_task
     admin_database.put_job(new_task)
 
-    await app.state.task_queue_channel.default_exchange.publish(
-        aio_pika.Message(
-            body=f"{new_task.model_dump_json()}".encode(),
-            correlation_id=new_task.uid,
-        ),
-        routing_key="task_queue",
-    )
-
     return new_task
 
 
-async def get_dataset_connector(
+def set_query_result(admin_database: LocalAdminDatabase, job_update: Job) -> None:
+    """Handles finished jobs returned by workers within a single database transaction.
+
+    Checks budget is sufficient and job was successfuly terminated.
+    If any error occurs, database changes are rolled back.
+
+    Args:
+        admin_database (LocalAdminDatabase): The admin database for this server.
+        job_update (Job): The job update received from the worker.
+
+    Raises:
+        InvalidQueryException: If job is already done or budget is insufficient.
+        InternalServerException: Any unexpected error.
+    """
+    with admin_database.get_db_conn() as conn:
+        job = admin_database.get_job(job_update.uid, conn)
+
+        if not job.status == JobStatus.IN_PROGRESS:
+            raise InvalidQueryException(f"Job with uid {job_update.uid} not in progress anymore")
+
+        try:
+            # Make sure job did not fail
+            if job_update.status == JobStatus.COMPLETE:
+                # If job fails, goes directly to finally
+
+                # Validate budget
+                user = admin_database.get_user(job.requested_by, conn)
+
+                dataset_of_user = user.datasets[job.dataset_name]
+                remaining_budget = dataset_of_user.initial_budget - dataset_of_user.total_spent_budget
+
+                if job_update.result is None:
+                    raise InternalServerException(f"Job result for job {job_update.uid} is None.")
+
+                job_budget = Budget(epsilon=job_update.result.epsilon, delta=job_update.result.delta)
+
+                if not (job_budget <= remaining_budget):
+                    raise InvalidQueryException(
+                        f"Not enough budget for this query. Requested: {job_budget} remaining: {remaining_budget}."
+                    )
+
+                # Store updated budget
+                dataset_of_user.total_spent_budget += job_budget
+                admin_database.replace_user(user, conn)
+
+                # Store job
+                admin_database.update_job(job_update, conn)
+
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            # Be safe and rollback
+            conn.rollback()
+
+            # If anything goes bad, just fail the job
+            error_model, status_code = model_from_lomas_exception(exc)
+
+            job_update.error = error_model
+            job_update.status_code = status_code
+            job_update.status = JobStatus.FAILED
+
+            raise exc
+        finally:
+            # Always update job
+            admin_database.update_job(job_update, conn)
+
+        return
+
+
+def get_dataset_connector(
     admin_database: Proxy, dataset_name: str, private_db_credentials: dict[int, PrivateDBCredentials]
 ) -> DataConnector:
     """Returns the proper dataset connector.
@@ -323,9 +276,9 @@ async def get_dataset_connector(
     Raises:
         InternalServerException: In case the dataset type does not exist.
     """
-    ds_info = await admin_database.get_dataset(dataset_name=dataset_name)
+    ds_info = admin_database.get_dataset(dataset_name=dataset_name)
     ds_access = ds_info.dataset_access
-    ds_metadata = await admin_database.get_dataset_metadata(dataset_name=dataset_name)
+    ds_metadata = admin_database.get_dataset_metadata(dataset_name=dataset_name)
     data_connector = None
 
     match ds_access:

@@ -12,7 +12,7 @@ from lomas_core.models.responses import Job
 
 
 @contextmanager
-def free_pass_env(*, auth_env_key="LOMAS_SERVICE_authenticator__authentication_type"):
+def free_pass_env(*, auth_env_key="LOMAS_SERVER_authenticator__authentication_type"):
     """Enter a context with modified os environment using free_pass authentication."""
     previous_auth = os.getenv(auth_env_key, "")
     os.environ[auth_env_key] = AuthenticationType.FREE_PASS
@@ -40,7 +40,14 @@ def submit_job_wait(
 
     if query_job_submit.status_code != status.HTTP_202_ACCEPTED:
         error = LomasAPIErrorModel.model_validate_json(query_job_submit.content)
-        return Job(status=JobStatus.FAILED, status_code=query_job_submit.status_code, error=error)
+        return Job(
+            requested_by="",
+            dataset_name="",
+            query=None,
+            status=JobStatus.FAILED,
+            status_code=query_job_submit.status_code,
+            error=error,
+        )
 
     job_uid = query_job_submit.json()["uid"]
     job = wait_for_job(client, f"/status/{job_uid}", headers=headers)

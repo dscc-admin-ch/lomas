@@ -20,7 +20,7 @@ from lomas_core.models.requests import (
     DiffPrivLibQueryModel,
     DiffPrivLibRequestModel,
 )
-from lomas_core.models.responses import DiffPrivLibQueryResult
+from lomas_core.models.responses import Budget, DiffPrivLibQueryResult
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_libraries.utils import (
     handle_missing_data,
@@ -152,7 +152,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
                 f"Cannot fit pipeline on data because {e}",
             ) from e
 
-    def cost(self, query_json: DiffPrivLibRequestModel) -> tuple[float, float]:
+    def cost(self, query_json: DiffPrivLibRequestModel) -> Budget:
         """
         Estimate the privacy budget cost of running a DiffPrivLib query.
 
@@ -174,7 +174,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
 
         # 2. Retrieve total budget
         epsilon, delta = self.accountant.total()
-        return epsilon, delta
+        return Budget(epsilon=epsilon, delta=delta)
 
     def query(
         self,

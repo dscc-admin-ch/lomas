@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field, HttpUrl
 
 from lomas_core.models.constants import DB_TYPE_FIELD, PrivateDatabaseType
+from lomas_core.models.responses import Budget
 
 # Dataset of User
 # -----------------------------------------------------------------------------
@@ -13,10 +14,8 @@ class DatasetOfUser(BaseModel):
     """BaseModel for informations of a user on a dataset."""
 
     dataset_name: str
-    initial_epsilon: float
-    initial_delta: float
-    total_spent_epsilon: float = Field(default=0.0)
-    total_spent_delta: float = Field(default=0.0)
+    initial_budget: Budget
+    total_spent_budget: Budget = Field(default=Budget.zero())
 
 
 # User
@@ -40,7 +39,7 @@ class User(BaseModel):
     id: UserId
     may_query: bool
     admin: bool = False
-    datasets_list: list[DatasetOfUser]
+    datasets: dict[str, DatasetOfUser] = {}
 
 
 class UserCollection(BaseModel):

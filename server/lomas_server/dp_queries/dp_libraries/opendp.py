@@ -15,7 +15,7 @@ from lomas_core.exceptions import (
 )
 from lomas_core.models.constants import OpenDPFeatures, get_lomas_logger
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
-from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
+from lomas_core.models.responses import Budget, OpenDPPolarsQueryResult, OpenDPQueryResult
 from lomas_server.constants import OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
@@ -41,7 +41,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         # Get metadata once and for all
         self.metadata = self.data_connector.metadata
 
-    def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
+    def cost(self, query_json: OpenDPRequestModel) -> Budget:
         """
         Estimate cost of query.
 
@@ -98,7 +98,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
 
             case _:
                 raise InternalServerException(f"Invalid measurement type: {meas_type}")
-        return epsilon, delta
+        return Budget(epsilon=epsilon, delta=delta)
 
     def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult | OpenDPPolarsQueryResult:
         """Perform the query and return the response.

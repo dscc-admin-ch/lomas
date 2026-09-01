@@ -4,8 +4,8 @@ from pathlib import Path
 import bcrypt
 import grpc
 import yaml
-from returns.io import IOResultE, IOSuccess, impure_safe
 from returns.iterables import Fold
+from returns.result import ResultE, Success, safe
 
 from lomas_core.models.collections import UserCollection
 from lomas_core.models.constants import get_lomas_logger
@@ -89,7 +89,7 @@ def to_log(user_provided_str: str) -> str:
     return user_provided_str.replace("\r\n", "").replace("\n", "")
 
 
-@impure_safe
+@safe
 def add_dex_user(dex_config: DexAdminConfig, user_name: str, user_email: str, user_password: str) -> str:
     """Adds a new user to dex.
 
@@ -121,7 +121,7 @@ def add_dex_user(dex_config: DexAdminConfig, user_name: str, user_email: str, us
         return user_name
 
 
-@impure_safe
+@safe
 def del_dex_user(dex_config: DexAdminConfig, user_name: str) -> bool:
     """Removes the dex user.
 
@@ -148,7 +148,7 @@ def del_dex_user(dex_config: DexAdminConfig, user_name: str) -> bool:
         raise InvalidDexOperation(f"Cannot delete. User does not exist {user_name}")
 
 
-@impure_safe
+@safe
 def del_all_dex_users(dex_config: DexAdminConfig) -> None:
     """Removes all dex users.
 
@@ -169,7 +169,7 @@ def del_all_dex_users(dex_config: DexAdminConfig) -> None:
     logger.debug("Removed all dex users.")
 
 
-@impure_safe
+@safe
 def add_dex_users(
     dex_config: DexAdminConfig,
     user_list: UserCollection,
@@ -201,7 +201,7 @@ def add_dex_users(
         stub = DexStub(channel)
         dex_users = stub.ListPasswords(ListPasswordReq()).passwords
 
-        added_user_result: list[IOResultE] = []
+        added_user_result: list[ResultE] = []
         for user in user_list.users:
             # Remove user with same name if requested (but not already cleaned)
             if overwrite and not clean:
@@ -219,7 +219,7 @@ def add_dex_users(
             added_user = add_dex_user(dex_config, user.id.name, user.id.email, user.id.client_secret)
             added_user_result.append(added_user)
         logger.debug("Added dex users from user collection.")
-        return Fold.collect(added_user_result, IOSuccess(()))  # list[IOResultE] -> IOResultE[list]
+        return Fold.collect(added_user_result, Success(()))  # list[ResultE] -> ResultE[list]
 
 
 def add_dex_users_via_yaml(
@@ -227,7 +227,7 @@ def add_dex_users_via_yaml(
     yaml_file: Path,
     clean: bool,
     overwrite: bool,
-) -> IOResultE[list[str]]:
+) -> ResultE[list[str]]:
     """Adds new lomas users to Dex from a YAML file.
 
     Args:
@@ -243,7 +243,7 @@ def add_dex_users_via_yaml(
     return add_dex_users(dex_config, user_list, clean, overwrite)
 
 
-@impure_safe
+@safe
 def set_dex_user_password(dex_config: DexAdminConfig, user_name: str, new_password: str) -> bool:
     """Sets the new user password to the Dex user.
 

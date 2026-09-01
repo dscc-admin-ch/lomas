@@ -31,16 +31,13 @@ from lomas_core.models.requests_examples import (
     QUERY_EPSILON,
 )
 from lomas_core.models.responses import (
+    Budget,
     DummyDsResponse,
-    InitialBudgetResponse,
     QueryResponse,
-    RemainingBudgetResponse,
-    SpentBudgetResponse,
 )
-from lomas_server.app import app
+from lomas_server.app import get_user_app
 from lomas_server.tests.test_api_root import (
-    INITAL_EPSILON,
-    INITIAL_DELTA,
+    INITIAL_BUDGET,
     TestSetupRootAPIEndpoint,
 )
 from lomas_server.tests.utils import submit_job_wait
@@ -51,31 +48,32 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_root(self) -> None:
         """Test root endpoint redirection to state endpoint."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             response_root = client.get("/")
             response_state = client.get("/state")
             assert response_root.status_code == response_state.status_code
             assert response_root.json() == response_state.json()
 
+    @pytest.mark.skip(reason="notify socket scope is no longer in Client level")
     def test_notify(self) -> None:
         os.environ["NOTIFY_SOCKET"] = ""
-        with TestClient(app, headers=self.headers):
+        with TestClient(get_user_app(self.config), headers=self.headers):
             pass
 
         del os.environ["NOTIFY_SOCKET"]
-        with TestClient(app, headers=self.headers):
+        with TestClient(get_user_app(self.config), headers=self.headers):
             pass
 
         os.environ["NOTIFY_SOCKET"] = "invalidSocket"
         with pytest.raises(OSError):
-            with TestClient(app, headers=self.headers):
+            with TestClient(get_user_app(self.config), headers=self.headers):
                 pass
 
         os.environ["NOTIFY_SOCKET"] = "/tmp/valid.sock"
         Path(os.environ["NOTIFY_SOCKET"]).unlink(missing_ok=True)
         with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM | socket.SOCK_CLOEXEC) as sock:
             sock.bind(os.environ["NOTIFY_SOCKET"])
-            with TestClient(app, headers=self.headers):
+            with TestClient(get_user_app(self.config), headers=self.headers):
                 pass
 
         # cleanup
@@ -83,21 +81,21 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_state(self) -> None:
         """Test state endpoint."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             response = client.get("/live")
             assert response.status_code == status.HTTP_200_OK
             assert response.json() == {"status": "alive"}
 
     def test_unknown_endpoint(self) -> None:
         """Test endpoint that does not exist."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             response = client.get("/idonotexist", headers=self.headers)
             assert response.status_code == status.HTTP_404_NOT_FOUND
             assert response.json() == {"detail": "Not Found"}
 
     def test_get_dataset_metadata(self) -> None:
         """Test_get_dataset_metadata."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post("/get_dataset_metadata", json=EXAMPLE_GET_ADMIN_DB_DATA)
             assert response.status_code == status.HTTP_200_OK
@@ -128,7 +126,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_get_dummy_dataset(self) -> None:
         """Test_get_dummy_dataset."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/get_dummy_dataset",
@@ -231,14 +229,13 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_get_initial_budget(self) -> None:
         """Test_get_initial_budget."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post("/get_initial_budget", json=EXAMPLE_GET_ADMIN_DB_DATA)
             assert response.status_code == status.HTTP_200_OK
 
-            response_model = InitialBudgetResponse.model_validate(response.json())
-            assert response_model.initial_epsilon == 50.0
-            assert response_model.initial_delta == INITIAL_DELTA
+            response_model = Budget.model_validate(response.json())
+            assert response_model == Budget(epsilon=50.0, delta=INITIAL_BUDGET.delta)
 
             # Query to spend budget
             submit_job_wait(client, "/opendp_query", json=EXAMPLE_OPENDP_POLARS_PLAN)
@@ -250,7 +247,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
     def test_get_total_spent_budget(self) -> None:
         """Test_get_total_spent_budget."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/get_total_spent_budget", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
@@ -258,9 +255,8 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = response.json()
-            response_model = SpentBudgetResponse.model_validate(response_dict)
-            assert response_model.total_spent_epsilon == 0
-            assert response_model.total_spent_delta == 0
+            response_model = Budget.model_validate(response_dict)
+            assert response_model == Budget.zero()
 
             # Query to spend budget
             submit_job_wait(client, "/opendp_query", json=EXAMPLE_OPENDP_POLARS_PLAN)
@@ -272,15 +268,15 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = response_2.json()
-            response_model_2 = SpentBudgetResponse.model_validate(response_dict_2)
+            response_model_2 = Budget.model_validate(response_dict_2)
 
             assert response_dict_2 != response_dict
-            assert response_model_2.total_spent_epsilon == QUERY_EPSILON
-            assert response_model_2.total_spent_delta >= QUERY_DELTA
+            assert response_model_2.epsilon == QUERY_EPSILON
+            assert response_model_2.delta >= QUERY_DELTA
 
     def test_get_remaining_budget(self) -> None:
         """Test_get_remaining_budget."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/get_remaining_budget", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
@@ -288,10 +284,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = response.json()
-            response_model = RemainingBudgetResponse.model_validate(response_dict)
+            response_model = Budget.model_validate(response_dict)
 
-            assert response_model.remaining_epsilon == INITAL_EPSILON
-            assert response_model.remaining_delta == INITIAL_DELTA
+            assert response_model == INITIAL_BUDGET
 
             # Query to spend budget
             submit_job_wait(client, "/opendp_query", json=EXAMPLE_OPENDP_POLARS_PLAN)
@@ -303,14 +298,14 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = response_2.json()
-            response_model_2 = RemainingBudgetResponse.model_validate(response_dict_2)
-            assert response_dict_2 != response_dict
-            assert response_model_2.remaining_epsilon == INITAL_EPSILON - QUERY_EPSILON
-            assert response_model_2.remaining_delta <= INITIAL_DELTA - QUERY_DELTA
+            response_model_2 = Budget.model_validate(response_dict_2)
+            assert response_model_2 == pytest.approx(
+                INITIAL_BUDGET - Budget(epsilon=QUERY_EPSILON, delta=QUERY_DELTA)
+            )
 
     def test_get_previous_queries(self) -> None:
         """Test_get_previous_queries."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/get_previous_queries", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
@@ -357,7 +352,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
     @pytest.mark.skip
     def test_subsequent_budget_limit_logic(self) -> None:
         """Test_subsequent_budget_limit_logic."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             # Should fail: too much budget after three queries
             smartnoise_body = dict(EXAMPLE_SMARTNOISE_SQL)
             smartnoise_body["epsilon"] = 4.0

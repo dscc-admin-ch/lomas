@@ -48,14 +48,20 @@
           };
 
           externalUrl = mkOption {
-            default = if cfg.workerOnly then "worker.local" else "http://server:${toString cfg.port}";
+            default = "http://server:${toString cfg.adminPort}";
             description = "Hostname on which Lomas can be found";
             type = types.str;
           };
 
           port = mkOption {
             default = 8080;
-            description = "Port on which Lomas will listen for API calls.";
+            description = "Port on which Lomas will listen for User API calls.";
+            type = types.port;
+          };
+
+          adminPort = mkOption {
+            default = 8081;
+            description = "Port on which Lomas will listen for Admin API calls.";
             type = types.port;
           };
 
@@ -66,18 +72,9 @@
             type = types.str;
           };
 
-          amqpUrl = mkOption {
-            default = "amqp://rabbitmq:5672";
-            type = types.str;
-          };
-
-          amqpUsername = mkOption {
-            default = "";
-            type = types.str;
-          };
-
-          amqpPassword = mkOption {
-            default = "";
+          workerApiKey = mkOption {
+            default = "workerdeadbeef";
+            description = "Api Key for worker to authenticate to the server admin API";
             type = types.str;
           };
 
@@ -146,20 +143,19 @@
           ];
 
           environment = {
-            LOMAS_SERVICE_server__host_port = toString cfg.port;
-            LOMAS_SERVICE_server__host_ip = cfg.listenAddress;
+            LOMAS_SERVER_bind_ip = cfg.listenAddress;
+            LOMAS_SERVER_user_host_port = toString cfg.port;
+            LOMAS_SERVER_admin_host_port = toString cfg.adminPort;
+            LOMAS_SERVER_worker_api_key = cfg.workerApiKey;
             # Demo Setup
-            LOMAS_SERVICE_bootstrap = cfg.bootstrap;
-            LOMAS_SERVICE_authenticator__authentication_type = if (cfg.idpIssuer != null) then "oidc" else "free_pass";
-            LOMAS_SERVICE_authenticator__oidc_discovery_url = "${cfg.idpIssuer}/.well-known/openid-configuration";
+            LOMAS_SERVER_bootstrap = cfg.bootstrap;
+            LOMAS_SERVER_authenticator__authentication_type = if (cfg.idpIssuer != null) then "oidc" else "free_pass";
+            LOMAS_SERVER_authenticator__oidc_discovery_url = "${cfg.idpIssuer}/.well-known/openid-configuration";
             LOMAS_ADMIN_bootstrap = cfg.bootstrap;
-            LOMAS_ADMIN_server_url = cfg.externalUrl;
+            LOMAS_ADMIN_external_url = cfg.externalUrl;
             LOMAS_ADMIN_dex_config__url = cfg.dexGrpc;
             LOMAS_ADMIN_user_yaml = cfg.initUsers;
             LOMAS_ADMIN_dataset_yaml = cfg.initDatasets;
-            LOMAS_SERVICE_amqp__url = cfg.amqpUrl;
-            LOMAS_SERVICE_amqp__username = cfg.amqpUsername;
-            LOMAS_SERVICE_amqp__password = cfg.amqpPassword;
           };
 
           serviceConfig = {
@@ -218,10 +214,10 @@
           ];
 
           environment = {
-            LOMAS_SERVICE_authenticator__authentication_type = lib.mkDefault "free_pass";
-            LOMAS_SERVICE_amqp__url = cfg.amqpUrl;
-            LOMAS_SERVICE_amqp__username = cfg.amqpUsername;
-            LOMAS_SERVICE_amqp__password = cfg.amqpPassword;
+            LOMAS_SERVER_server_host_addr = "server";
+            LOMAS_SERVER_admin_host_port = toString cfg.adminPort;
+            LOMAS_SERVER_authenticator__authentication_type = lib.mkDefault "free_pass";
+            LOMAS_SERVER_worker_api_key = cfg.workerApiKey;
           };
 
           serviceConfig = {
@@ -267,7 +263,10 @@
         };
 
         networking.firewall = mkIf cfg.openFirewall {
-          allowedTCPPorts = [ cfg.port ];
+          allowedTCPPorts = [
+            cfg.port
+            cfg.adminPort
+          ];
         };
       };
     }

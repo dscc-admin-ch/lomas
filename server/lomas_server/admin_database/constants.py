@@ -9,6 +9,7 @@ class TopDBKey(StrEnum):
     DATASETS = "datasets"
     METADATA = "metadata"
     MISC_KEYS = "misc"
+    JOBS = "jobs"
 
 
 class MiscDBKeys(StrEnum):
@@ -24,10 +25,8 @@ class BudgetDBKey(StrEnum):
     dataset and user.
     """
 
-    EPSILON_SPENT = "total_spent_epsilon"
-    DELTA_SPENT = "total_spent_delta"
-    EPSILON_INIT = "initial_epsilon"
-    DELTA_INIT = "initial_delta"
+    INITIAL = "initial_budget"
+    SPENT = "total_spent_budget"
 
 
 WRITE_CONCERN_LEVEL = "majority"

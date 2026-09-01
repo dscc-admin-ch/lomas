@@ -27,7 +27,6 @@ in
   imports = [
     ./modules/_defaults.nix
     ./devenv/lomas.nix
-    ./devenv/rabbitmq.nix
     ./devenv/garage.nix
     ./devenv/telemetry.nix
     ./devenv/hooks.nix
@@ -37,11 +36,13 @@ in
   ];
 
   # Actually don't use the default for the dev env
-  ports.lomas.apiService = 48080;
+  ports.lomas.userApiService = 48080;
+  ports.lomas.adminApiService = 48081;
 
   lomas = {
     enable = true;
-    host = "localhost";
+    serverHostAddr = "localhost";
+    serverBindIp = "localhost";
     dashboard.host = "localhost";
     client.jupyter = {
       password = null; # "dprocks";
@@ -69,16 +70,6 @@ in
         redirect_uri = with config.lomas.telemetry.services.grafana; "http://${host}:${toString port}/login/generic_oauth";
       };
     };
-  };
-
-  lomas.rabbitmq = {
-    enable = true;
-    host = "localhost";
-    nodeName = "rabbit@localhost";
-    # spin the management interface http://localhost:15672
-    user = "lomas_guest";
-    password = "lomas_guest";
-    heartbeat = 1800; # Extra super duper long hearbeat timeout for long running tasks in workersss
   };
 
   lomas.dex = {
@@ -212,48 +203,48 @@ in
     # Too many unrelated (3party dep warnings for now)
     # PYTHONWARNDEFAULTENCODING = 1;
 
-    # Lomas Server Runtime
-    LOMAS_SERVICE_server__host_ip = config.lomas.host;
-    LOMAS_SERVICE_server__host_port = config.ports.lomas.apiService;
-    LOMAS_SERVICE_server__log_level = "INFO";
-    LOMAS_SERVICE_server__lomas_log_level = "DEBUG";
-    LOMAS_SERVICE_server__reload = "true";
-    LOMAS_SERVICE_server__root_path = config.lomas.baseUrl;
-    LOMAS_SERVICE_server__submit_limit = 300;
-    LOMAS_SERVICE_server__time_attack__method = "jitter";
-    LOMAS_SERVICE_server__time_attack__magnitude = 1;
-
-    LOMAS_SERVICE_amqp__url = "amqp://${config.lomas.rabbitmq.host}:${config.ports.rabbitmq.amqp}";
-    LOMAS_SERVICE_amqp__username = config.lomas.rabbitmq.user;
-    LOMAS_SERVICE_amqp__password = config.lomas.rabbitmq.password;
-    LOMAS_SERVICE_amqp__heartbeat = config.lomas.rabbitmq.heartbeat;
-    LOMAS_SERVICE_opendp_features = toPydanticSetting [
+    # Lomas Runtime
+    LOMAS_SERVER_log_level = "INFO";
+    LOMAS_SERVER_lomas_log_level = "DEBUG";
+    LOMAS_SERVER_user_host_port = config.ports.lomas.userApiService;
+    LOMAS_SERVER_admin_host_port = config.ports.lomas.adminApiService;
+    LOMAS_SERVER_opendp_features = toPydanticSetting [
       "contrib"
       "idealized-numerics"
       "honest-but-curious"
     ];
-    LOMAS_SERVICE_database_directory = "/tmp/lomas-db/";
-    LOMAS_SERVICE_data_directory = "${config.git.root}/server/data/";
-    LOMAS_SERVICE_clean_admin_database = "false";
-    LOMAS_SERVICE_bootstrap = "deadbeef";
-    LOMAS_SERVICE_authenticator__authentication_type = if config.lomas.oidc.enable then "oidc" else "free_pass";
-    LOMAS_SERVICE_authenticator__oidc_discovery_url = "${config.lomas.oidc.discoveryUrl}";
-    LOMAS_SERVICE_authenticator__query_userinfo = "${lib.boolToString config.lomas.oidc.queryUserinfo}";
+    LOMAS_SERVER_worker_api_key = config.lomas.workerApiKey;
+    LOMAS_SERVER_reload = config.lomas.reload;
+    # Server Specifics
+    LOMAS_SERVER_bind_ip = config.lomas.serverBindIp;
+    LOMAS_SERVER_root_path = config.lomas.baseUrl;
+    LOMAS_SERVER_time_attack__method = "jitter";
+    LOMAS_SERVER_time_attack__magnitude = 1;
+    LOMAS_SERVER_submit_limit = 300;
+    LOMAS_SERVER_authenticator__authentication_type = if config.lomas.oidc.enable then "oidc" else "free_pass";
+    LOMAS_SERVER_authenticator__oidc_discovery_url = "${config.lomas.oidc.discoveryUrl}";
+    LOMAS_SERVER_authenticator__query_userinfo = "${lib.boolToString config.lomas.oidc.queryUserinfo}";
+    LOMAS_SERVER_bootstrap = "deadbeef";
+    LOMAS_SERVER_database_directory = "/tmp/lomas-db/";
+    LOMAS_SERVER_data_directory = "${config.git.root}/server/data/";
+    LOMAS_SERVER_clean_admin_database = "false";
+    # Worker specifics
+    LOMAS_SERVER_server_host_addr = config.lomas.serverHostAddr;
 
     # Lomas client environment
     LOMAS_CLIENT_OIDC_DISCOVERY_URL = config.lomas.oidc.discoveryUrl;
     LOMAS_CLIENT_USE_PASSWORD_FLOW = "true";
-    LOMAS_CLIENT_APP_URL = "http://localhost:${config.ports.lomas.apiService}";
+    LOMAS_CLIENT_APP_URL = "http://localhost:${config.ports.lomas.userApiService}";
 
     # Lomas demo setup
-    LOMAS_ADMIN_server_url = "http://localhost:${config.ports.lomas.apiService}"; # public lomas service url from dashboard
-    LOMAS_ADMIN_server_service = "http://localhost:${config.ports.lomas.apiService}";
+    LOMAS_ADMIN_external_url = "http://localhost:${config.ports.lomas.adminApiService}"; # public lomas service url from dashboard
+    LOMAS_ADMIN_service_url = "http://localhost:${config.ports.lomas.adminApiService}";
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
     LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${config.lomas.dex.adminAddress}:${config.ports.lomas.dex.admin}";
-    LOMAS_ADMIN_BOOTSTRAP = config.env.LOMAS_SERVICE_bootstrap;
+    LOMAS_ADMIN_BOOTSTRAP = config.env.LOMAS_SERVER_bootstrap;
   }
-  // (listToPydanticEnvVar "LOMAS_SERVICE_private_db_credentials" [
+  // (listToPydanticEnvVar "LOMAS_SERVER_private_db_credentials" [
     {
       credentials_name = "garage";
       db_type = "S3_DB";

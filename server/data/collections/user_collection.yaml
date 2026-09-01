@@ -6,85 +6,112 @@ users:
     client_secret: lomas_admin
   admin: True
   may_query: True
-  datasets_list: []
+  datasets: {}
 - id:
     name: Alice
     email: "alice@example.com"
     client_secret: alice
   may_query: True
-  datasets_list:
-  - dataset_name: "IRIS"
-    initial_epsilon: 10.0
-    initial_delta: 0.0001
-    total_spent_epsilon: 1.0
-    total_spent_delta: 0.000001
-  - dataset_name: "PENGUIN"
-    initial_epsilon: 5.0
-    initial_delta: 0.0005
-    total_spent_epsilon: 0.2
-    total_spent_delta: 0.0000001
+  datasets:
+    IRIS:
+      dataset_name: "IRIS"
+      initial_budget:
+        epsilon: 10.0
+        delta: 0.0001
+      total_spent_budget:
+        epsilon: 1.0
+        delta: 0.000001
+    PENGUIN:
+      dataset_name: "PENGUIN"
+      initial_budget:
+        epsilon: 5.0
+        delta: 0.0005
+      total_spent_budget:
+        epsilon: 0.2
+        delta: 0.0000001
 - id:
     name: Dr.Antartica
     email: "dr.antartica@example.com"
     client_secret: dr.antartica
   may_query: True
-  datasets_list:
-  - dataset_name: "PENGUIN"
-    initial_epsilon: 50.0
-    initial_delta: 0.005
-    total_spent_epsilon: 0.0
-    total_spent_delta: 0.0
-  - dataset_name: "PUMS"
-    initial_epsilon: 5.0
-    initial_delta: 0.0005
-    total_spent_epsilon: 0.2
-    total_spent_delta: 0.0000001
-  - dataset_name: "BIRTHDAYS"
-    initial_epsilon: 5.0
-    initial_delta: 0.0005
-    total_spent_epsilon: 0.0
-    total_spent_delta: 0.0
+  datasets:
+    PENGUIN:
+      dataset_name: "PENGUIN"
+      initial_budget:
+        epsilon: 50.0
+        delta: 0.005
+      total_spent_budget:
+        epsilon: 0.0
+        delta: 0.0
+    PUMS:
+      dataset_name: "PUMS"
+      initial_budget:
+        epsilon: 5.0
+        delta: 0.0005
+      total_spent_budget:
+        epsilon: 0.2
+        delta: 0.0000001
+    BIRTHDAYS:
+      dataset_name: "BIRTHDAYS"
+      initial_budget:
+        epsilon: 5.0
+        delta: 0.0005
+      total_spent_budget:
+        epsilon: 0.0
+        delta: 0.0
 - id:
     name: Dr.FSO
     email: "dr.fso@example.com"
     client_secret: dr.fso
   may_query: True
-  datasets_list:
-  - dataset_name: "FSO_INCOME_SYNTHETIC"
-    initial_epsilon: 45.0
-    initial_delta: 0.005
-    total_spent_epsilon: 0.0
-    total_spent_delta: 0.0
+  datasets:
+    FSO_INCOME_SYNTHETIC:
+      dataset_name: "FSO_INCOME_SYNTHETIC"
+      initial_budget:
+        epsilon: 45.0
+        delta: 0.005
+      total_spent_budget:
+        epsilon: 0.0
+        delta: 0.0
 - id:
     name: Bob
     email: bob@example.com
     client_secret: bob
   may_query: True
-  datasets_list:
-  - dataset_name: "IRIS"
-    initial_epsilon: 10.0
-    initial_delta: 0.0001
-    total_spent_epsilon: 0.0
-    total_spent_delta: 0.0
+  datasets:
+    IRIS:
+      dataset_name: "IRIS"
+      initial_budget:
+        epsilon: 10.0
+        delta: 0.0001
+      total_spent_budget:
+        epsilon: 0.0
+        delta: 0.0
 - id:
     name: Jack
     email: jack@example.com
     client_secret: jack
   may_query: True
-  datasets_list:
-  - dataset_name: "TITANIC"
-    initial_epsilon: 45.0
-    initial_delta: 0.2
-    total_spent_epsilon: 0.0
-    total_spent_delta: 0.0
+  datasets:
+    TITANIC:
+      dataset_name: "TITANIC"
+      initial_budget:
+        epsilon: 45.0
+        delta: 0.2
+      total_spent_budget:
+        epsilon: 0.0
+        delta: 0.0
 - id:
     name: Mr.Corona
     email: mr.corona@example.com
     client_secret: mr.corona
   may_query: True
-  datasets_list:
-  - dataset_name: "COVID_SYNTHETIC"
-    initial_epsilon: 45.0
-    initial_delta: 0.2
-    total_spent_epsilon: 0.0
-    total_spent_delta: 0.0
+  datasets:
+    COVID_SYNTHETIC:
+      dataset_name: "COVID_SYNTHETIC"
+      initial_budget:
+        epsilon: 45.0
+        delta: 0.2
+      total_spent_budget:
+        epsilon: 0.0
+        delta: 0.0

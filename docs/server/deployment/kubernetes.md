@@ -35,7 +35,7 @@ The following outlines the steps required for a basic deployment:
 3. __Update the values file:__ You need to update at least the following urls for the chart to work:
     - `server.runtime_args.server.authenticator.oidc_discovery_url`, set this to your IdP's discovery url, or Dex's if enabled.
     - `server.ingress.hostname`: Choose a hostname supported by your cluster.
-    - `demoSetupJob.config.serverUrl`: Set this to the server hostname.
+    - `demoSetupJob.configUrl`: Set this to the server hostname.
     - `dashboard.streamlitServerSecrets`: Set the `redirectUri`s address to the dashboard ingress and the `serverMetadataUrl` to your IdP's discovery endpoint.
     - `dashboard.ingress.hostname`: Choose a hostname supported by your cluster.
     - `dex.ingress.hosts.host`: Choose a hostname supported by your cluster. Reminder, Dex is only included for testing purposes, do not use in production!
@@ -60,10 +60,6 @@ The secret format is sometimes enforced by the underlying charts Lomas depends o
     - Streamlit requires a secret file in TOML format for getting information related to authentication.
     - Existing secret: `dashboard.streamlitServerSecrets.existingSecret` and `..existingSecretKey`.
     - `dashboard.streamlitServerSecrets.value` is used to set the value directly.
-- __RabbitMQ__
-    - Lomas relies on Bitnami's RabbitMQ chart. One secret is used for RabbitMQ's password.
-    - Existing secret: The secret name can be specified with ``rabbitmq.auth.existingPasswordSecret`` while the key with ``rabbitmq.auth.existingSecretPasswordKey``.
-    - Values file: ``rabbitmq.auth.password`` is used for setting the password.
 - __Private DB Credentials__
     - Credentials for external private databases are read by the Lomas server and worker through their conf*igs and thus also injected as environment variables via Kubernetes secrets.
     - For each set of credentials to a private database, one can either specify an existing secret or set the credentials as an element of the list at ``server.runtime_args.private_db_credentials``.

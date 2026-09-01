@@ -15,7 +15,11 @@ from lomas_core.exceptions import (
 )
 from lomas_core.models.collections import UserId
 from lomas_core.models.config import OIDCConfig
-from lomas_core.models.constants import AuthenticationType, get_lomas_logger
+from lomas_core.models.constants import (
+    AuthenticationType,
+    LomasHeaders,
+    get_lomas_logger,
+)
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import OIDCClaims
 
@@ -160,12 +164,19 @@ def ensure_dataset_access(user: UserId, dataset_name: str, admin_database: Admin
 
     Raises:
         DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
         UnauthorizedAccessException: If the user does not have access to the dataset.
     """
     if not admin_database.does_dataset_exist(dataset_name):
         raise DatasetNotFoundException(dataset_name)
 
-    if not admin_database.has_user_access_to_dataset(user.name, dataset_name):
+    if not (user.name == LomasHeaders or admin_database.does_user_exist(user.name)):
+        raise UserNotFoundException(user.name)
+
+    if not (
+        user.name == LomasHeaders.WORKERUSER
+        or admin_database.has_user_access_to_dataset(user.name, dataset_name)
+    ):
         raise UnauthorizedAccessException(
             f"{user.name} does not have access to {dataset_name}.",
         )

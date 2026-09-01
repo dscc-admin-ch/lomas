@@ -22,7 +22,7 @@ from lomas_core.models.responses import (
     OpenDPPolarsQueryResult,
     QueryResponse,
 )
-from lomas_server.app import app
+from lomas_server.app import get_user_app
 from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
 
@@ -96,7 +96,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
 
     def test_opendp_polars_query(self) -> None:
         """Test opendp polars query."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             plan_bytes = mean_query_serialized(lf)
             example_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS)
@@ -113,7 +113,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
                 json=example_opendp_polars,
             )
             response_model = QueryResponse.model_validate(job.result)
-            # print(response_model.result)
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
@@ -136,7 +135,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
     @pytest.mark.long
     def test_opendp_polars_datetime_query(self) -> None:
         """Test opendp polars query."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE_COVID)
 
             datetime_plan = (
@@ -173,9 +172,10 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             )
             assert job.status == JobStatus.FAILED
 
+    @pytest.mark.long
     def test_opendp_polars_cost(self) -> None:
         """Test_opendp_polars_cost."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             plan_bytes = mean_query_serialized(lf)
             ex_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS_COST)
@@ -227,7 +227,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
 
     def test_dummy_opendp_polars_query(self) -> None:
         """Test_dummy_opendp_polars_query."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             plan_bytes = mean_query_serialized(lf)
             example_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS)
@@ -247,7 +247,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
 
     def test_grouping_query(self) -> None:
         """Test_opendp_polars_query with grouing."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             plan_bytes = group_query_serialized(lf)
             example_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS)
@@ -262,9 +262,10 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
+    @pytest.mark.long
     def test_polars_features(self) -> None:
         """Test_opendp_polars_query with different polars features (cut, filter, n_unique)."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             example_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS)
             example_opendp_polars["epsilon"] = 1
@@ -331,7 +332,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
 
     def test_multiple_grouping_query(self) -> None:
         """Test_opendp_polars query with multiple grouping."""
-        with TestClient(app, headers=self.headers) as client:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             plan_bytes = multiple_group_query_serialized(lf)
             example_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS)

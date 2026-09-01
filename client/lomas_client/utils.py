@@ -1,5 +1,5 @@
 from json import JSONDecodeError
-from typing import Any, NoReturn, TypeVar
+from typing import Any, NoReturn
 
 import httpx2
 import requests
@@ -47,10 +47,7 @@ def validate_model_response_direct(response: requests.Response, response_model: 
     raise_error(response)
 
 
-ResponseT = TypeVar("ResponseT", bound=ResponseModel)
-
-
-def validate_model_response(
+def validate_model_response[ResponseT: ResponseModel](
     client: LomasHttpClient, response: requests.Response, response_model: type[ResponseT]
 ) -> ResponseT:
     """Validate and process a HTTP response.

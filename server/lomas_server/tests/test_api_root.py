@@ -1,14 +1,14 @@
-import os
 import unittest
 from pathlib import Path
 
 from opendp.mod import enable_features
 
 from lomas_core.models.constants import AuthenticationType
-from lomas_server.models.config import Config
+from lomas_core.models.responses import Budget
+from lomas_server.auth.auth import FreePassAuthenticator
+from lomas_server.models.config import ServerConfig
 
-INITAL_EPSILON = 10
-INITIAL_DELTA = 0.005
+INITIAL_BUDGET = Budget(epsilon=10, delta=0.005)
 
 enable_features("idealized-numerics")
 
@@ -18,11 +18,9 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set Up Header and DB for test."""
-        self.config = Config()
-
-        # Disable Keycloak for UTs
-        self.previous_auth_method = os.environ.get("LOMAS_SERVICE_authenticator__authentication_type", "")
-        os.environ["LOMAS_SERVICE_authenticator__authentication_type"] = AuthenticationType.FREE_PASS
+        self.config = ServerConfig(
+            authenticator=FreePassAuthenticator(authentication_type=AuthenticationType.FREE_PASS)
+        )
 
         self.user_name = "Dr.Antartica"
         self.headers = {
@@ -38,8 +36,7 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):
         self.config.database.set_bootstrap(self.config.bootstrap)
 
         self.config.database.add_users_via_yaml(
-            yaml_file=(path_prefix / "test_user_collection.yaml"),
-            clean=True,
+            yaml_file=(path_prefix / "test_user_collection.yaml"), clean=True, overwrite=False
         )
 
         self.config.database.add_datasets_via_yaml(
@@ -51,5 +48,3 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):
     def tearDown(self) -> None:
         # Clean up database
         self.config.database.wipe()
-        # reset env
-        os.environ["LOMAS_SERVICE_authenticator__authentication_type"] = self.previous_auth_method

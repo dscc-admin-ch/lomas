@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import pytest
 import requests
 import yaml
-from returns.io import IOSuccess
+from returns.result import Success
 
 from lomas_core.models.collections import UserCollection
 from lomas_server.administration.dex.api.api_pb2 import DiscoveryReq, ListPasswordReq
@@ -63,7 +63,7 @@ def test_add_dex_user(client, dex_config) -> None:
     len_users_before = len(get_dex_passwords(dex_config))
 
     added_user = add_dex_user(dex_config, client.user_name, client.user_email, client.password)
-    assert added_user == IOSuccess(client.user_name)
+    assert added_user == Success(client.user_name)
 
     # Check user is added
     users_after = get_dex_passwords(dex_config)
@@ -119,7 +119,7 @@ def test_set_dex_user_password(client, dex_config):
     """Test set kc user client secret."""
     # Add a user
     add_dex_user(dex_config, client.user_name, client.user_email, client.password)
-    assert set_dex_user_password(dex_config, client.user_name, "new_password") == IOSuccess(True)
+    assert set_dex_user_password(dex_config, client.user_name, "new_password") == Success(True)
 
     # Bad add
     assert set_dex_user_password(dex_config, "IdoNotExist", "new_password").failure()

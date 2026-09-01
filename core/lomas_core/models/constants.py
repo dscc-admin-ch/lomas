@@ -5,6 +5,7 @@ from importlib import metadata
 from typing import Literal
 
 import diffprivlib
+import httpx2
 from rich.console import Console
 from rich.logging import RichHandler
 
@@ -44,9 +45,16 @@ class QueryResponseTypes(StrEnum):
 class JobStatus(StrEnum):
     """Possible jobs status."""
 
+    PENDING = "pending"
     IN_PROGRESS = "in_progress"
     FAILED = "failed"
     COMPLETE = "complete"
+
+
+class LomasHeaders(StrEnum):
+    APIKEY = "x-api-key"
+    FORUSER = "x-for-user"
+    WORKERUSER = "x-worker-api"
 
 
 # Config / Dataset Connectors
@@ -79,7 +87,25 @@ class AuthenticationType(StrEnum):
 # -----------------------------------------------------------------------------
 
 
-def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> None:
+class FilterOutLiveSuccess:
+    """Filter out INFO logs: GET /live HTTP/1.1 200 OK."""
+
+    def filter(self, record: logging.LogRecord) -> bool:  # pylint: disable=missing-function-docstring
+        match record.args:
+            case (_, "GET", "/live", _, 200):
+                return False
+            case (_, "GET", str(full_path), _, 204):
+                # handle worker prefix if any
+                return "job/pending" not in full_path
+            case ("GET", httpx2.URL() as url, _, 204, _):
+                return "job/pending" not in url.path
+            case _:
+                return True
+
+
+def init_logging(
+    name: str, level: str = "INFO", lomas_level: str = "INFO", console: Console | None = None
+) -> None:
     """Sets basic logging config to level and creates a logger named after name with log level lomas_level.
 
     This function is meant to set a parent logger for the lomas_* module with a different
@@ -90,16 +116,20 @@ def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> N
         level (str): Log level for the root logger.
         lomas_level (str): Log level for the parent logger.
     """
-    console = Console(width=200, force_terminal=True)
+    if console is None:
+        console = Console(force_terminal=True)
+        if console.width <= 80:
+            console.width = 135
     logging.basicConfig(
-        format="%(asctime)s - %(message)s - %(name)s",
+        format="%(message)s - %(name)s",
         datefmt="[%H:%M:%S]",
         handlers=[
             RichHandler(console=console, show_time=True, rich_tracebacks=False, tracebacks_show_locals=True)
         ],
         level=level,
     )
-
+    logging.getLogger("httpx2").addFilter(FilterOutLiveSuccess())
+    logging.getLogger("watchfiles.main").setLevel("WARNING")  # too chatty even on INFO
     logging.getLogger(name).setLevel(lomas_level)
 
 

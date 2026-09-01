@@ -15,7 +15,7 @@ from lomas_core.models.requests import (
     SmartnoiseSQLQueryModel,
     SmartnoiseSQLRequestModel,
 )
-from lomas_core.models.responses import SmartnoiseSQLQueryResult
+from lomas_core.models.responses import Budget, SmartnoiseSQLQueryResult
 from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
@@ -35,7 +35,7 @@ class SmartnoiseSQLQuerier(
         self.reader: Reader | None = None
         self.query_columns: list[str] = []
 
-    def cost(self, query_json: SmartnoiseSQLRequestModel) -> tuple[float, float]:
+    def cost(self, query_json: SmartnoiseSQLRequestModel) -> Budget:
         """Estimate cost of query.
 
         Args:
@@ -80,7 +80,7 @@ class SmartnoiseSQLQuerier(
         except Exception as e:
             raise ExternalLibraryException(DPLibraries.SMARTNOISE_SQL, f"Error obtaining cost: {e}") from e
 
-        return epsilon, delta
+        return Budget(epsilon=epsilon, delta=delta)
 
     def query(self, query_json: SmartnoiseSQLQueryModel) -> SmartnoiseSQLQueryResult:
         """Performs the query and returns the response.

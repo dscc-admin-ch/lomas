@@ -27,10 +27,16 @@ in
     };
 
     ports.lomas = {
-      apiService = lib.mkOption {
+      userApiService = lib.mkOption {
         type = portStr;
         default = 8080;
-        description = "Default (Service/Exposed) port Lomas HTTP(s) API";
+        description = "Default (Service/Exposed) port Lomas HTTP(s) user API";
+      };
+
+      adminApiService = lib.mkOption {
+        type = portStr;
+        default = 8081;
+        description = "Default (Service/Exposed) port Lomas HTTP(s) admin API";
       };
 
       dex = {
@@ -59,12 +65,5 @@ in
       description = "Default (local) Jupyter Server port";
     };
 
-    ports.rabbitmq = {
-      amqp = lib.mkOption {
-        type = portStr;
-        default = 5672;
-        description = "Default Plain AMQP port";
-      };
-    };
   };
 }

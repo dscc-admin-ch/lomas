@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import (
-    AmqpDsn,
     BaseModel,
     Field,
     HttpUrl,
@@ -33,38 +32,6 @@ class S3CredentialsConfig(PrivateDBCredentials):
     secret_access_key: str
 
 
-class AmqpConfig(BaseModel):
-    """BaseSettings for Advanced Message Queuing Protocol (AMQP)."""
-
-    url: AmqpDsn
-    username: str
-    password: str
-    heartbeat: str = Field(default="60")
-
-    @computed_field
-    def dsn(self) -> str:
-        """Construct full DSN including credentials."""
-        dsn = Url.build(
-            scheme=self.url.scheme,
-            username=self.username,
-            password=self.password,
-            host=self.url.host,
-            port=self.url.port,
-            query=f"heartbeat={self.heartbeat}",
-        )
-        return str(dsn)
-
-    @computed_field
-    def base_url(self) -> str:
-        """Queue base URL."""
-        base_url = Url.build(
-            scheme=self.url.scheme,
-            host=self.url.host,
-            port=self.url.port,
-        )
-        return str(base_url)
-
-
 class DexAdminConfig(BaseModel):
     url: Url = Field(description="Dex OIDC server addresse")
 
@@ -74,27 +41,12 @@ class DexAdminConfig(BaseModel):
         return self.url.scheme == "https"
 
 
-class Server(BaseModel):
-    """BaseModel for uvicorn server configs."""
-
-    time_attack: TimeAttack = Field(default=TimeAttack(method="jitter", magnitude=1.0))
-    submit_limit: float = Field(default=300.0)
-    """A limit on the rate which users can submit queries."""
-    host_ip: str = Field(default="localhost")
-    host_port: int = Field(default=48080)
-    log_level: str = Field(default="INFO")
-    lomas_log_level: str = Field(default="INFO")
-    reload: bool = Field(default=False)
-    forwarded_allow_ips: list[str] | str = Field(default="*")
-    root_path: str = Field(default="/api")
-
-
 class Config(BaseSettings):
-    """Server runtime config."""
+    """Base class for lomas service config."""
 
     model_config = SettingsConfigDict(
         extra="ignore",
-        env_prefix="lomas_service_",
+        env_prefix="lomas_server_",
         env_nested_delimiter="__",
         case_sensitive=False,
         cli_kebab_case=True,
@@ -103,12 +55,42 @@ class Config(BaseSettings):
         cli_implicit_flags="toggle",
     )
 
-    # Server configs
-    server: Server = Field(default=Server())
+    log_level: str = Field(default="INFO")
+    lomas_log_level: str = Field(default="INFO")
+
+    user_host_port: int = Field(default=48080)
+    admin_host_port: int = Field(default=48081)
+
+    worker_api_key: str
+
+    private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
+
+    opendp_features: OpenDPFeatures = Field(default=["contrib", "idealized-numerics", "honest-but-curious"])
+
+    telemetry: Telemetry = Field(default_factory=Telemetry, description=CLI_SUPPRESS)
+
+    reload: bool = Field(default=False, description="Reload Process on file change")
+
+
+class ServerConfig(Config):
+    """Lomas server config."""
+
+    bind_ip: str = Field(default="localhost")
+
+    forwarded_allow_ips: list[str] | str = Field(default="*")
+
+    root_path: str = Field(default="/")
+
+    time_attack: TimeAttack = Field(default=TimeAttack(method="jitter", magnitude=1.0))
+
+    # TODO implement rate limiter
+    submit_limit: float = Field(default=300.0)
+    """A limit on the rate which users can submit queries.
+
+    Not implemented.
+    """
 
     authenticator: AuthenticatorT
-
-    dex_config: Annotated[DexAdminConfig | None, Field(default=None)]
 
     bootstrap: str | None = Field(default=None)
 
@@ -118,17 +100,19 @@ class Config(BaseSettings):
 
     data_directory: Path = Field(default=Path("../data"))
 
-    private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
+    @computed_field
+    def database(self) -> AdminDatabase:  # server
+        return LocalAdminDatabase(directory=self.database_directory)
 
-    amqp: AmqpConfig
 
-    opendp_features: OpenDPFeatures = Field(default=["contrib", "idealized-numerics", "honest-but-curious"])
+class WorkerConfig(Config):
+    tui: bool = Field(default=False, description="Terminal friendly output")
 
-    telemetry: Telemetry = Field(default_factory=Telemetry, description=CLI_SUPPRESS)
+    server_host_addr: str = Field(default="localhost")
 
     @computed_field
-    def database(self) -> AdminDatabase:
-        return LocalAdminDatabase(directory=self.database_directory)
+    def admin_api(self) -> HttpUrl:
+        return HttpUrl(url=f"http://{self.server_host_addr}:{self.admin_host_port}")
 
 
 class AdminConfig(BaseSettings):
@@ -142,11 +126,11 @@ class AdminConfig(BaseSettings):
         case_sensitive=False,
     )
 
-    # We keep both url and service for the following reason
-    #   - url is the address to reach the server from the client/user
+    # We keep both external and service for the following reason
+    #   - external is the address to reach the server from the client/user
     #   - service is the address to reach the server from the dashboard/admin job
     # These two can sometimes differ, e.g. if the user is not in the same K8 cluster,
     # or if Lomas is deployed with its own docker network (docker compose case).
-    server_url: HttpUrl = Field(description="Lomas server addresse reacheable from the client")
-    server_service: HttpUrl = Field(default_factory=lambda data: data["server_url"], description=CLI_SUPPRESS)
+    external_url: HttpUrl = Field(description="Lomas server addresse reacheable from the client")
+    service_url: HttpUrl = Field(default_factory=lambda data: data["external_url"], description=CLI_SUPPRESS)
     dex_config: DexAdminConfig | None = Field(default=None)

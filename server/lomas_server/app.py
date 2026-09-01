@@ -1,30 +1,26 @@
+import asyncio
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from functools import partial
 
 from fastapi import FastAPI
-from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
 from lomas_core.exceptions import InternalServerException
-from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.constants import get_lomas_logger, init_logging
-from lomas_server.dp_queries.dp_libraries.opendp import (
-    set_opendp_features_config,
-)
-from lomas_server.models.config import Config
-from lomas_server.routes import routes_admin, routes_dp
+from lomas_core.models.constants import get_lomas_logger
+from lomas_server.models.config import ServerConfig
+from lomas_server.routes import routes_admin, routes_dp, routes_user, routes_worker
 from lomas_server.routes.error_handler import add_exception_handlers
 from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,
     LoggingAndTracingMiddleware,
 )
-from lomas_server.routes.utils import rabbitmq_ctx
-from lomas_server.utils.notify import notify
+
+logger = get_lomas_logger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
+async def lifespan(config: ServerConfig, lomas_app: FastAPI) -> AsyncGenerator[None]:
     """
     Lifespan function for the server.
 
@@ -36,27 +32,14 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     side effects on the return values of the "depends"
     functions, which check the server state.
     """
-    # Load Config
-    config = Config()
+    # Store Config
+    lomas_app.state.config = config
 
     # Load admin database
     try:
         # Database
         logger.info("Loading admin database")
-
         lomas_app.state.admin_database = config.database
-        if config.clean_admin_database:
-            logger.warning(
-                "Admin database cleaned at startup. With this option, server restarts will wipe the database!"
-            )
-            lomas_app.state.admin_database.database.wipe()
-
-        # Bootstrap
-        if not config.database.get_bootstrap_disabled():
-            logger.info("Setting bootstrap credentials.")
-            config.database.set_bootstrap(config.bootstrap)
-        else:
-            logger.warning("Not setting bootstrap credentials because already disabled in the admin database")
 
         # Auth/authz
         logger.info("Loading authenticator")
@@ -67,47 +50,60 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     except InternalServerException as e:
         logger.exception(f"Failed at startup: {e!s}")
 
-    # Set DP Libraries config
-    set_opendp_features_config(config.opendp_features)
-
-    async with rabbitmq_ctx(lomas_app):
-        notify(b"READY=1")
-        try:
-            yield  # lomas_app is handling requests
-        finally:
-            notify(b"STOPPING=1")
-
-
-# Init config for logging purposes
-initConfig = Config()
-
-init_logging(
-    name="lomas_server", level=initConfig.server.log_level, lomas_level=initConfig.server.lomas_log_level
-)
-
-logger = get_lomas_logger(__name__)
+    lomas_app.state.ready_event.set()
+    try:
+        yield  # lomas_app is handling requests
+    except asyncio.CancelledError:
+        logger.info("Cancelled")
+    except BaseException as e:
+        logger.exception(e)
+    finally:
+        logger.info("Shutting down")
 
 
-# Initalise telemetry
-if initConfig.telemetry.enabled:
-    LoggingInstrumentor().instrument(set_logging_format=True)
-    AioPikaInstrumentor().instrument()
+def get_user_app(config: ServerConfig) -> FastAPI:
+    # This object holds the server object
+    app = FastAPI(lifespan=partial(lifespan, config))
 
-    init_telemetry(initConfig.telemetry)
+    # Add ready event
+    app.state.ready_event = asyncio.Event()
 
-# This object holds the server object
-app = FastAPI(lifespan=lifespan)
+    # Setting metrics middleware
+    app.add_middleware(FastAPIMetricMiddleware, app_name=config.telemetry.service_name)
+    app.add_middleware(LoggingAndTracingMiddleware)
 
-# Setting metrics middleware
-app.add_middleware(FastAPIMetricMiddleware, app_name=initConfig.telemetry.service_name)
-app.add_middleware(LoggingAndTracingMiddleware)
+    # Add custom exception handlers
+    add_exception_handlers(app)
 
-# Add custom exception handlers
-add_exception_handlers(app)
+    # Instrument the FastAPI app
+    FastAPIInstrumentor.instrument_app(app)
 
-# Instrument the FastAPI app
-FastAPIInstrumentor.instrument_app(app)
+    # Add endpoints
+    app.include_router(routes_dp.router)
+    app.include_router(routes_user.router)
 
-# Add endpoints
-app.include_router(routes_dp.router)
-app.include_router(routes_admin.router)
+    return app
+
+
+def get_admin_app(config: ServerConfig) -> FastAPI:
+    # This object holds the server object
+    app = FastAPI(lifespan=partial(lifespan, config))
+
+    # Add ready event
+    app.state.ready_event = asyncio.Event()
+
+    # Setting metrics middleware
+    app.add_middleware(FastAPIMetricMiddleware, app_name=config.telemetry.service_name)
+    app.add_middleware(LoggingAndTracingMiddleware)
+
+    # Add custom exception handlers
+    add_exception_handlers(app)
+
+    # Instrument the FastAPI app
+    FastAPIInstrumentor.instrument_app(app)
+
+    # Add endpoints
+    app.include_router(routes_admin.router)
+    app.include_router(routes_worker.router)
+
+    return app

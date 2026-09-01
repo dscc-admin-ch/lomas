@@ -23,7 +23,7 @@ The metadata must follow the `csvw-eo`[^1] format.
 
 ## Private DB credentials
 
-Datasets stored in S3 storage require private credentials to be downloaded by the Lomas server. These credentials are not stored directly in the admin db but are injected in the server config via environment variables (see `LOMAS_SERVICE_private_db_credentials__**` environment variables.) This allows to securely store sensitive values in Kubernetes secrets or a Vault and dynamically inject them at server startup.
+Datasets stored in S3 storage require private credentials to be downloaded by the Lomas server. These credentials are not stored directly in the admin db but are injected in the server config via environment variables (see `LOMAS_SERVER_private_db_credentials__**` environment variables.) This allows to securely store sensitive values in Kubernetes secrets or a Vault and dynamically inject them at server startup.
 
 ## Adding a dataset
 

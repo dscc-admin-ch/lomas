@@ -9,6 +9,7 @@ class TopDBKey(StrEnum):
     DATASETS = "datasets"
     METADATA = "metadata"
     MISC_KEYS = "misc"
+    JOBS = "jobs"
 
 
 class MiscDBKeys(StrEnum):

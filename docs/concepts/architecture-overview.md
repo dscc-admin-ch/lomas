@@ -25,8 +25,8 @@ For additional informations about the client, please see the
 The server is implemented in a micro-service architecture and is thus split into multiple parts:
 
 - The client-facing HTTP server (which we call server for brevity) handles incoming requests and manages the administration database (Python Shelf).
-- The administration database: as stated above, it is directly managed by the server and persisted on local disk (Python Shelf). The database serves as a repository for users and metadata about the datasets. User-related data include access permissions to specific datasets, allocated and used DP-budgets as well as query archives (past executed queries and their result). User role is also stored in the database (ie. admin or standard user). Dataset-related data includes information such as dataset names, links to credentials for accessing the sensitive datasets and dataset metadata for DP-related operations.
-- The workers run user queries.
+- The administration database: as stated above, it is directly managed by the server and persisted on local disk (Sqlite3). The database serves as a repository for users, metadata about the datasets and tracks jobs (pending, ongoing and completed). User-related data include access permissions to specific datasets, allocated and used DP-budgets as well as query archives (past executed queries and their result). User role is also stored in the database (ie. admin or standard user). Dataset-related data includes information such as dataset names, links to credentials for accessing the sensitive datasets and dataset metadata for DP-related operations.
+- The workers run user queries. Workers poll the server for pending jobs and return them once completed. The server serves admin and worker endpoints on a separate port.
 - The admin dashboard provides a graphical interface for Lomas administrators to interact with the server. User creation, budget updates as well as dataset updates can all be executed through the dashboard.
 - Telemetry: All components send metrics and logs to Opentelemetry-collector. The Grafana dashboard can be used to visualize the collected data.
 

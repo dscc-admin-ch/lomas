@@ -272,7 +272,7 @@ class LocalAdminDatabase(AdminDatabase):
 
         with _sqlite_connection(self._db_path) as conn:
             row = conn.execute(
-                "SELECT job_json FROM jobs WHERE status = ? ORDER BY RANDOM() LIMIT 1",
+                "SELECT job_json FROM jobs WHERE status = ? ORDER BY started_at LIMIT 1",
                 (str(JobStatus.PENDING),),
             ).fetchone()
 
@@ -866,13 +866,25 @@ class LocalAdminDatabase(AdminDatabase):
     @with_lock
     def drop_collection(self, collection: TK) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "drop_collection"})
-        with shelve.open(self._shelve_path, writeback=True) as db:
-            if collection in db:
-                del db[collection]
 
-        if collection == TK.USERS:
-            with _sqlite_connection(self._db_path) as conn:
-                conn.execute("DELETE from users")
+        match collection:
+            case TK.USERS:
+                with _sqlite_connection(self._db_path) as conn:
+                    conn.execute("DELETE FROM users")
+            case TK.JOBS:
+                with _sqlite_connection(self._db_path) as conn:
+                    conn.execute("DELETE FROM jobs")
+            case TK.ARCHIVE:
+                with _sqlite_connection(self._archives_db_path) as conn:
+                    conn.execute("DELETE FROM archives")
+            case TK.MISC_KEYS:
+                with _sqlite_connection(self._misc_db_path) as conn:
+                    conn.execute("DELETE FROM misc")
+            case _:
+                # Handle shelve stuff.
+                with shelve.open(self._shelve_path, writeback=True) as db:
+                    if collection in db:
+                        del db[collection]
 
         self._set_defaults()
 

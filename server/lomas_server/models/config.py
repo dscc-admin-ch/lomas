@@ -1,10 +1,13 @@
 from pathlib import Path
 from typing import Annotated, Literal
+from urllib.parse import unquote
 
 from pydantic import (
+    AnyUrl,
     BaseModel,
     Field,
     HttpUrl,
+    UrlConstraints,
     computed_field,
 )
 from pydantic_core import Url
@@ -32,14 +35,47 @@ class S3CredentialsConfig(PrivateDBCredentials):
     secret_access_key: str
 
 
+BackupUri = Annotated[
+    AnyUrl,
+    UrlConstraints(allowed_schemes=["http", "https", "aws", "s3"]),
+]
+
+
 class BackupS3Config(BaseModel):
     """S3 destination for admin database backups."""
 
-    bucket: str
-    key_prefix: str = Field(default="lomas-backups/")
-    endpoint_url: str | None = Field(default=None)
-    access_key_id: str
-    secret_access_key: str
+    uri: BackupUri
+
+    @computed_field
+    def access_key_id(self) -> str:
+        if self.uri.username is None:
+            raise ValueError("Backup S3 uri is missing access_key_id.")
+        return unquote(self.uri.username)
+
+    @computed_field
+    def secret_access_key(self) -> str:
+        if self.uri.password is None:
+            raise ValueError("Backup S3 uri is missing secret_access_key.")
+        return unquote(self.uri.password)
+
+    @computed_field
+    def endpoint_url(self) -> str:
+        port = f":{self.uri.port}" if self.uri.port else ""
+        return f"{self.uri.scheme}://{self.uri.host}{port}"
+
+    @computed_field
+    def bucket(self) -> str:
+        path = (self.uri.path or "").lstrip("/")
+        bucket, _, _ = path.partition("/")
+        if not bucket:
+            raise ValueError("Backup S3 uri is missing a bucket name.")
+        return bucket
+
+    @computed_field
+    def key_prefix(self) -> str:
+        path = (self.uri.path or "").lstrip("/")
+        _, _, prefix = path.partition("/")
+        return f"{prefix.rstrip('/')}/" if prefix else "lomas-backups/"
 
 
 class BackupConfig(BaseModel):

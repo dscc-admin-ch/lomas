@@ -1486,17 +1486,19 @@
 <span class="w">    </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;alice@example.com&quot;</span>
 <span class="w">    </span><span class="nt">client_secret</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alice</span><span class="w">        </span><span class="c1"># Only if using Dex, not for production.</span>
 <span class="w">  </span><span class="nt">may_query</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
-<span class="w">  </span><span class="nt">datasets_list</span><span class="p">:</span><span class="w">                </span><span class="c1"># Can be empty</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dataset_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;IRIS&quot;</span>
-<span class="w">    </span><span class="nt">initial_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.0</span>
-<span class="w">    </span><span class="nt">initial_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0001</span>
-<span class="w">    </span><span class="nt">total_spent_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
-<span class="w">    </span><span class="nt">total_spent_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dataset_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;PENGUIN&quot;</span>
-<span class="w">    </span><span class="nt">initial_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
-<span class="w">    </span><span class="nt">initial_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0005</span>
-<span class="w">    </span><span class="nt">total_spent_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
-<span class="w">    </span><span class="nt">total_spent_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">  </span><span class="nt">datasets</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">IRIS</span><span class="p">:</span><span class="w">                </span><span class="c1"># Can be empty</span>
+<span class="w">      </span><span class="nt">dataset_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;IRIS&quot;</span>
+<span class="w">      </span><span class="nt">initial_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.0</span>
+<span class="w">      </span><span class="nt">initial_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0001</span>
+<span class="w">      </span><span class="nt">total_spent_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">      </span><span class="nt">total_spent_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">    </span><span class="nt">PENGUIN</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">dataset_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;PENGUIN&quot;</span>
+<span class="w">      </span><span class="nt">initial_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
+<span class="w">      </span><span class="nt">initial_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0005</span>
+<span class="w">      </span><span class="nt">total_spent_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">      </span><span class="nt">total_spent_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 </code></pre></div>
 <h2 id="adding-datasets-to-users-and-setting-dp-budget">Adding datasets to users and setting DP budget<a class="headerlink" href="#adding-datasets-to-users-and-setting-dp-budget" title="Permanent link">#</a></h2>
 <p>Once a user has been added, it is listed on top of the "Users" section.

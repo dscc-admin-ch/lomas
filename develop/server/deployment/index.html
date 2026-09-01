@@ -1416,7 +1416,7 @@ You can choose the deployment option that best suits your needs:</p>
 </ul>
 <h2 id="server-configuration">Server configuration<a class="headerlink" href="#server-configuration" title="Permanent link">#</a></h2>
 <p>The Lomas server is configured exclusively via environment variables. This allows to inject sensitive values (e.g. credentials, etc.) via Kubernetes secrets.</p>
-<p>Upon startup, the server loads its configuration via a <a href="https://pydantic.dev/docs/validation/latest/concepts/pydantic_settings/">pydantic-settings</a> model defined in <code>server/lomas_server/models/config.py</code>. Environment variables for the server config are prefixed with <code>LOMAS_SERVICE_</code>, you can have a look by running <code>env | grep LOMAS_SERVICE</code> in an active Lomas devenv shell (see <a href="../../concepts/contributing/">here</a>).</p>
+<p>Upon startup, the server loads its configuration via a <a href="https://pydantic.dev/docs/validation/latest/concepts/pydantic_settings/">pydantic-settings</a> model defined in <code>server/lomas_server/models/config.py</code>. Environment variables for the server config are prefixed with <code>LOMAS_SERVER_</code>, you can have a look by running <code>env | grep LOMAS_SERVER</code> in an active Lomas devenv shell (see <a href="../../concepts/contributing/">here</a>).</p>
 
 
 

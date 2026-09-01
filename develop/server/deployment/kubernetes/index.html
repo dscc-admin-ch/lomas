@@ -1536,7 +1536,7 @@
 <li><strong>Update the values file:</strong> You need to update at least the following urls for the chart to work:<ul>
 <li><code>server.runtime_args.server.authenticator.oidc_discovery_url</code>, set this to your IdP's discovery url, or Dex's if enabled.</li>
 <li><code>server.ingress.hostname</code>: Choose a hostname supported by your cluster.</li>
-<li><code>demoSetupJob.config.serverUrl</code>: Set this to the server hostname.</li>
+<li><code>demoSetupJob.configUrl</code>: Set this to the server hostname.</li>
 <li><code>dashboard.streamlitServerSecrets</code>: Set the <code>redirectUri</code>s address to the dashboard ingress and the <code>serverMetadataUrl</code> to your IdP's discovery endpoint.</li>
 <li><code>dashboard.ingress.hostname</code>: Choose a hostname supported by your cluster.</li>
 <li><code>dex.ingress.hosts.host</code>: Choose a hostname supported by your cluster. Reminder, Dex is only included for testing purposes, do not use in production!</li>
@@ -1562,12 +1562,6 @@ The secret format is sometimes enforced by the underlying charts Lomas depends o
 <li>Streamlit requires a secret file in TOML format for getting information related to authentication.</li>
 <li>Existing secret: <code>dashboard.streamlitServerSecrets.existingSecret</code> and <code>..existingSecretKey</code>.</li>
 <li><code>dashboard.streamlitServerSecrets.value</code> is used to set the value directly.</li>
-</ul>
-</li>
-<li><strong>RabbitMQ</strong><ul>
-<li>Lomas relies on Bitnami's RabbitMQ chart. One secret is used for RabbitMQ's password.</li>
-<li>Existing secret: The secret name can be specified with <code>rabbitmq.auth.existingPasswordSecret</code> while the key with <code>rabbitmq.auth.existingSecretPasswordKey</code>.</li>
-<li>Values file: <code>rabbitmq.auth.password</code> is used for setting the password.</li>
 </ul>
 </li>
 <li><strong>Private DB Credentials</strong><ul>

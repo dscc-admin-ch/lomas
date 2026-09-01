@@ -1,4 +1,3 @@
-{ inputs, ... }:
 {
   perSystem =
     {
@@ -11,50 +10,18 @@
       # Eval our defaults (as options) and get the resulting config
       inherit ((lib.evalModules { modules = [ ../_defaults.nix ]; }).config) ports;
 
-      # Build our python package & environments from local root (uv.lock)
-      pyEnvs = lib.genAttrs' [ "12" "13" "14" ] (
-        version:
-        lib.nameValuePair ("py3${version}") (
-          pkgs.callPackage ./_lib.nix {
-            inherit (inputs) pyproject-nix pyproject-build-systems uv2nix;
-            python3 = pkgs."python3${version}";
-            workspaceRoot = ../../.;
-          }
-        )
-      );
+      inherit (self'.packages) lomasEnv;
 
+      # Build our python package & environments from local root (uv.lock)
       workingDir = "/data";
       LOMAS_ADMIN_USER_YAML = "${workingDir}/collections/user_collection.yaml";
       LOMAS_ADMIN_DATASET_YAML = "${workingDir}/collections/dataset_collection.yaml";
     in
     {
-      # add expose packages to (nix flake) check
-      checks = lib.mapAttrs' (name: lib.nameValuePair "package-${name}") self'.packages;
-
-      packages = rec {
-        # make loams python packages available
-        lomasService = lomasService_3_14;
-        lomasClient = lomasClient_3_14;
-        lomasEnv = lomasEnv_3_14;
-        lomasEnvDev = lomasEnvDev_3_14;
-
-        lomasEnv_3_12 = pyEnvs.py312.lomasEnv;
-        lomasEnvDev_3_12 = pyEnvs.py312.lomasEnvDev;
-        lomasService_3_12 = pyEnvs.py312.lomasService;
-        lomasClient_3_12 = pyEnvs.py312.lomasClient;
-        lomasEnv_3_13 = pyEnvs.py313.lomasEnv;
-        lomasEnvDev_3_13 = pyEnvs.py313.lomasEnvDev;
-        lomasService_3_13 = pyEnvs.py313.lomasService;
-        lomasClient_3_13 = pyEnvs.py313.lomasClient;
-        lomasEnv_3_14 = pyEnvs.py314.lomasEnv;
-        lomasEnvDev_3_14 = pyEnvs.py314.lomasEnvDev;
-        lomasService_3_14 = pyEnvs.py314.lomasService;
-        lomasClient_3_14 = pyEnvs.py314.lomasClient;
-
+      packages = {
         ##############################
         # OCI-docker images for RHOS #
         ##############################
-
         lomas-oci-raw = pkgs.dockerTools.buildLayeredImage {
           name = "lomas-oci-raw";
           tag = "latest";

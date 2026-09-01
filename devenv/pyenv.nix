@@ -6,6 +6,8 @@
 }:
 let
   inherit (lib) types;
+  inherit (config.stdenv.hostPlatform) system;
+
   cfg = config.lomas.pyenv;
 in
 {
@@ -20,7 +22,7 @@ in
   config =
     let
       pyShortVersion = lib.replaceString "." "" cfg.version;
-      devshell = localflake.devShells.x86_64-linux."py${pyShortVersion}";
+      devshell = localflake.devShells.${system}."py${pyShortVersion}";
     in
     lib.mkIf cfg.enable {
       packages = devshell.nativeBuildInputs;

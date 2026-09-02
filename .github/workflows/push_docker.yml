@@ -43,7 +43,7 @@ jobs:
           nix build .#lomas-oci-raw -o lomas-oci-raw.tar
 
       - name: Push Image
-        #if: github.event_name == 'push' || github.event_name == 'release'
+        if: github.event_name == 'push' || github.event_name == 'release'
         run: |
           for tag in $DOCKER_METADATA_OUTPUT_TAGS; do
             skopeo copy docker-archive:lomas-oci.tar docker://dsccadminch/lomas:${tag##*:}

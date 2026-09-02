@@ -63,7 +63,7 @@ spec:
           - name: LOMAS_ADMIN_EXTERNAL_URL
             value: "{{ .Values.demoSetupJob.config.serverUrl }}"
           - name: LOMAS_ADMIN_SERVICE_URL
-            value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.userPort }}/"
+            value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.adminPort }}/"
           - name: LOMAS_ADMIN_BOOTSTRAP
             value: "" # dashboard does not need bootstrap
           {{- if .Values.global.configCABundle.enabled }}

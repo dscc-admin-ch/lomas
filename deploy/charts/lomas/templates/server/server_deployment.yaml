@@ -57,28 +57,28 @@ spec:
               secretKeyRef:
                 name: {{ include "lomas.server.bootstrapSecretName" . }}
                 key: {{ include "lomas.server.bootstrapSecretKey" . }}
-          - name: LOMAS_SERVER_SERVER_BIND_IP
+          - name: LOMAS_SERVER_BIND_IP
             value: "0.0.0.0"
-          - name: LOMAS_SERVER_SERVER_USER_HOST_PORT
+          - name: LOMAS_SERVER_USER_HOST_PORT
             value: "{{ .Values.server.runtime_args.user_host_port }}"
-          - name: LOMAS_SERVER_SERVER_ADMIN_HOST_PORT
+          - name: LOMAS_SERVER_ADMIN_HOST_PORT
             value: "{{ .Values.server.runtime_args.admin_host_port }}"
           - name: LOMAS_SERVER_WORKER_API_KEY
             valueFrom:
               secretKeyRef:
                 name: {{ include "lomas.server.workerApiKeySecretName" . }}
                 key: {{ include "lomas.server.workerApiKeySecretKey" . }}
-          - name: LOMAS_SERVER_SERVER_ROOT_PATH
+          - name: LOMAS_SERVER__ROOT_PATH
             value: "{{ .Values.server.runtime_args.root_path }}"
-          - name: LOMAS_SERVER_SERVER_LOG_LEVEL
+          - name: LOMAS_SERVER_LOG_LEVEL
             value: "{{ .Values.server.runtime_args.log_level }}"
-          - name: LOMAS_SERVER_SERVER_LOMAS_LOG_LEVEL
+          - name: LOMAS_SERVER_LOMAS_LOG_LEVEL
             value: "{{ .Values.server.runtime_args.lomas_log_level }}"
-          - name: LOMAS_SERVER_SERVER_SUBMIT_LIMIT
+          - name: LOMAS_SERVER_SUBMIT_LIMIT
             value: "{{ .Values.server.runtime_args.submit_limit }}"
-          - name: LOMAS_SERVER_SERVER_TIME_ATTACK__METHOD
+          - name: LOMAS_SERVER_TIME_ATTACK__METHOD
             value: "{{ .Values.server.runtime_args.time_attack.method }}"
-          - name: LOMAS_SERVER_SERVER_TIME_ATTACK__MAGNITUDE
+          - name: LOMAS_SERVER_TIME_ATTACK__MAGNITUDE
             value: "{{ .Values.server.runtime_args.time_attack.magnitude }}"
           - name: LOMAS_SERVER_ADMIN_DATABASE_DIRECTORY
             value: "/db/"

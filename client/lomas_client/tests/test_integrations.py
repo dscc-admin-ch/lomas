@@ -34,7 +34,7 @@ from lomas_server.administration.dex.dex_admin import (
 )
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import get_admin_app
-from lomas_server.models.config import AdminConfig, ServerConfig
+from lomas_server.models.config import AdminConfig, LocalBackupConfig, ServerConfig
 
 enable_features("contrib")
 
@@ -437,9 +437,7 @@ def test_backup():
         assert body["location"].startswith("s3://")
 
     # No s3 is configured, falls back to local saved (tmp)
-    os.environ.pop("LOMAS_SERVER_backup__uri", None)
-    os.environ["LOMAS_SERVER_backup__type"] = "local_directory"
-    config = ServerConfig()
+    config = ServerConfig(backup=LocalBackupConfig())
 
     with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
         response = client.get("/backup")
@@ -447,9 +445,7 @@ def test_backup():
         assert os.path.exists(response.json()["location"])
 
     # With local_directory setup
-    os.environ["LOMAS_SERVER_backup__local_directory"] = "/tmp/lomas-custom-backups"
-    config = ServerConfig()
-
+    config = ServerConfig(backup=LocalBackupConfig(local_directory="/tmp/lomas-custom-backups"))
     with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
         # Create one query to test backup content
         lomas_demo_setup()

@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from functools import partial
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from lomas_core.exceptions import InternalServerException
@@ -61,7 +61,7 @@ async def lifespan(config: ServerConfig, lomas_app: FastAPI) -> AsyncGenerator[N
         logger.info("Shutting down")
 
 
-def get_user_app(config: ServerConfig) -> FastAPI:
+def get_app(config: ServerConfig, routers: list[APIRouter]) -> FastAPI:
     # This object holds the server object
     app = FastAPI(lifespan=partial(lifespan, config))
 
@@ -79,31 +79,15 @@ def get_user_app(config: ServerConfig) -> FastAPI:
     FastAPIInstrumentor.instrument_app(app)
 
     # Add endpoints
-    app.include_router(routes_dp.router)
-    app.include_router(routes_user.router)
+    for router in routers:
+        app.include_router(router)
 
     return app
+
+
+def get_user_app(config: ServerConfig) -> FastAPI:
+    return get_app(config, [routes_dp.router, routes_user.router])
 
 
 def get_admin_app(config: ServerConfig) -> FastAPI:
-    # This object holds the server object
-    app = FastAPI(lifespan=partial(lifespan, config))
-
-    # Add ready event
-    app.state.ready_event = asyncio.Event()
-
-    # Setting metrics middleware
-    app.add_middleware(FastAPIMetricMiddleware, app_name=config.telemetry.service_name)
-    app.add_middleware(LoggingAndTracingMiddleware)
-
-    # Add custom exception handlers
-    add_exception_handlers(app)
-
-    # Instrument the FastAPI app
-    FastAPIInstrumentor.instrument_app(app)
-
-    # Add endpoints
-    app.include_router(routes_admin.router)
-    app.include_router(routes_worker.router)
-
-    return app
+    return get_app(config, [routes_admin.router, routes_worker.router])

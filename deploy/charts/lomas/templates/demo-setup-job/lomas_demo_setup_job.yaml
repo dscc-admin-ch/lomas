@@ -25,7 +25,7 @@ spec:
             - -c
             - |
               #!/usr/local/env bash
-              until [ $(curl -m 0.5 -fso /dev/null -w "%{http_code}" -k http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/live) -eq 200 ]; do
+              until [ $(curl -m 0.5 -fso /dev/null -w "%{http_code}" -k http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.adminPort }}/live) -eq 200 ]; do
                 echo "waiting for lomas"
                 sleep 2
               done;
@@ -48,7 +48,7 @@ spec:
             - name: LOMAS_ADMIN_DATASET_YAML
               value: {{ .Values.demoSetupJob.config.datasetYamlPath }}
             - name: LOMAS_ADMIN_EXTERNAL_URL
-              value: "{{ .Values.demoSetupJob.serverUrl }}"
+              value: "{{ .Values.demoSetupJob.config.serverUrl }}"
             - name: LOMAS_ADMIN_SERVICE_URL
               value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.adminPort }}/"
             - name: LOMAS_ADMIN_BOOTSTRAP

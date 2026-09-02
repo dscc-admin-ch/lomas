@@ -2,7 +2,7 @@ The Lomas service was successfully deployed!
 
 1. From within your namespace, the server is available at
 
-  {{ include "lomas.server.fullname" . -}}:{{- .Values.server.service.port}}
+  {{ include "lomas.server.fullname" . -}}:{{- .Values.server.service.userPort}}
 
 {{- if .Values.server.ingress.enabled }}
 

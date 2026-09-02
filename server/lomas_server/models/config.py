@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 from urllib.parse import unquote
 
 from pydantic import (
@@ -9,6 +9,7 @@ from pydantic import (
     HttpUrl,
     UrlConstraints,
     computed_field,
+    model_validator,
 )
 from pydantic_core import Url
 from pydantic_settings import CLI_SUPPRESS, BaseSettings, SettingsConfigDict
@@ -43,16 +44,25 @@ class BackupS3Config(BaseModel):
         UrlConstraints(allowed_schemes=["http", "https", "aws", "s3"]),
     ]
 
-    @computed_field
-    def access_key_id(self) -> str:
+    @model_validator(mode="after")
+    def check_uri_content(self) -> Self:
         if self.uri.username is None:
             raise ValueError("Backup S3 uri is missing access_key_id.")
+        if self.uri.password is None:
+            raise ValueError("Backup S3 uri is missing secret_access_key.")
+
+        path = (self.uri.path or "").lstrip("/")
+        bucket, _, _ = path.partition("/")
+        if not bucket:
+            raise ValueError("Backup S3 uri is missing a bucket name.")
+        return self
+
+    @computed_field
+    def access_key_id(self) -> str:
         return unquote(self.uri.username)
 
     @computed_field
     def secret_access_key(self) -> str:
-        if self.uri.password is None:
-            raise ValueError("Backup S3 uri is missing secret_access_key.")
         return unquote(self.uri.password)
 
     @computed_field
@@ -64,8 +74,6 @@ class BackupS3Config(BaseModel):
     def bucket(self) -> str:
         path = (self.uri.path or "").lstrip("/")
         bucket, _, _ = path.partition("/")
-        if not bucket:
-            raise ValueError("Backup S3 uri is missing a bucket name.")
         return bucket
 
     @computed_field
@@ -78,7 +86,13 @@ class BackupS3Config(BaseModel):
 class LocalBackupConfig(BaseModel):
     """Local destination for admin database backups."""
 
-    local_directory: Path | None = Field(default=None)
+    @model_validator(mode="after")
+    def is_absolute(self) -> Self:
+        if not self.local_directory.is_absolute():
+            raise ValueError("Use an absolute path.")
+        return self
+
+    local_directory: Path
 
 
 BackupConfig = LocalBackupConfig | BackupS3Config
@@ -117,7 +131,7 @@ class Config(BaseSettings):
 
     private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
 
-    backup: BackupConfig = Field(default_factory=LocalBackupConfig)
+    backup: BackupConfig = Field(default=LocalBackupConfig(local_directory="/tmp/lomas-backups"))
 
     opendp_features: OpenDPFeatures = Field(default=["contrib", "idealized-numerics", "honest-but-curious"])
 

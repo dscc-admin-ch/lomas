@@ -33,7 +33,9 @@ def store_backup(
             return _store_backup_s3(data, filename, backup_config)
         case LocalBackupConfig():
             return _store_backup_local(
-                data, filename, backup_config.local_directory or (database_directory / "backups")
+                data,
+                filename,
+                backup_config.local_directory or (database_directory / "backups"),  # type: ignore [truthy-bool]
             )
 
 

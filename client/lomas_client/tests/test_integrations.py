@@ -22,6 +22,7 @@ from csvw_eo.constants import COL_NAME, TABLE_SCHEMA
 from diffprivlib import models
 from fastapi.testclient import TestClient
 from opendp.mod import enable_features
+from pydantic import ValidationError
 from sklearn.pipeline import Pipeline
 
 from lomas_client import Client
@@ -34,7 +35,7 @@ from lomas_server.administration.dex.dex_admin import (
 )
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import get_admin_app
-from lomas_server.models.config import AdminConfig, LocalBackupConfig, ServerConfig
+from lomas_server.models.config import AdminConfig, BackupS3Config, LocalBackupConfig, ServerConfig
 
 enable_features("contrib")
 
@@ -436,13 +437,10 @@ def test_backup():
         assert body["is_s3"] is True
         assert body["location"].startswith("s3://")
 
-    # No s3 is configured, falls back to local saved (tmp)
-    config = ServerConfig(backup=LocalBackupConfig())
-
-    with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
-        response = client.get("/backup")
-        assert response.json()["is_s3"] is False
-        assert os.path.exists(response.json()["location"])
+    # Raise an error if uri isn't correctly defined
+    # For instance missing user:password / bucket_name, etc.
+    with pytest.raises(ValidationError):
+        ServerConfig(backup=BackupS3Config(uri="https://localhost:3900/bucket"))
 
     # With local_directory setup
     config = ServerConfig(backup=LocalBackupConfig(local_directory="/tmp/lomas-custom-backups"))

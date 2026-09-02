@@ -59,7 +59,7 @@
             lomas-dashboard = (
               pkgs.writeShellScriptBin "lomas-dashboard" ''
                 cd ${pyEnv.lomasEnv}/lib/python*/site-packages/
-                streamlit run lomas-server/administration/dashboard/about.py
+                streamlit run lomas_server/administration/dashboard/about.py
               ''
             );
           };

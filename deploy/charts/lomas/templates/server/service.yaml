@@ -7,9 +7,13 @@ metadata:
 spec:
   type: {{ .Values.server.service.type }}
   ports:
-  - port: {{ .Values.server.service.port}}
-    targetPort: {{ .Values.server.runtime_args.server.host_port }}
+  - port: {{ .Values.server.service.userPort}}
+    targetPort: {{ .Values.server.runtime_args.user_host_port }}
     protocol: TCP
-    name: {{ .Values.server.service.portName }}
+    name: {{ .Values.server.service.userPortName }}
+  - port: {{ .Values.server.service.adminPort }}
+    targetPort: {{ .Values.server.runtime_args.admin_host_port }}
+    protocol: TCP
+    name: {{ .Values.server.service.adminPortName }}
   selector:
     {{- include "lomas.server.selectorLabels" . | nindent 4 }}

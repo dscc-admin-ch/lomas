@@ -30,12 +30,8 @@ spec:
         resources:
           {{- toYaml .Values.worker.resources | nindent 10 }}
         image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
-        imagePullPolicy: {{ .Values.server.image.pullPolicy }}
-        command: ["lomas" "work"]
-        ports:
-          - name: http
-            containerPort: {{ .Values.server.runtime_args.server.host_port }}
-            protocol: TCP
+        imagePullPolicy: {{ .Values.server.image.imagePullPolicy }}
+        command: ["lomas", "work"]
         volumeMounts:
           {{- if .Values.server.pvc.data.enabled }}
           - name: data
@@ -45,36 +41,21 @@ spec:
           - name: LOMAS_SERVER_BOOTSTRAP
             valueFrom:
               secretKeyRef:
-                name: {{ include "lomas.server.secretName" . }}
+                name: {{ include "lomas.server.bootstrapSecretName" . }}
                 key: {{ include "lomas.server.bootstrapSecretKey" . }}
-          - name: LOMAS_SERVER_SERVER__HOST_IP
-            value: "0.0.0.0"
-          - name: LOMAS_SERVER_SERVER__HOST_PORT
-            value: "{{ .Values.server.runtime_args.server.host_port }}"
-          - name: LOMAS_SERVER_SERVER__ROOT_PATH
-            value: "{{ .Values.server.runtime_args.server.root_path }}"
-          - name: LOMAS_SERVER_SERVER__LOG_LEVEL
-            value: "{{ .Values.server.runtime_args.server.log_level }}"
-          - name: LOMAS_SERVER_SERVER__LOMAS_LOG_LEVEL
-            value: "{{ .Values.server.runtime_args.server.lomas_log_level }}"
-          - name: LOMAS_SERVER_SERVER__SUBMIT_LIMIT
-            value: "{{ .Values.server.runtime_args.server.submit_limit }}"
-          - name: LOMAS_SERVER_SERVER__TIME_ATTACK__METHOD
-            value: "{{ .Values.server.runtime_args.server.time_attack.method }}"
-          - name: LOMAS_SERVER_SERVER__TIME_ATTACK__MAGNITUDE
-            value: "{{ .Values.server.runtime_args.server.time_attack.magnitude }}"
-          - name: LOMAS_SERVER_ADMIN_DATABASE_URL
-            value: "/persistent-storage/admin.db"
-          - name: LOMAS_SERVER_CLEAN_ADMIN_DATABASE
-            value: "{{ .Values.server.runtime_args.clean_admin_database }}"
-          - name: LOMAS_SERVER_DATA_DIRECTORY
-            value: "/data"
-          - name: LOMAS_SERVER_AUTHENTICATOR__AUTHENTICATION_TYPE
-            value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"
-          - name: LOMAS_SERVER_AUTHENTICATOR__OIDC_DISCOVERY_URL
-            value: "{{ .Values.server.runtime_args.authenticator.oidc_discovery_url }}" # todo change recover from dex values?
-          - name: LOMAS_SERVER_AUTHENTICATOR__QUERY_USERINFO
-            value: "{{ .Values.server.runtime_args.authenticator.query_userinfo }}"
+          - name: LOMAS_SERVER_USER_HOST_PORT
+            value: "{{ .Values.server.runtime_args.user_host_port }}"
+          - name: LOMAS_SERVER_ADMIN_HOST_PORT
+            value: "{{ .Values.server.service.adminPort }}"
+          - name: LOMAS_SERVER_WORKER_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "lomas.server.workerApiKeySecretName" . }}
+                key: {{ include "lomas.server.workerApiKeySecretKey" . }}
+          - name: LOMAS_SERVER_LOG_LEVEL
+            value: "{{ .Values.server.runtime_args.log_level }}"
+          - name: LOMAS_SERVER_LOMAS_LOG_LEVEL
+            value: "{{ .Values.server.runtime_args.lomas_log_level }}"
           {{- range $i, $credSecretName := (include "lomas.server.private-db-credentials-secrets" $) | fromYamlArray }}
           - name: LOMAS_SERVER_PRIVATE_DB_CREDENTIALS__{{ $i }}
             valueFrom:
@@ -94,6 +75,8 @@ spec:
             value: "true"
           - name: LOMAS_SERVER_OPENDP_FEATURES
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
+          - name: LOMAS_SERVER_SERVER_HOST_ADDR
+            value: '{{ include "lomas.server.fullname" .}}'
       volumes:
         {{- if .Values.server.pvc.data.enabled }}
         - name: data

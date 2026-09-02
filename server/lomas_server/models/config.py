@@ -83,7 +83,7 @@ class BackupS3Config(BaseModel):
 class LocalBackupConfig(BaseModel):
     """Local destination for admin database backups."""
 
-    type: Literal[BackupType.LOCAL_DIRECTORY]
+    type: Literal[BackupType.LOCAL_DIRECTORY] = BackupType.LOCAL_DIRECTORY
     local_directory: Path | None = Field(default=None)
 
 

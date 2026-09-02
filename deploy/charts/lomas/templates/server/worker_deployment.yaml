@@ -75,7 +75,7 @@ spec:
             value: "true"
           - name: LOMAS_SERVER_OPENDP_FEATURES
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
-          - name: LOMAS_SERVER_HOST_ADDR
+          - name: LOMAS_SERVER_SERVER_HOST_ADDR
             value: '{{ include "lomas.server.fullname" .}}'
       volumes:
         {{- if .Values.server.pvc.data.enabled }}

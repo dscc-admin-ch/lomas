@@ -431,7 +431,7 @@ def test_backup():
     config.database.set_bootstrap(config.bootstrap)
 
     with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
-        response = client.post("/backup")
+        response = client.get("/backup")
         body = response.json()
         assert body["is_s3"] is True
         assert body["location"].startswith("s3://")
@@ -442,7 +442,7 @@ def test_backup():
     config = ServerConfig()
 
     with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
-        response = client.post("/backup")
+        response = client.get("/backup")
         assert response.json()["is_s3"] is False
         assert os.path.exists(response.json()["location"])
 
@@ -463,7 +463,7 @@ def test_backup():
         client_u.opendp.query(plan, epsilon=DEFAULT_EPSILON)
 
         # Backup bew db state
-        response = client.post("/backup")
+        response = client.get("/backup")
         body = response.json()
 
         # Check if custom location works

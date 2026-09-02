@@ -347,7 +347,7 @@ def set_dataset_metadata_admin(
     db.set_dataset_metadata(dataset_name, file.file)
 
 
-@router.post("/backup", responses=API_ERROR_RESPONSES)
+@router.get("/backup", responses=API_ERROR_RESPONSES)
 def backup_admin_database(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],

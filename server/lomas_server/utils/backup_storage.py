@@ -2,9 +2,8 @@ from pathlib import Path
 
 import boto3
 
-from lomas_core.exceptions import InternalServerException
-from lomas_core.models.constants import BackupType, get_lomas_logger
-from lomas_server.models.config import BackupConfig, BackupS3Config
+from lomas_core.models.constants import get_lomas_logger
+from lomas_server.models.config import BackupConfig, BackupS3Config, LocalBackupConfig
 from lomas_server.models.responses import BackupResponse
 
 logger = get_lomas_logger(__name__)
@@ -29,15 +28,13 @@ def store_backup(
     Returns:
         BackupResponse: Where the backup was written.
     """
-    match backup_config.type:
-        case BackupType.S3:
+    match backup_config:
+        case BackupS3Config():
             return _store_backup_s3(data, filename, backup_config)
-        case BackupType.LOCAL_DIRECTORY:
+        case LocalBackupConfig():
             return _store_backup_local(
                 data, filename, backup_config.local_directory or (database_directory / "backups")
             )
-        case _:
-            raise InternalServerException(f"Backup type not supported: {backup_config.backup_type!r}")
 
 
 def _store_backup_local(data: bytes, filename: str, directory: Path) -> BackupResponse:

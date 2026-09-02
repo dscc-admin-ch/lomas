@@ -204,7 +204,6 @@ in
     # PYTHONWARNDEFAULTENCODING = 1;
 
     # Config for sqlite backup (S3)
-    LOMAS_SERVER_backup__type = "s3";
     LOMAS_SERVER_backup__uri =
       "http://"
       + config.lomas.garage.keyId

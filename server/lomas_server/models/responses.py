@@ -20,5 +20,5 @@ class BackupResponse(BaseModel):
     """Where the backup was written: a local path, or an s3://bucket/key URI."""
     is_s3: bool
     """Whether the backup was uploaded to S3 (True) or written locally (False)."""
-    size_bytes: int
+    size_bytes: int | None = Field(default=None)
     """Size in bytes of the backup archive."""

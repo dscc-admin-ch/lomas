@@ -15629,23 +15629,11 @@ the second value is the delta value.</p>
 <span class="normal">129</span>
 <span class="normal">130</span>
 <span class="normal">131</span>
-<span class="normal">132</span>
-<span class="normal">133</span>
-<span class="normal">134</span>
-<span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
-<span class="normal">138</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@override</span>
-<span class="nd">@with_lock</span>
+<span class="normal">132</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@override</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">wipe</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wipe database to empty.&quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">directory</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock_path</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
-
-    <span class="bp">self</span><span class="o">.</span><span class="n">_set_defaults</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">collection</span> <span class="ow">in</span> <span class="n">TK</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_collection</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -15672,7 +15660,13 @@ the second value is the delta value.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>server/lomas_server/admin_database/local_database.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">387</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
 <span class="normal">388</span>
 <span class="normal">389</span>
 <span class="normal">390</span>
@@ -15703,13 +15697,7 @@ the second value is the delta value.</p>
 <span class="normal">415</span>
 <span class="normal">416</span>
 <span class="normal">417</span>
-<span class="normal">418</span>
-<span class="normal">419</span>
-<span class="normal">420</span>
-<span class="normal">421</span>
-<span class="normal">422</span>
-<span class="normal">423</span>
-<span class="normal">424</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_users_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">users</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">User</span><span class="p">],</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">418</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_users_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">users</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">User</span><span class="p">],</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Loads the list of Users into the database.</span>
 
 <span class="sd">    Set overwrite to true to ignore existing users and overwrite</span>
@@ -15831,7 +15819,13 @@ False if raise KeyError if user already exists</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>server/lomas_server/admin_database/local_database.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">473</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">467</span>
+<span class="normal">468</span>
+<span class="normal">469</span>
+<span class="normal">470</span>
+<span class="normal">471</span>
+<span class="normal">472</span>
+<span class="normal">473</span>
 <span class="normal">474</span>
 <span class="normal">475</span>
 <span class="normal">476</span>
@@ -15855,13 +15849,7 @@ False if raise KeyError if user already exists</p>
 <span class="normal">494</span>
 <span class="normal">495</span>
 <span class="normal">496</span>
-<span class="normal">497</span>
-<span class="normal">498</span>
-<span class="normal">499</span>
-<span class="normal">500</span>
-<span class="normal">501</span>
-<span class="normal">502</span>
-<span class="normal">503</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@db_span</span><span class="p">(</span><span class="s2">&quot;db.add_users_via_yaml&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">&quot;admin-db&quot;</span><span class="p">)</span>
+<span class="normal">497</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@db_span</span><span class="p">(</span><span class="s2">&quot;db.add_users_via_yaml&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">&quot;admin-db&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">add_users_via_yaml</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">yaml_file</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">BinaryIO</span> <span class="o">|</span> <span class="n">SpooledTemporaryFile</span><span class="p">,</span> <span class="n">clean</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -15954,7 +15942,13 @@ False if raise KeyError if user already exists</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>server/lomas_server/admin_database/local_database.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">505</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">499</span>
+<span class="normal">500</span>
+<span class="normal">501</span>
+<span class="normal">502</span>
+<span class="normal">503</span>
+<span class="normal">504</span>
+<span class="normal">505</span>
 <span class="normal">506</span>
 <span class="normal">507</span>
 <span class="normal">508</span>
@@ -15973,13 +15967,7 @@ False if raise KeyError if user already exists</p>
 <span class="normal">521</span>
 <span class="normal">522</span>
 <span class="normal">523</span>
-<span class="normal">524</span>
-<span class="normal">525</span>
-<span class="normal">526</span>
-<span class="normal">527</span>
-<span class="normal">528</span>
-<span class="normal">529</span>
-<span class="normal">530</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@db_span</span><span class="p">(</span><span class="s2">&quot;db.put_user&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">&quot;admin-db&quot;</span><span class="p">)</span>
+<span class="normal">524</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@db_span</span><span class="p">(</span><span class="s2">&quot;db.put_user&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">&quot;admin-db&quot;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">put_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">User</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add new user in users collection with default values for all fields.</span>
 
@@ -16051,7 +16039,13 @@ False if raise KeyError if user already exists</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>server/lomas_server/admin_database/local_database.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">594</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">588</span>
+<span class="normal">589</span>
+<span class="normal">590</span>
+<span class="normal">591</span>
+<span class="normal">592</span>
+<span class="normal">593</span>
+<span class="normal">594</span>
 <span class="normal">595</span>
 <span class="normal">596</span>
 <span class="normal">597</span>
@@ -16112,13 +16106,7 @@ False if raise KeyError if user already exists</p>
 <span class="normal">652</span>
 <span class="normal">653</span>
 <span class="normal">654</span>
-<span class="normal">655</span>
-<span class="normal">656</span>
-<span class="normal">657</span>
-<span class="normal">658</span>
-<span class="normal">659</span>
-<span class="normal">660</span>
-<span class="normal">661</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@with_lock</span>
+<span class="normal">655</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@with_lock</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">load_dataset_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">DSInfo</span><span class="p">],</span> <span class="n">path_prefix</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load a list of datasets.</span>
 
@@ -16271,7 +16259,13 @@ False if raise KeyError if user already exists</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>server/lomas_server/admin_database/local_database.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">668</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">662</span>
+<span class="normal">663</span>
+<span class="normal">664</span>
+<span class="normal">665</span>
+<span class="normal">666</span>
+<span class="normal">667</span>
+<span class="normal">668</span>
 <span class="normal">669</span>
 <span class="normal">670</span>
 <span class="normal">671</span>
@@ -16296,13 +16290,7 @@ False if raise KeyError if user already exists</p>
 <span class="normal">690</span>
 <span class="normal">691</span>
 <span class="normal">692</span>
-<span class="normal">693</span>
-<span class="normal">694</span>
-<span class="normal">695</span>
-<span class="normal">696</span>
-<span class="normal">697</span>
-<span class="normal">698</span>
-<span class="normal">699</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@db_span</span><span class="p">(</span><span class="s2">&quot;db.add_datasets_via_yaml&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">&quot;admin-db&quot;</span><span class="p">)</span>
+<span class="normal">693</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@db_span</span><span class="p">(</span><span class="s2">&quot;db.add_datasets_via_yaml&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">&quot;admin-db&quot;</span><span class="p">)</span>
 <span class="nd">@with_lock</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">add_datasets_via_yaml</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
@@ -16549,7 +16537,13 @@ False if raise KeyError if user already exists</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>server/lomas_server/admin_database/local_database.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">701</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">695</span>
+<span class="normal">696</span>
+<span class="normal">697</span>
+<span class="normal">698</span>
+<span class="normal">699</span>
+<span class="normal">700</span>
+<span class="normal">701</span>
 <span class="normal">702</span>
 <span class="normal">703</span>
 <span class="normal">704</span>
@@ -16657,13 +16651,7 @@ False if raise KeyError if user already exists</p>
 <span class="normal">806</span>
 <span class="normal">807</span>
 <span class="normal">808</span>
-<span class="normal">809</span>
-<span class="normal">810</span>
-<span class="normal">811</span>
-<span class="normal">812</span>
-<span class="normal">813</span>
-<span class="normal">814</span>
-<span class="normal">815</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@db_span</span><span class="p">(</span><span class="s2">&quot;db.add_dataset&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">&quot;admin-db&quot;</span><span class="p">)</span>
+<span class="normal">809</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@db_span</span><span class="p">(</span><span class="s2">&quot;db.add_dataset&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">&quot;admin-db&quot;</span><span class="p">)</span>
 <span class="nd">@with_lock</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">add_dataset</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>

@@ -44,6 +44,7 @@ BackupUri = Annotated[
 class BackupS3Config(BaseModel):
     """S3 destination for admin database backups."""
 
+    type: Literal["s3"] = "s3"
     uri: BackupUri
 
     @computed_field
@@ -78,16 +79,17 @@ class BackupS3Config(BaseModel):
         return f"{prefix.rstrip('/')}/" if prefix else "lomas-backups/"
 
 
-class BackupConfig(BaseModel):
-    """Destination configuration for admin database backups.
+class LocalBackupConfig(BaseModel):
+    """Local destination for admin database backups."""
 
-    If `s3` is set, backups are uploaded to S3. Otherwise, they are written
-    to `local_directory` (falling back to a 'backups' subdirectory of the
-    server's database_directory if not set).
-    """
-
+    type: Literal["local_directory"] = "local_directory"
     local_directory: Path | None = Field(default=None)
-    s3: BackupS3Config | None = Field(default=None)
+
+
+BackupConfig = Annotated[
+    LocalBackupConfig | BackupS3Config,
+    Field(discriminator="type"),
+]
 
 
 class DexAdminConfig(BaseModel):
@@ -123,7 +125,7 @@ class Config(BaseSettings):
 
     private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
 
-    backup: BackupConfig = Field(default_factory=BackupConfig)
+    backup: BackupConfig = Field(default_factory=LocalBackupConfig)
 
     opendp_features: OpenDPFeatures = Field(default=["contrib", "idealized-numerics", "honest-but-curious"])
 

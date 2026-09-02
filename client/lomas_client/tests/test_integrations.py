@@ -437,7 +437,8 @@ def test_backup():
         assert body["location"].startswith("s3://")
 
     # No s3 is configured, falls back to local saved (tmp)
-    os.environ.pop("LOMAS_SERVER_backup__s3__uri", None)
+    os.environ.pop("LOMAS_SERVER_backup__uri", None)
+    os.environ["LOMAS_SERVER_backup__type"] = "local_directory"
     config = ServerConfig()
 
     with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:

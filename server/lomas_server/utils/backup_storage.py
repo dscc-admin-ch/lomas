@@ -37,8 +37,8 @@ def store_backup(
     Returns:
         BackupDestination: Where the backup was written.
     """
-    if config.s3 is not None:
-        return _store_backup_s3(data, filename, config.s3)
+    if config.type == "s3":
+        return _store_backup_s3(data, filename, config)
 
     return _store_backup_local(data, filename, config.local_directory or (database_directory / "backups"))
 

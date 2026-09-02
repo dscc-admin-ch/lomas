@@ -126,16 +126,10 @@ class LocalAdminDatabase(AdminDatabase):
         return _sqlite_connection(self._db_path)
 
     @override
-    @with_lock
     def wipe(self) -> None:
         """Wipe database to empty."""
-        for f in self.directory.iterdir():
-            if f == self._lock_path:
-                continue
-            if f.is_file():
-                f.unlink()
-
-        self._set_defaults()
+        for collection in TK:
+            self.drop_collection(collection)
 
     @with_lock
     def _set_defaults(self) -> None:

@@ -2,7 +2,8 @@ from pathlib import Path
 
 import boto3
 
-from lomas_core.models.constants import get_lomas_logger
+from lomas_core.exceptions import InternalServerException
+from lomas_core.models.constants import BackupType, get_lomas_logger
 from lomas_server.models.config import BackupConfig, BackupS3Config
 from lomas_server.models.responses import BackupResponse
 
@@ -10,7 +11,7 @@ logger = get_lomas_logger(__name__)
 
 
 def store_backup(
-    data: bytes, filename: str, database_directory: Path, config: BackupConfig
+    data: bytes, filename: str, database_directory: Path, backup_config: BackupConfig
 ) -> BackupResponse:
     """Persists a backup archive either to S3 or to a local directory.
 
@@ -23,15 +24,20 @@ def store_backup(
         filename (str): The filename to give the backup (e.g. 'lomas-admin-backup-....zip').
         database_directory (Path): The server's admin database directory, used
             as a fallback base directory for local backups.
-        config (BackupConfig): Backup destination configuration.
+        backup_config (BackupConfig): Backup destination configuration.
 
     Returns:
         BackupResponse: Where the backup was written.
     """
-    if config.type == "s3":
-        return _store_backup_s3(data, filename, config)
-
-    return _store_backup_local(data, filename, config.local_directory or (database_directory / "backups"))
+    match backup_config.type:
+        case BackupType.S3:
+            return _store_backup_s3(data, filename, backup_config)
+        case BackupType.LOCAL_DIRECTORY:
+            return _store_backup_local(
+                data, filename, backup_config.local_directory or (database_directory / "backups")
+            )
+        case _:
+            raise InternalServerException(f"Backup type not supported: {backup_config.backup_type!r}")
 
 
 def _store_backup_local(data: bytes, filename: str, directory: Path) -> BackupResponse:

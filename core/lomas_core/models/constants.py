@@ -83,6 +83,13 @@ class AuthenticationType(StrEnum):
     OIDC = "oidc"
 
 
+class BackupType(StrEnum):
+    """Type of storage for backup."""
+
+    LOCAL_DIRECTORY = "local_directory"
+    S3 = "s3"
+
+
 # Logging
 # -----------------------------------------------------------------------------
 

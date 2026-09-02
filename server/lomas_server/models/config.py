@@ -15,6 +15,7 @@ from pydantic_settings import CLI_SUPPRESS, BaseSettings, SettingsConfigDict
 
 from lomas_core.models.config import Telemetry, TimeAttack
 from lomas_core.models.constants import (
+    BackupType,
     OpenDPFeatures,
     PrivateDatabaseType,
 )
@@ -44,7 +45,7 @@ BackupUri = Annotated[
 class BackupS3Config(BaseModel):
     """S3 destination for admin database backups."""
 
-    type: Literal["s3"] = "s3"
+    type: Literal[BackupType.S3]
     uri: BackupUri
 
     @computed_field
@@ -82,7 +83,7 @@ class BackupS3Config(BaseModel):
 class LocalBackupConfig(BaseModel):
     """Local destination for admin database backups."""
 
-    type: Literal["local_directory"] = "local_directory"
+    type: Literal[BackupType.LOCAL_DIRECTORY]
     local_directory: Path | None = Field(default=None)
 
 

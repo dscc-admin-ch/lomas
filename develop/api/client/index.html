@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -3567,18 +3567,18 @@
 <span class="normal">63</span>
 <span class="normal">64</span>
 <span class="normal">65</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">ClientConfig</span><span class="o">.</span><span class="n">model_config</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initializes the Client with the specified URL, dataset name and authentication parameters.</span>
+<span class="w">    </span><span class="sd">"""Initializes the Client with the specified URL, dataset name and authentication parameters.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        kwargs: All keyword arguments will be forwarded to the ClientConfig</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">ClientConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;Missing client config parameters.&quot;</span>
-            <span class="s2">&quot;If you are using this library from a managed environment and don&#39;t know &quot;</span>
-            <span class="s2">&quot;about your credentials or other parameters, please contact your system administrator.&quot;</span>
+            <span class="s2">"Missing client config parameters."</span>
+            <span class="s2">"If you are using this library from a managed environment and don't know "</span>
+            <span class="s2">"about your credentials or other parameters, please contact your system administrator."</span>
         <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">telemetry</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
@@ -3643,14 +3643,14 @@
 <span class="normal">80</span>
 <span class="normal">81</span>
 <span class="normal">82</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_dataset_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function retrieves metadata for the dataset.</span>
+<span class="w">    </span><span class="sd">"""This function retrieves metadata for the dataset.</span>
 
 <span class="sd">    Returns: A dictionary containing dataset metadata.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dataset_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">}</span>
+        <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"dataset_name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">}</span>
         <span class="n">body</span> <span class="o">=</span> <span class="n">LomasRequestModel</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_dict</span><span class="p">)</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;get_dataset_metadata&quot;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"get_dataset_metadata"</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">status</span><span class="o">.</span><span class="n">HTTP_200_OK</span><span class="p">:</span>
             <span class="n">metadata</span> <span class="o">=</span> <span class="n">TableMetadata</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
@@ -3697,10 +3697,10 @@
 <span class="normal">94</span>
 <span class="normal">95</span>
 <span class="normal">96</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_column_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function retrieves metadata for the column.</span>
+<span class="w">    </span><span class="sd">"""This function retrieves metadata for the column.</span>
 
 <span class="sd">    Returns: A dictionary containing column metadata.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dataset_metadata</span><span class="p">()</span>
 
@@ -3708,7 +3708,7 @@
         <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">TABLE_SCHEMA</span><span class="p">][</span><span class="n">COL_LIST</span><span class="p">]</span> <span class="k">if</span> <span class="n">col</span><span class="p">[</span><span class="n">COL_NAME</span><span class="p">]</span> <span class="o">==</span> <span class="n">column_name</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">StopIteration</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
         <span class="n">available</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="n">COL_NAME</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">TABLE_SCHEMA</span><span class="p">][</span><span class="n">COL_LIST</span><span class="p">]]</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Column &#39;</span><span class="si">{</span><span class="n">column_name</span><span class="si">}</span><span class="s2">&#39; not found. Available columns: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Column '</span><span class="si">{</span><span class="n">column_name</span><span class="si">}</span><span class="s2">' not found. Available columns: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3749,17 +3749,17 @@
 <span class="normal">109</span>
 <span class="normal">110</span>
 <span class="normal">111</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_column_bounds</span><span class="p">[</span><span class="n">T</span><span class="p">:</span> <span class="n">Bound</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">column_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function retrieves metadata  bounds for the column.</span>
+<span class="w">    </span><span class="sd">"""This function retrieves metadata  bounds for the column.</span>
 
 <span class="sd">    Returns: A tuple of (minimum_bound, maximum_bound)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">column</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_column_metadata</span><span class="p">(</span><span class="n">column_name</span><span class="p">)</span>
 
     <span class="n">minimum</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">MINIMUM</span><span class="p">)</span>
     <span class="n">maximum</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">MAXIMUM</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">minimum</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">maximum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Column &#39;</span><span class="si">{</span><span class="n">column_name</span><span class="si">}</span><span class="s2">&#39; does not have bounds.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Column '</span><span class="si">{</span><span class="n">column_name</span><span class="si">}</span><span class="s2">' does not have bounds."</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">minimum</span><span class="p">,</span> <span class="n">maximum</span>
 </code></pre></div></td></tr></table></div>
@@ -3809,7 +3809,7 @@
 <span class="normal">132</span>
 <span class="normal">133</span>
 <span class="normal">134</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_diffprivlib_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get bounds for a list of columns in diffprivlib expected format.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Get bounds for a list of columns in diffprivlib expected format."""</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dataset_metadata</span><span class="p">()</span>
 
@@ -3819,12 +3819,12 @@
     <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">col_map</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Column &#39;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Column '</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">' not found"</span><span class="p">)</span>
 
         <span class="n">metadata</span> <span class="o">=</span> <span class="n">col_map</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">MINIMUM</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span> <span class="ow">or</span> <span class="n">MAXIMUM</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Column &#39;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">&#39; does not have bounds&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Column '</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">' does not have bounds"</span><span class="p">)</span>
 
         <span class="n">lower</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="n">MINIMUM</span><span class="p">])</span>
         <span class="n">upper</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="n">MAXIMUM</span><span class="p">])</span>
@@ -3953,7 +3953,7 @@ Defaults to False (pandas DataFrame)</p>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DUMMY_SEED</span><span class="p">,</span>
     <span class="n">lazy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="n">pl</span><span class="o">.</span><span class="n">LazyFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function retrieves a dummy dataset with optional parameters.</span>
+<span class="w">    </span><span class="sd">"""This function retrieves a dummy dataset with optional parameters.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        nb_rows (int, optional): The number of rows in the dummy dataset.</span>
@@ -3966,17 +3966,17 @@ Defaults to False (pandas DataFrame)</p>
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame | pl.LazyFrame: A Pandas DataFrame representing</span>
 <span class="sd">        the dummy dataset (optionally in LazyFrame format).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;dataset_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
-        <span class="s2">&quot;dummy_nb_rows&quot;</span><span class="p">:</span> <span class="n">nb_rows</span><span class="p">,</span>
-        <span class="s2">&quot;dummy_seed&quot;</span><span class="p">:</span> <span class="n">seed</span><span class="p">,</span>
+        <span class="s2">"dataset_name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
+        <span class="s2">"dummy_nb_rows"</span><span class="p">:</span> <span class="n">nb_rows</span><span class="p">,</span>
+        <span class="s2">"dummy_seed"</span><span class="p">:</span> <span class="n">seed</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">body</span> <span class="o">=</span> <span class="n">GetDummyDataset</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_dict</span><span class="p">)</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;get_dummy_dataset&quot;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"get_dummy_dataset"</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">status</span><span class="o">.</span><span class="n">HTTP_200_OK</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf8"</span><span class="p">)</span>
         <span class="n">dummy_df</span> <span class="o">=</span> <span class="n">DummyDsResponse</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">dummy_df</span>
         <span class="k">return</span> <span class="n">pl</span><span class="o">.</span><span class="n">from_pandas</span><span class="p">(</span><span class="n">dummy_df</span><span class="p">)</span><span class="o">.</span><span class="n">lazy</span><span class="p">()</span> <span class="k">if</span> <span class="n">lazy</span> <span class="k">else</span> <span class="n">dummy_df</span>
 
@@ -4113,7 +4113,7 @@ epsilon is provided.</p>
     <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Context</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Create an OpenDP context based on a dummy dataset.</span>
 
 <span class="sd">    This can be used to build an OpenDP pipeline locally on the client side.</span>
@@ -4135,7 +4135,7 @@ epsilon is provided.</p>
 <span class="sd">    Returns:</span>
 <span class="sd">        Context: OpenDP context object initialized with metadata and</span>
 <span class="sd">        user-provided privacy parameters.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">dummy_lf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dummy_dataset</span><span class="p">(</span><span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_dataset_metadata</span><span class="p">()</span>
@@ -4194,16 +4194,16 @@ containing the initial budget.</p>
 <span class="normal">218</span>
 <span class="normal">219</span>
 <span class="normal">220</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_initial_budget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Budget</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function retrieves the initial budget.</span>
+<span class="w">    </span><span class="sd">"""This function retrieves the initial budget.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Budget: A dictionary</span>
 <span class="sd">            containing the initial budget.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dataset_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">}</span>
+<span class="sd">    """</span>
+    <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"dataset_name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">}</span>
 
     <span class="n">body</span> <span class="o">=</span> <span class="n">LomasRequestModel</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_dict</span><span class="p">)</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;get_initial_budget&quot;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"get_initial_budget"</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">validate_model_response_direct</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">Budget</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -4257,16 +4257,16 @@ the total spent budget.</p>
 <span class="normal">232</span>
 <span class="normal">233</span>
 <span class="normal">234</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_total_spent_budget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Budget</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function retrieves the total spent budget.</span>
+<span class="w">    </span><span class="sd">"""This function retrieves the total spent budget.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Budget: A dictionary containing</span>
 <span class="sd">            the total spent budget.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dataset_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">}</span>
+<span class="sd">    """</span>
+    <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"dataset_name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">}</span>
 
     <span class="n">body</span> <span class="o">=</span> <span class="n">LomasRequestModel</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_dict</span><span class="p">)</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;get_total_spent_budget&quot;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"get_total_spent_budget"</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">validate_model_response_direct</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">Budget</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -4320,16 +4320,16 @@ containing the remaining budget.</p>
 <span class="normal">246</span>
 <span class="normal">247</span>
 <span class="normal">248</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_remaining_budget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Budget</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function retrieves the remaining budget.</span>
+<span class="w">    </span><span class="sd">"""This function retrieves the remaining budget.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Budget: A dictionary</span>
 <span class="sd">            containing the remaining budget.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dataset_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">}</span>
+<span class="sd">    """</span>
+    <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"dataset_name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">}</span>
 
     <span class="n">body</span> <span class="o">=</span> <span class="n">LomasRequestModel</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_dict</span><span class="p">)</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;get_remaining_budget&quot;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"get_remaining_budget"</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">validate_model_response_direct</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">Budget</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -4402,7 +4402,7 @@ during deserialization.</p>
 <span class="normal">267</span>
 <span class="normal">268</span>
 <span class="normal">269</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_previous_queries</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Job</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function retrieves the previous queries of the user.</span>
+<span class="w">    </span><span class="sd">"""This function retrieves the previous queries of the user.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If an unknown query type is encountered</span>
@@ -4410,11 +4410,11 @@ during deserialization.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        List[Job]: A list of all archived jobs for this user and dataset.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;dataset_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">}</span>
+<span class="sd">    """</span>
+    <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"dataset_name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">}</span>
 
     <span class="n">body</span> <span class="o">=</span> <span class="n">LomasRequestModel</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_dict</span><span class="p">)</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;get_previous_queries&quot;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"get_previous_queries"</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">status</span><span class="o">.</span><span class="n">HTTP_200_OK</span><span class="p">:</span>
         <span class="n">jobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Job</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">res</span><span class="o">.</span><span class="n">json</span><span class="p">()]</span>
@@ -4655,23 +4655,23 @@ during deserialization.</p>
 <span class="normal">51</span>
 <span class="normal">52</span>
 <span class="normal">53</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ClientConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initializes the HTTP client with the specified URL, dataset name and authentication parameters.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Initializes the HTTP client with the specified URL, dataset name and authentication parameters."""</span>
     <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">telemetry</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
         <span class="n">RequestsInstrumentor</span><span class="p">()</span><span class="o">.</span><span class="n">instrument</span><span class="p">()</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span> <span class="s2">&quot;Accept&quot;</span><span class="p">:</span> <span class="s2">&quot;*/*&quot;</span><span class="p">}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"Content-type"</span><span class="p">:</span> <span class="s2">"application/json"</span><span class="p">,</span> <span class="s2">"Accept"</span><span class="p">:</span> <span class="s2">"*/*"</span><span class="p">}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">oidc_use_tls</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">lomas_service_use_tls</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;OIDC IdP or Lomas service configured without TLS -&gt; using insecure transport&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"OIDC IdP or Lomas service configured without TLS -&gt; using insecure transport"</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_oauth2_session</span> <span class="o">=</span> <span class="n">OAuth2Session</span><span class="p">(</span>
-        <span class="n">client_id</span><span class="o">=</span><span class="s2">&quot;lomas_client&quot;</span><span class="p">,</span>
+        <span class="n">client_id</span><span class="o">=</span><span class="s2">"lomas_client"</span><span class="p">,</span>
         <span class="n">token_endpoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">oidc_config</span><span class="o">.</span><span class="n">token_endpoint</span><span class="p">,</span>
         <span class="n">scope</span><span class="o">=</span><span class="n">OIDC_REQUIRED_SCOPES</span><span class="p">,</span>
         <span class="n">update_token</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_token</span><span class="p">,</span>
         <span class="n">token</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_load_token</span><span class="p">(),</span>
-        <span class="n">token_endpoint_auth_method</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">,</span>
+        <span class="n">token_endpoint_auth_method</span><span class="o">=</span><span class="s2">"none"</span><span class="p">,</span>
         <span class="n">leeway</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>  <span class="c1"># refresh token 30 seconds before expiry</span>
     <span class="p">)</span>
 
@@ -4815,7 +4815,7 @@ Defaults to DEFAULT_READ_TIMEOUT.</p>
     <span class="n">body</span><span class="p">:</span> <span class="n">LomasRequestModel</span><span class="p">,</span>
     <span class="n">read_timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_READ_TIMEOUT</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Executes a POST request to endpoint with the provided JSON body.</span>
+<span class="w">    </span><span class="sd">"""Executes a POST request to endpoint with the provided JSON body.</span>
 
 <span class="sd">    Handles authorization to the api by automatically fetching a token if required.</span>
 
@@ -4828,12 +4828,12 @@ Defaults to DEFAULT_READ_TIMEOUT.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        requests.Response: The response object resulting from the POST request.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;User &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">user_name</span><span class="si">}</span><span class="s2">&#39;) is making a request &quot;</span>
-        <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;to url &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">app_url</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
-        <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;at the endpoint &#39;</span><span class="si">{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
-        <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;with query params: </span><span class="si">{</span><span class="n">body</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="sa">f</span><span class="s2">"User '</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">user_name</span><span class="si">}</span><span class="s2">') is making a request "</span>
+        <span class="o">+</span> <span class="sa">f</span><span class="s2">"to url '</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">app_url</span><span class="si">}</span><span class="s2">' "</span>
+        <span class="o">+</span> <span class="sa">f</span><span class="s2">"at the endpoint '</span><span class="si">{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">' "</span>
+        <span class="o">+</span> <span class="sa">f</span><span class="s2">"with query params: </span><span class="si">{</span><span class="n">body</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span><span class="si">}</span><span class="s2">."</span>
     <span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
@@ -4903,11 +4903,11 @@ Defaults to DEFAULT_READ_TIMEOUT.</p>
 <span class="normal">203</span>
 <span class="normal">204</span>
 <span class="normal">205</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">wait_for_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_uid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n_retry</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1800</span><span class="p">,</span> <span class="n">sleep_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Job</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Periodically query the job endpoint sleeping in between until it completes / times-out.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Periodically query the job endpoint sleeping in between until it completes / times-out."""</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_retry</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">job_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oauth2_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="n">url_append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">app_url</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;/status/</span><span class="si">{</span><span class="n">job_uid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                <span class="n">url_append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">app_url</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"/status/</span><span class="si">{</span><span class="n">job_uid</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span>
                 <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
                 <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="n">CONNECT_TIMEOUT</span><span class="p">),</span>
             <span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
@@ -4915,17 +4915,17 @@ Defaults to DEFAULT_READ_TIMEOUT.</p>
             <span class="c1"># Handle expired refresh token</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_authorize</span><span class="p">()</span>
             <span class="n">job_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oauth2_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="n">url_append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">app_url</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;/status/</span><span class="si">{</span><span class="n">job_uid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                <span class="n">url_append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">app_url</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"/status/</span><span class="si">{</span><span class="n">job_uid</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span>
                 <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
                 <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="n">CONNECT_TIMEOUT</span><span class="p">),</span>
             <span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-        <span class="c1"># Check for error before accessing &quot;status&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;status&quot;</span> <span class="ow">in</span> <span class="n">job_query</span> <span class="ow">and</span> <span class="n">job_query</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span><span class="n">JobStatus</span><span class="o">.</span><span class="n">COMPLETE</span><span class="p">,</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">}:</span>
+        <span class="c1"># Check for error before accessing "status"</span>
+        <span class="k">if</span> <span class="s2">"status"</span> <span class="ow">in</span> <span class="n">job_query</span> <span class="ow">and</span> <span class="n">job_query</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span><span class="n">JobStatus</span><span class="o">.</span><span class="n">COMPLETE</span><span class="p">,</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">}:</span>
             <span class="k">return</span> <span class="n">Job</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">job_query</span><span class="p">)</span>
 
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sleep_sec</span><span class="p">)</span>
 
-    <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Job </span><span class="si">{</span><span class="n">job_uid</span><span class="si">}</span><span class="s2"> didn&#39;t complete in time (</span><span class="si">{</span><span class="n">sleep_sec</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_retry</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Job </span><span class="si">{</span><span class="n">job_uid</span><span class="si">}</span><span class="s2"> didn't complete in time (</span><span class="si">{</span><span class="n">sleep_sec</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">n_retry</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -5078,7 +5078,7 @@ Defaults to DEFAULT_READ_TIMEOUT.</p>
     <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.cost(target_columns)">target_columns</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.cost(test_size)">test_size</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
     <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.cost(test_train_split_seed)">test_train_split_seed</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.cost(imputer_strategy)">imputer_strategy</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;drop&quot;</span><span class="p">,</span>
+    <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.cost(imputer_strategy)">imputer_strategy</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"drop"</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" href="../core/#lomas_core.models.responses.CostResponse">CostResponse</a></span>
 </code></pre></div>
 
@@ -5243,9 +5243,9 @@ Defaults to 1.</p>
     <span class="n">target_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">test_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
     <span class="n">test_train_split_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n">imputer_strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;drop&quot;</span><span class="p">,</span>
+    <span class="n">imputer_strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"drop"</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CostResponse</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function estimates the cost of executing a DiffPrivLib query.</span>
+<span class="w">    </span><span class="sd">"""This function estimates the cost of executing a DiffPrivLib query.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pipeline (sklearn.pipeline): DiffPrivLib pipeline with three conditions:</span>
@@ -5265,31 +5265,31 @@ Defaults to 1.</p>
 <span class="sd">            Defaults to 0.2.</span>
 <span class="sd">        test_train_split_seed (int, optional): seed for random train test split</span>
 <span class="sd">            Defaults to 1.</span>
-<span class="sd">        imputer_strategy (str, optional): imputation strategy. Defaults to &quot;drop&quot;.</span>
-<span class="sd">            &quot;drop&quot;: will drop all rows with missing values</span>
-<span class="sd">            &quot;mean&quot;: will replace values by the mean of the column values</span>
-<span class="sd">            &quot;median&quot;: will replace values by the median of the column values</span>
-<span class="sd">            &quot;most_frequent&quot;: will replace values by the most frequent values</span>
+<span class="sd">        imputer_strategy (str, optional): imputation strategy. Defaults to "drop".</span>
+<span class="sd">            "drop": will drop all rows with missing values</span>
+<span class="sd">            "mean": will replace values by the mean of the column values</span>
+<span class="sd">            "median": will replace values by the median of the column values</span>
+<span class="sd">            "most_frequent": will replace values by the most frequent values</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Optional[dict[str, float]]: A dictionary containing the estimated cost.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">target_columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">target_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
+        <span class="n">target_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">""</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">feature_columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">feature_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
+        <span class="n">feature_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">""</span><span class="p">]</span>
     <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;dataset_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
-        <span class="s2">&quot;diffprivlib_json&quot;</span><span class="p">:</span> <span class="n">serialise_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">),</span>
-        <span class="s2">&quot;feature_columns&quot;</span><span class="p">:</span> <span class="n">feature_columns</span><span class="p">,</span>
-        <span class="s2">&quot;target_columns&quot;</span><span class="p">:</span> <span class="n">target_columns</span><span class="p">,</span>
-        <span class="s2">&quot;test_size&quot;</span><span class="p">:</span> <span class="n">test_size</span><span class="p">,</span>
-        <span class="s2">&quot;test_train_split_seed&quot;</span><span class="p">:</span> <span class="n">test_train_split_seed</span><span class="p">,</span>
-        <span class="s2">&quot;imputer_strategy&quot;</span><span class="p">:</span> <span class="n">imputer_strategy</span><span class="p">,</span>
+        <span class="s2">"dataset_name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
+        <span class="s2">"diffprivlib_json"</span><span class="p">:</span> <span class="n">serialise_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">),</span>
+        <span class="s2">"feature_columns"</span><span class="p">:</span> <span class="n">feature_columns</span><span class="p">,</span>
+        <span class="s2">"target_columns"</span><span class="p">:</span> <span class="n">target_columns</span><span class="p">,</span>
+        <span class="s2">"test_size"</span><span class="p">:</span> <span class="n">test_size</span><span class="p">,</span>
+        <span class="s2">"test_train_split_seed"</span><span class="p">:</span> <span class="n">test_train_split_seed</span><span class="p">,</span>
+        <span class="s2">"imputer_strategy"</span><span class="p">:</span> <span class="n">imputer_strategy</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="n">body</span> <span class="o">=</span> <span class="n">DiffPrivLibCostQueryModel</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_dict</span><span class="p">)</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;estimate_diffprivlib_cost&quot;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"estimate_diffprivlib_cost"</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">validate_model_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">CostResponse</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -5312,7 +5312,7 @@ Defaults to 1.</p>
     <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.query(target_columns)">target_columns</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.query(test_size)">test_size</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
     <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.query(test_train_split_seed)">test_train_split_seed</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.query(imputer_strategy)">imputer_strategy</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;drop&quot;</span><span class="p">,</span>
+    <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.query(imputer_strategy)">imputer_strategy</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"drop"</span><span class="p">,</span>
     <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.query(dummy)">dummy</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.query(nb_rows)">nb_rows</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="n"><span title="lomas_client.constants.DUMMY_NB_ROWS">DUMMY_NB_ROWS</span></span><span class="p">,</span>
     <span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.libraries.diffprivlib.DiffPrivLibClient.query(seed)">seed</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">=</span> <span class="n"><span title="lomas_client.constants.DUMMY_SEED">DUMMY_SEED</span></span><span class="p">,</span>
@@ -5521,12 +5521,12 @@ Defaults to DUMMY_SEED.</p>
     <span class="n">target_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">test_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
     <span class="n">test_train_split_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n">imputer_strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;drop&quot;</span><span class="p">,</span>
+    <span class="n">imputer_strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"drop"</span><span class="p">,</span>
     <span class="n">dummy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">nb_rows</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DUMMY_NB_ROWS</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DUMMY_SEED</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryResponse</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Trains a DiffPrivLib pipeline and return a trained Pipeline.</span>
+<span class="w">    </span><span class="sd">"""Trains a DiffPrivLib pipeline and return a trained Pipeline.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pipeline (sklearn.pipeline): DiffPrivLib pipeline with three conditions:</span>
@@ -5545,11 +5545,11 @@ Defaults to DUMMY_SEED.</p>
 <span class="sd">            Defaults to 0.2.</span>
 <span class="sd">        test_train_split_seed (int, optional): seed for random train test split</span>
 <span class="sd">            Defaults to 1.</span>
-<span class="sd">        imputer_strategy (str, optional): imputation strategy. Defaults to &quot;drop&quot;.</span>
-<span class="sd">            &quot;drop&quot;: will drop all rows with missing values</span>
-<span class="sd">            &quot;mean&quot;: will replace values by the mean of the column values</span>
-<span class="sd">            &quot;median&quot;: will replace values by the median of the column values</span>
-<span class="sd">            &quot;most_frequent&quot;: : will replace values by the most frequent values</span>
+<span class="sd">        imputer_strategy (str, optional): imputation strategy. Defaults to "drop".</span>
+<span class="sd">            "drop": will drop all rows with missing values</span>
+<span class="sd">            "mean": will replace values by the mean of the column values</span>
+<span class="sd">            "median": will replace values by the median of the column values</span>
+<span class="sd">            "most_frequent": : will replace values by the most frequent values</span>
 <span class="sd">        dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.</span>
 <span class="sd">        nb_rows (int, optional): The number of rows in the dummy dataset.</span>
 <span class="sd">            Defaults to DUMMY_NB_ROWS.</span>
@@ -5558,25 +5558,25 @@ Defaults to DUMMY_SEED.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Optional[Pipeline]: A trained DiffPrivLip pipeline</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;dataset_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
-        <span class="s2">&quot;diffprivlib_json&quot;</span><span class="p">:</span> <span class="n">serialise_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">),</span>
-        <span class="s2">&quot;feature_columns&quot;</span><span class="p">:</span> <span class="n">feature_columns</span><span class="p">,</span>
-        <span class="s2">&quot;target_columns&quot;</span><span class="p">:</span> <span class="n">target_columns</span><span class="p">,</span>
-        <span class="s2">&quot;test_size&quot;</span><span class="p">:</span> <span class="n">test_size</span><span class="p">,</span>
-        <span class="s2">&quot;test_train_split_seed&quot;</span><span class="p">:</span> <span class="n">test_train_split_seed</span><span class="p">,</span>
-        <span class="s2">&quot;imputer_strategy&quot;</span><span class="p">:</span> <span class="n">imputer_strategy</span><span class="p">,</span>
+        <span class="s2">"dataset_name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
+        <span class="s2">"diffprivlib_json"</span><span class="p">:</span> <span class="n">serialise_pipeline</span><span class="p">(</span><span class="n">pipeline</span><span class="p">),</span>
+        <span class="s2">"feature_columns"</span><span class="p">:</span> <span class="n">feature_columns</span><span class="p">,</span>
+        <span class="s2">"target_columns"</span><span class="p">:</span> <span class="n">target_columns</span><span class="p">,</span>
+        <span class="s2">"test_size"</span><span class="p">:</span> <span class="n">test_size</span><span class="p">,</span>
+        <span class="s2">"test_train_split_seed"</span><span class="p">:</span> <span class="n">test_train_split_seed</span><span class="p">,</span>
+        <span class="s2">"imputer_strategy"</span><span class="p">:</span> <span class="n">imputer_strategy</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="n">request_model</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">DiffPrivLibRequestModel</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">dummy</span><span class="p">:</span>
-        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">&quot;dummy_diffprivlib_query&quot;</span>
-        <span class="n">body_dict</span><span class="p">[</span><span class="s2">&quot;dummy_nb_rows&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nb_rows</span>
-        <span class="n">body_dict</span><span class="p">[</span><span class="s2">&quot;dummy_seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">"dummy_diffprivlib_query"</span>
+        <span class="n">body_dict</span><span class="p">[</span><span class="s2">"dummy_nb_rows"</span><span class="p">]</span> <span class="o">=</span> <span class="n">nb_rows</span>
+        <span class="n">body_dict</span><span class="p">[</span><span class="s2">"dummy_seed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed</span>
         <span class="n">request_model</span> <span class="o">=</span> <span class="n">DiffPrivLibDummyQueryModel</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">&quot;diffprivlib_query&quot;</span>
+        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">"diffprivlib_query"</span>
         <span class="n">request_model</span> <span class="o">=</span> <span class="n">DiffPrivLibQueryModel</span>
 
     <span class="n">body</span> <span class="o">=</span> <span class="n">request_model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_dict</span><span class="p">)</span>
@@ -5863,7 +5863,7 @@ Default True.</p>
     <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">approx_zcdp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CostResponse</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function estimates the cost of executing an OpenDP query.</span>
+<span class="w">    </span><span class="sd">"""This function estimates the cost of executing an OpenDP query.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.</span>
@@ -5885,7 +5885,7 @@ Default True.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        CostResponse: The estimated cost.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">body_json</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_opendp_request_body</span><span class="p">(</span>
         <span class="n">opendp_pipeline</span><span class="p">,</span>
         <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span>
@@ -5894,7 +5894,7 @@ Default True.</p>
         <span class="n">approx_zcdp</span><span class="o">=</span><span class="n">approx_zcdp</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">body</span> <span class="o">=</span> <span class="n">OpenDPCostQueryModel</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_json</span><span class="p">)</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;estimate_opendp_cost&quot;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"estimate_opendp_cost"</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">validate_model_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">CostResponse</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -6116,7 +6116,7 @@ Default True.</p>
     <span class="n">nb_rows</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DUMMY_NB_ROWS</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DUMMY_SEED</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryResponse</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function executes an OpenDP query.</span>
+<span class="w">    </span><span class="sd">"""This function executes an OpenDP query.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query. \</span>
@@ -6146,7 +6146,7 @@ Default True.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        QueryResponse: A dictionary of the response body containing the deserialized pipeline result.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">body_json</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_opendp_request_body</span><span class="p">(</span>
         <span class="n">opendp_pipeline</span><span class="p">,</span>
         <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span>
@@ -6157,12 +6157,12 @@ Default True.</p>
 
     <span class="n">request_model</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">OpenDPRequestModel</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">dummy</span><span class="p">:</span>
-        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">&quot;dummy_opendp_query&quot;</span>
-        <span class="n">body_json</span><span class="p">[</span><span class="s2">&quot;dummy_nb_rows&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nb_rows</span>
-        <span class="n">body_json</span><span class="p">[</span><span class="s2">&quot;dummy_seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">"dummy_opendp_query"</span>
+        <span class="n">body_json</span><span class="p">[</span><span class="s2">"dummy_nb_rows"</span><span class="p">]</span> <span class="o">=</span> <span class="n">nb_rows</span>
+        <span class="n">body_json</span><span class="p">[</span><span class="s2">"dummy_seed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed</span>
         <span class="n">request_model</span> <span class="o">=</span> <span class="n">OpenDPDummyQueryModel</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">&quot;opendp_query&quot;</span>
+        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">"opendp_query"</span>
         <span class="n">request_model</span> <span class="o">=</span> <span class="n">OpenDPQueryModel</span>
 
     <span class="n">body</span> <span class="o">=</span> <span class="n">request_model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_json</span><span class="p">)</span>
@@ -6413,7 +6413,7 @@ Defaults to {}.</p>
     <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">mechanisms</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CostResponse</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function estimates the cost of executing a SmartNoise query.</span>
+<span class="w">    </span><span class="sd">"""This function estimates the cost of executing a SmartNoise query.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        query (str): The SQL query to estimate the cost for. NOTE: the table name \</span>
@@ -6427,18 +6427,18 @@ Defaults to {}.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        CostResponse: The estimated cost.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">mechanisms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">mechanisms</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;query_str&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span>
-        <span class="s2">&quot;dataset_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
-        <span class="s2">&quot;epsilon&quot;</span><span class="p">:</span> <span class="n">epsilon</span><span class="p">,</span>
-        <span class="s2">&quot;delta&quot;</span><span class="p">:</span> <span class="n">delta</span><span class="p">,</span>
-        <span class="s2">&quot;mechanisms&quot;</span><span class="p">:</span> <span class="n">mechanisms</span><span class="p">,</span>
+        <span class="s2">"query_str"</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span>
+        <span class="s2">"dataset_name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
+        <span class="s2">"epsilon"</span><span class="p">:</span> <span class="n">epsilon</span><span class="p">,</span>
+        <span class="s2">"delta"</span><span class="p">:</span> <span class="n">delta</span><span class="p">,</span>
+        <span class="s2">"mechanisms"</span><span class="p">:</span> <span class="n">mechanisms</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">body</span> <span class="o">=</span> <span class="n">SmartnoiseSQLCostQueryModel</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_dict</span><span class="p">)</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;estimate_smartnoise_sql_cost&quot;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"estimate_smartnoise_sql_cost"</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">validate_model_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">CostResponse</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -6650,7 +6650,7 @@ NOTE: the table name is df, the query must end with “FROM df”.</p>
     <span class="n">nb_rows</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DUMMY_NB_ROWS</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DUMMY_SEED</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryResponse</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function executes a SmartNoise SQL query.</span>
+<span class="w">    </span><span class="sd">"""This function executes a SmartNoise SQL query.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        query (str): The SQL query to execute.</span>
@@ -6679,26 +6679,26 @@ NOTE: the table name is df, the query must end with “FROM df”.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        QueryResponse: A Pandas DataFrame containing the query results.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">mechanisms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">mechanisms</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">body_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;query_str&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span>
-        <span class="s2">&quot;dataset_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
-        <span class="s2">&quot;epsilon&quot;</span><span class="p">:</span> <span class="n">epsilon</span><span class="p">,</span>
-        <span class="s2">&quot;delta&quot;</span><span class="p">:</span> <span class="n">delta</span><span class="p">,</span>
-        <span class="s2">&quot;mechanisms&quot;</span><span class="p">:</span> <span class="n">mechanisms</span><span class="p">,</span>
-        <span class="s2">&quot;postprocess&quot;</span><span class="p">:</span> <span class="n">postprocess</span><span class="p">,</span>
+        <span class="s2">"query_str"</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span>
+        <span class="s2">"dataset_name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_client</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
+        <span class="s2">"epsilon"</span><span class="p">:</span> <span class="n">epsilon</span><span class="p">,</span>
+        <span class="s2">"delta"</span><span class="p">:</span> <span class="n">delta</span><span class="p">,</span>
+        <span class="s2">"mechanisms"</span><span class="p">:</span> <span class="n">mechanisms</span><span class="p">,</span>
+        <span class="s2">"postprocess"</span><span class="p">:</span> <span class="n">postprocess</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="n">request_model</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">SmartnoiseSQLRequestModel</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">dummy</span><span class="p">:</span>
-        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">&quot;dummy_smartnoise_sql_query&quot;</span>
-        <span class="n">body_dict</span><span class="p">[</span><span class="s2">&quot;dummy_nb_rows&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nb_rows</span>
-        <span class="n">body_dict</span><span class="p">[</span><span class="s2">&quot;dummy_seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">"dummy_smartnoise_sql_query"</span>
+        <span class="n">body_dict</span><span class="p">[</span><span class="s2">"dummy_nb_rows"</span><span class="p">]</span> <span class="o">=</span> <span class="n">nb_rows</span>
+        <span class="n">body_dict</span><span class="p">[</span><span class="s2">"dummy_seed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed</span>
         <span class="n">request_model</span> <span class="o">=</span> <span class="n">SmartnoiseSQLDummyQueryModel</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">&quot;smartnoise_sql_query&quot;</span>
+        <span class="n">endpoint</span> <span class="o">=</span> <span class="s2">"smartnoise_sql_query"</span>
         <span class="n">request_model</span> <span class="o">=</span> <span class="n">SmartnoiseSQLQueryModel</span>
 
     <span class="n">body</span> <span class="o">=</span> <span class="n">request_model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">body_dict</span><span class="p">)</span>
@@ -7177,8 +7177,8 @@ NOTE: the table name is df, the query must end with “FROM df”.</p>
 <span class="normal">39</span>
 <span class="normal">40</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@computed_field</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">oidc_use_tls</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Using TLS for OIDC?&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">oidc_discovery_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s2">&quot;https&quot;</span>
+<span class="w">    </span><span class="sd">"""Using TLS for OIDC?"""</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">oidc_discovery_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s2">"https"</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -7209,8 +7209,8 @@ NOTE: the table name is df, the query must end with “FROM df”.</p>
 <span class="normal">44</span>
 <span class="normal">45</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@computed_field</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">lomas_service_use_tls</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Using TLS for lomas service?&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s2">&quot;https&quot;</span>
+<span class="w">    </span><span class="sd">"""Using TLS for lomas service?"""</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s2">"https"</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -7313,12 +7313,12 @@ NOTE: the table name is df, the query must end with “FROM df”.</p>
 <span class="normal">21</span>
 <span class="normal">22</span>
 <span class="normal">23</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_client_notebook_files</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns a list of the client notebook file names (absolute paths).</span>
 
 <span class="sd">    Assumes the file layout is the same as in the code repository.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">nb</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;../../notebooks/*.ipynb&quot;</span><span class="p">)]</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">nb</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"../../notebooks/*.ipynb"</span><span class="p">)]</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -7409,7 +7409,7 @@ the file layout is same as in the code repository.</p>
 <span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">run_notebook</span><span class="p">(</span><span class="n">notebook_file</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">run_demo_setup</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">save_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Runs the notebook in the given file.</span>
+<span class="w">    </span><span class="sd">"""Runs the notebook in the given file.</span>
 
 <span class="sd">    Assumes all services in the process compose are up and</span>
 <span class="sd">    the file layout is same as in the code repository.</span>
@@ -7418,11 +7418,11 @@ the file layout is same as in the code repository.</p>
 <span class="sd">        notebook_file (str): _description_</span>
 <span class="sd">        run_demo_setup (bool): Runs the lomas_demo_setup before running the notebook.</span>
 <span class="sd">        save_output (bool, optional): Saves the output to the original file. Defaults to False.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Reset demo users and budgets</span>
     <span class="k">if</span> <span class="n">run_demo_setup</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">find_spec</span><span class="p">(</span><span class="s2">&quot;lomas_server&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;lomas_server library not found, cannot run lomas_demo_setup.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">find_spec</span><span class="p">(</span><span class="s2">"lomas_server"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">"lomas_server library not found, cannot run lomas_demo_setup."</span><span class="p">)</span>
 
         <span class="n">config</span> <span class="o">=</span> <span class="n">ServerConfig</span><span class="p">()</span>
         <span class="n">config</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">wipe</span><span class="p">()</span>
@@ -7432,7 +7432,7 @@ the file layout is same as in the code repository.</p>
 
     <span class="n">nb</span> <span class="o">=</span> <span class="n">nbformat</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">notebook_file</span><span class="p">,</span> <span class="n">as_version</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="n">nb_client</span> <span class="o">=</span> <span class="n">NotebookClient</span><span class="p">(</span>
-        <span class="n">nb</span><span class="p">,</span> <span class="n">resources</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">notebook_file</span><span class="o">.</span><span class="n">parent</span><span class="p">)}},</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">5</span>
+        <span class="n">nb</span><span class="p">,</span> <span class="n">resources</span><span class="o">=</span><span class="p">{</span><span class="s2">"metadata"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"path"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">notebook_file</span><span class="o">.</span><span class="n">parent</span><span class="p">)}},</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">5</span>
     <span class="p">)</span>
     <span class="n">nb_client</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
 
@@ -7534,10 +7534,10 @@ the file layout is same as in the code repository.</p>
 <span class="normal">76</span>
 <span class="normal">77</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">dex_config</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dex config.</span>
+<span class="w">    </span><span class="sd">"""Dex config.</span>
 
 <span class="sd">    Removes all dex users before yield.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">admin_config</span> <span class="o">=</span> <span class="n">AdminConfig</span><span class="p">()</span>
     <span class="n">dex_config</span> <span class="o">=</span> <span class="n">admin_config</span><span class="o">.</span><span class="n">dex_config</span>
     <span class="k">assert</span> <span class="n">dex_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -7646,13 +7646,13 @@ the file layout is same as in the code repository.</p>
 <span class="normal">30</span>
 <span class="normal">31</span>
 <span class="normal">32</span>
-<span class="normal">33</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;notebook&quot;</span><span class="p">,</span> <span class="n">mark_notebook</span><span class="p">(</span><span class="n">get_client_notebook_files</span><span class="p">()),</span> <span class="n">ids</span><span class="o">=</span><span class="k">lambda</span> <span class="n">file</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<span class="normal">33</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">"notebook"</span><span class="p">,</span> <span class="n">mark_notebook</span><span class="p">(</span><span class="n">get_client_notebook_files</span><span class="p">()),</span> <span class="n">ids</span><span class="o">=</span><span class="k">lambda</span> <span class="n">file</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">test_run_notebook</span><span class="p">(</span><span class="n">notebook</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Runs the notebook and fails if the notebook fails.</span>
+<span class="w">    </span><span class="sd">"""Runs the notebook and fails if the notebook fails.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        notebook (str): The notebook file path.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">run_notebook</span><span class="p">(</span><span class="n">notebook</span><span class="p">,</span> <span class="n">run_demo_setup</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save_output</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -7779,20 +7779,20 @@ the file layout is same as in the code repository.</p>
 <span class="normal">28</span>
 <span class="normal">29</span>
 <span class="normal">30</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">raise_error</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span> <span class="o">|</span> <span class="n">httpx2</span><span class="o">.</span><span class="n">Response</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raise error message based on the HTTP response.</span>
+<span class="w">    </span><span class="sd">"""Raise error message based on the HTTP response.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        response (requests.Response): The response object from an HTTP request.</span>
 
 <span class="sd">    Raise:</span>
 <span class="sd">        Server Error</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">LomasAPIErrorModel</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">raise_exception</span><span class="p">()</span>
+        <span class="n">LomasAPIErrorModel</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf8"</span><span class="p">))</span><span class="o">.</span><span class="n">raise_exception</span><span class="p">()</span>
     <span class="k">except</span> <span class="p">(</span><span class="n">ValidationError</span><span class="p">,</span> <span class="n">JSONDecodeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">InternalServerException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not parse server error: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">raise</span> <span class="n">InternalServerException</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not parse server error: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
     <span class="c1"># For mypy errors</span>
-    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;unreachable&quot;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"unreachable"</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -7858,16 +7858,16 @@ the file layout is same as in the code repository.</p>
 <span class="normal">45</span>
 <span class="normal">46</span>
 <span class="normal">47</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_model_response_direct</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">,</span> <span class="n">response_model</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and process a HTTP response.</span>
+<span class="w">    </span><span class="sd">"""Validate and process a HTTP response.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        response (requests.Response): The response object from an HTTP request.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        response_model: Model for responses requests.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="n">status</span><span class="o">.</span><span class="n">HTTP_200_OK</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf8"</span><span class="p">)</span>
         <span class="n">r_model</span> <span class="o">=</span> <span class="n">response_model</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">r_model</span>
 
@@ -7947,21 +7947,21 @@ the file layout is same as in the code repository.</p>
 <span class="normal">70</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_model_response</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">:</span> <span class="n">ResponseModel</span><span class="p">](</span>
     <span class="n">client</span><span class="p">:</span> <span class="n">LomasHttpClient</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">,</span> <span class="n">response_model</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResponseT</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and process a HTTP response.</span>
+<span class="w">    </span><span class="sd">"""Validate and process a HTTP response.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        response (requests.Response): The response object from an HTTP request.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        response_model: Model for responses requests.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="n">status</span><span class="o">.</span><span class="n">HTTP_202_ACCEPTED</span><span class="p">:</span>
         <span class="n">raise_error</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
 
-    <span class="n">job_uid</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;uid&quot;</span><span class="p">]</span>
+    <span class="n">job_uid</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">"uid"</span><span class="p">]</span>
     <span class="n">job</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">wait_for_job</span><span class="p">(</span><span class="n">job_uid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">job</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;job </span><span class="si">{</span><span class="n">job_uid</span><span class="si">!r}</span><span class="s2"> failed without error !&quot;</span>
+        <span class="k">assert</span> <span class="n">job</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"job </span><span class="si">{</span><span class="n">job_uid</span><span class="si">!r}</span><span class="s2"> failed without error !"</span>
         <span class="n">job</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">raise_exception</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">response_model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">)</span>
@@ -8078,7 +8078,7 @@ the file layout is same as in the code repository.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="../../assets/_markdown_exec_pyodide.js"></script>
       

@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -6428,12 +6428,12 @@
 <span class="normal">30</span>
 <span class="normal">31</span>
 <span class="normal">32</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">init_traces_exporter</span><span class="p">(</span><span class="n">resource</span><span class="p">:</span> <span class="n">Resource</span><span class="p">,</span> <span class="n">telemetry_config</span><span class="p">:</span> <span class="n">Telemetry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Initializes the OpenTelemetry trace exporter with a given resource.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        resource (Resource): The resource to associate with the trace telemetry.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">exporter</span> <span class="o">=</span> <span class="n">OTLPSpanExporter</span><span class="p">(</span>
         <span class="n">endpoint</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">telemetry_config</span><span class="o">.</span><span class="n">collector_endpoint</span><span class="p">),</span> <span class="n">insecure</span><span class="o">=</span><span class="n">telemetry_config</span><span class="o">.</span><span class="n">collector_insecure</span>
     <span class="p">)</span>
@@ -6492,12 +6492,12 @@
 <span class="normal">45</span>
 <span class="normal">46</span>
 <span class="normal">47</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">init_metrics_exporter</span><span class="p">(</span><span class="n">resource</span><span class="p">:</span> <span class="n">Resource</span><span class="p">,</span> <span class="n">telemetry_config</span><span class="p">:</span> <span class="n">Telemetry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Initializes the OpenTelemetry metrics exporter with a given resource.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        resource (Resource): The resource to associate with the metric telemetry.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">exporter</span> <span class="o">=</span> <span class="n">OTLPMetricExporter</span><span class="p">(</span>
         <span class="n">endpoint</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">telemetry_config</span><span class="o">.</span><span class="n">collector_endpoint</span><span class="p">),</span> <span class="n">insecure</span><span class="o">=</span><span class="n">telemetry_config</span><span class="o">.</span><span class="n">collector_insecure</span>
     <span class="p">)</span>
@@ -6558,12 +6558,12 @@
 <span class="normal">63</span>
 <span class="normal">64</span>
 <span class="normal">65</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">init_logs_exporter</span><span class="p">(</span><span class="n">resource</span><span class="p">:</span> <span class="n">Resource</span><span class="p">,</span> <span class="n">telemetry_config</span><span class="p">:</span> <span class="n">Telemetry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Initializes the OpenTelemetry logs exporter with a given resource.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        resource (Resource): The resource to associate with the log telemetry.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">exporter</span> <span class="o">=</span> <span class="n">OTLPLogExporter</span><span class="p">(</span>
         <span class="n">endpoint</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">telemetry_config</span><span class="o">.</span><span class="n">collector_endpoint</span><span class="p">),</span> <span class="n">insecure</span><span class="o">=</span><span class="n">telemetry_config</span><span class="o">.</span><span class="n">collector_insecure</span>
     <span class="p">)</span>
@@ -6625,14 +6625,14 @@
 <span class="normal">79</span>
 <span class="normal">80</span>
 <span class="normal">81</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">init_telemetry</span><span class="p">(</span><span class="n">telemetry_config</span><span class="p">:</span> <span class="n">Telemetry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Initializes all OpenTelemetry exporters with a shared resource.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        telemetry_config (Telemetry): Telemetry configuration</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">resource</span> <span class="o">=</span> <span class="n">Resource</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-        <span class="p">{</span><span class="s2">&quot;service.name&quot;</span><span class="p">:</span> <span class="n">telemetry_config</span><span class="o">.</span><span class="n">service_name</span><span class="p">,</span> <span class="s2">&quot;service.instance.id&quot;</span><span class="p">:</span> <span class="n">telemetry_config</span><span class="o">.</span><span class="n">service_id</span><span class="p">}</span>
+        <span class="p">{</span><span class="s2">"service.name"</span><span class="p">:</span> <span class="n">telemetry_config</span><span class="o">.</span><span class="n">service_name</span><span class="p">,</span> <span class="s2">"service.instance.id"</span><span class="p">:</span> <span class="n">telemetry_config</span><span class="o">.</span><span class="n">service_id</span><span class="p">}</span>
     <span class="p">)</span>
 
     <span class="n">init_traces_exporter</span><span class="p">(</span><span class="n">resource</span><span class="p">,</span> <span class="n">telemetry_config</span><span class="p">)</span>
@@ -6887,7 +6887,7 @@
                     <summary>Source code in <code>core/lomas_core/exceptions.py</code></summary>
                     <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
 <span class="normal">16</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User </span><span class="si">{</span><span class="n">user_name</span><span class="si">!r}</span><span class="s2"> does not exist.&quot;</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">"User </span><span class="si">{</span><span class="n">user_name</span><span class="si">!r}</span><span class="s2"> does not exist."</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
                   </details>
 
@@ -6997,7 +6997,7 @@
                     <summary>Source code in <code>core/lomas_core/exceptions.py</code></summary>
                     <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">22</span>
 <span class="normal">23</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset </span><span class="si">{</span><span class="n">dataset_name</span><span class="si">!r}</span><span class="s2"> does not exist.&quot;</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Dataset </span><span class="si">{</span><span class="n">dataset_name</span><span class="si">!r}</span><span class="s2"> does not exist."</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
                   </details>
 
@@ -7084,7 +7084,7 @@
                     <summary>Source code in <code>core/lomas_core/exceptions.py</code></summary>
                     <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">29</span>
 <span class="normal">30</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uid</span><span class="p">:</span> <span class="n">UUID</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Job </span><span class="si">{</span><span class="n">uid</span><span class="si">!r}</span><span class="s2"> does not exist.&quot;</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Job </span><span class="si">{</span><span class="n">uid</span><span class="si">!r}</span><span class="s2"> does not exist."</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
                   </details>
 
@@ -7285,7 +7285,7 @@
                     <summary>Source code in <code>core/lomas_core/exceptions.py</code></summary>
                     <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">39</span>
 <span class="normal">40</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid query: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid query: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
                   </details>
 
@@ -7463,7 +7463,7 @@
                     <summary>Source code in <code>core/lomas_core/exceptions.py</code></summary>
                     <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">46</span>
 <span class="normal">47</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">library</span><span class="p">:</span> <span class="n">DPLibraries</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exception from </span><span class="si">{</span><span class="n">library</span><span class="si">!r}</span><span class="s2"> library: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Exception from </span><span class="si">{</span><span class="n">library</span><span class="si">!r}</span><span class="s2"> library: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
                   </details>
 
@@ -7591,7 +7591,7 @@
                     <summary>Source code in <code>core/lomas_core/exceptions.py</code></summary>
                     <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">56</span>
 <span class="normal">57</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unauthorized: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unauthorized: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
                   </details>
 
@@ -7625,7 +7625,7 @@
 
 
 <a href="#lomas_core.exceptions.InternalServerException" class="headerlink" title="Permanent link">#</a></h2>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span class="nf">InternalServerException</span><span class="p">(</span><span class="n"><span title="lomas_core.exceptions.InternalServerException(message)">message</span></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s1">&#39;Internal server error.&#39;</span><span class="p">)</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span class="nf">InternalServerException</span><span class="p">(</span><span class="n"><span title="lomas_core.exceptions.InternalServerException(message)">message</span></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s1">'Internal server error.'</span><span class="p">)</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -7768,7 +7768,7 @@
                   <details class="mkdocstrings-source">
                     <summary>Source code in <code>core/lomas_core/exceptions.py</code></summary>
                     <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">63</span>
-<span class="normal">64</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Internal server error.&quot;</span><span class="p">):</span>
+<span class="normal">64</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"Internal server error."</span><span class="p">):</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
                   </details>
@@ -9494,18 +9494,18 @@
 <span class="normal">45</span>
 <span class="normal">46</span>
 <span class="normal">47</span>
-<span class="normal">48</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;after&quot;</span><span class="p">)</span>
+<span class="normal">48</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">options_set_if_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensures that if enabled is set to True, all other fields are specified.</span>
+<span class="w">    </span><span class="sd">"""Ensures that if enabled is set to True, all other fields are specified.</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If any of the fields is not specified while enabled is True.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
         <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;If enabled set to True, all other fields must be specified. Missing fields: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">"If enabled set to True, all other fields must be specified. Missing fields: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
 
     <span class="k">return</span> <span class="bp">self</span>
@@ -10525,8 +10525,8 @@
 <a href="#lomas_core.models.constants.init_logging" class="headerlink" title="Permanent link">#</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span class="nf">init_logging</span><span class="p">(</span>
     <span class="n"><a class="autorefs autorefs-internal" href="#lomas_core.models.constants.init_logging(name)">name</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span>
-    <span class="n"><a class="autorefs autorefs-internal" href="#lomas_core.models.constants.init_logging(level)">level</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
-    <span class="n"><a class="autorefs autorefs-internal" href="#lomas_core.models.constants.init_logging(lomas_level)">lomas_level</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+    <span class="n"><a class="autorefs autorefs-internal" href="#lomas_core.models.constants.init_logging(level)">level</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"INFO"</span><span class="p">,</span>
+    <span class="n"><a class="autorefs autorefs-internal" href="#lomas_core.models.constants.init_logging(lomas_level)">lomas_level</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s2">"INFO"</span><span class="p">,</span>
     <span class="n"><span title="lomas_core.models.constants.init_logging(console)">console</span></span><span class="p">:</span> <span class="n"><span title="rich.console.Console">Console</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
@@ -10602,9 +10602,9 @@ log level than the root logger.</p>
 <span class="normal">131</span>
 <span class="normal">132</span>
 <span class="normal">133</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">init_logging</span><span class="p">(</span>
-    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="n">lomas_level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="n">console</span><span class="p">:</span> <span class="n">Console</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"INFO"</span><span class="p">,</span> <span class="n">lomas_level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"INFO"</span><span class="p">,</span> <span class="n">console</span><span class="p">:</span> <span class="n">Console</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sets basic logging config to level and creates a logger named after name with log level lomas_level.</span>
+<span class="w">    </span><span class="sd">"""Sets basic logging config to level and creates a logger named after name with log level lomas_level.</span>
 
 <span class="sd">    This function is meant to set a parent logger for the lomas_* module with a different</span>
 <span class="sd">    log level than the root logger.</span>
@@ -10613,21 +10613,21 @@ log level than the root logger.</p>
 <span class="sd">        name (str): Name of the parent logger to create</span>
 <span class="sd">        level (str): Log level for the root logger.</span>
 <span class="sd">        lomas_level (str): Log level for the parent logger.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">console</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">(</span><span class="n">force_terminal</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">console</span><span class="o">.</span><span class="n">width</span> <span class="o">&lt;=</span> <span class="mi">80</span><span class="p">:</span>
             <span class="n">console</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">135</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
-        <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(message)s</span><span class="s2"> - </span><span class="si">%(name)s</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;[%H:%M:%S]&quot;</span><span class="p">,</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s2">"</span><span class="si">%(message)s</span><span class="s2"> - </span><span class="si">%(name)s</span><span class="s2">"</span><span class="p">,</span>
+        <span class="n">datefmt</span><span class="o">=</span><span class="s2">"[%H:%M:%S]"</span><span class="p">,</span>
         <span class="n">handlers</span><span class="o">=</span><span class="p">[</span>
             <span class="n">RichHandler</span><span class="p">(</span><span class="n">console</span><span class="o">=</span><span class="n">console</span><span class="p">,</span> <span class="n">show_time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rich_tracebacks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tracebacks_show_locals</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="p">],</span>
         <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;httpx2&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">FilterOutLiveSuccess</span><span class="p">())</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;watchfiles.main&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s2">&quot;WARNING&quot;</span><span class="p">)</span>  <span class="c1"># too chatty even on INFO</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"httpx2"</span><span class="p">)</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">FilterOutLiveSuccess</span><span class="p">())</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"watchfiles.main"</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s2">"WARNING"</span><span class="p">)</span>  <span class="c1"># too chatty even on INFO</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">lomas_level</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -10643,7 +10643,7 @@ log level than the root logger.</p>
 
 
 <a href="#lomas_core.models.constants.get_lomas_logger" class="headerlink" title="Permanent link">#</a></h2>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span class="nf">get_lomas_logger</span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" href="#lomas_core.models.constants.get_lomas_logger(name)">name</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" href="#lomas_core.models.constants.get_lomas_logger(level)">level</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s1">&#39;NOTSET&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;logging.Logger&lt;/code&gt;" href="https://docs.python.org/3/library/logging.html#logging.Logger">Logger</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span class="nf">get_lomas_logger</span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" href="#lomas_core.models.constants.get_lomas_logger(name)">name</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-internal" href="#lomas_core.models.constants.get_lomas_logger(level)">level</a></span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span> <span class="o">=</span> <span class="s1">'NOTSET'</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;logging.Logger&lt;/code&gt;" href="https://docs.python.org/3/library/logging.html#logging.Logger">Logger</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -10704,18 +10704,18 @@ log level than the root logger.</p>
 <span class="normal">147</span>
 <span class="normal">148</span>
 <span class="normal">149</span>
-<span class="normal">150</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_lomas_logger</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;NOTSET&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a logger with set level.</span>
+<span class="normal">150</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_lomas_logger</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"NOTSET"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Get a logger with set level.</span>
 
 <span class="sd">    Default level is always unset (getLogger default is warning).</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        name (str): Name of the logger.</span>
-<span class="sd">        level (str, optional): Logging level. Defaults to &quot;NOTSET&quot;.</span>
+<span class="sd">        level (str, optional): Logging level. Defaults to "NOTSET".</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        logging.Logger: Named logger with correct level.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -11030,11 +11030,11 @@ log level than the root logger.</p>
 <span class="normal">43</span>
 <span class="normal">44</span>
 <span class="normal">45</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">make_dummy</span><span class="p">(</span><span class="n">example_query</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">JsonValue</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">JsonValue</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Make dummy example dummy query based on example query.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Make dummy example dummy query based on example query."""</span>
     <span class="n">example_query_dummy</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">example_query</span><span class="p">)</span>
-    <span class="n">example_query_dummy</span><span class="p">[</span><span class="s2">&quot;request_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">QueryTypes</span><span class="o">.</span><span class="n">DUMMY</span>
-    <span class="n">example_query_dummy</span><span class="p">[</span><span class="s2">&quot;dummy_nb_rows&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DUMMY_NB_ROWS</span>
-    <span class="n">example_query_dummy</span><span class="p">[</span><span class="s2">&quot;dummy_seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DUMMY_SEED</span>
+    <span class="n">example_query_dummy</span><span class="p">[</span><span class="s2">"request_type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">QueryTypes</span><span class="o">.</span><span class="n">DUMMY</span>
+    <span class="n">example_query_dummy</span><span class="p">[</span><span class="s2">"dummy_nb_rows"</span><span class="p">]</span> <span class="o">=</span> <span class="n">DUMMY_NB_ROWS</span>
+    <span class="n">example_query_dummy</span><span class="p">[</span><span class="s2">"dummy_seed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">DUMMY_SEED</span>
     <span class="k">return</span> <span class="n">example_query_dummy</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -17428,10 +17428,10 @@ Args:
 <span class="normal">65</span>
 <span class="normal">66</span>
 <span class="normal">67</span>
-<span class="normal">68</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;dummy_df&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;before&quot;</span><span class="p">)</span>
+<span class="normal">68</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"dummy_df"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
 <span class="nd">@classmethod</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">deserialize_dummy_df</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">ValidationInfo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decodes the dict representation of the dummy df with correct types.</span>
+<span class="w">    </span><span class="sd">"""Decodes the dict representation of the dummy df with correct types.</span>
 
 <span class="sd">    Only does so if the input value is not already a dataframe.</span>
 <span class="sd">    Args:</span>
@@ -17440,11 +17440,11 @@ Args:
 
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: The decoded dataframe.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">v</span>
 
-    <span class="n">dtypes</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;dtypes&quot;</span><span class="p">]</span>
+    <span class="n">dtypes</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">"dtypes"</span><span class="p">]</span>
     <span class="n">dummy_df</span> <span class="o">=</span> <span class="n">dataframe_from_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
     <span class="n">dummy_df</span> <span class="o">=</span> <span class="n">dummy_df</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtypes</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">dummy_df</span>
@@ -19899,14 +19899,14 @@ Args:
 <span class="normal">19</span>
 <span class="normal">20</span>
 <span class="normal">21</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">dataframe_to_dict</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transforms pandas dataframe into a dictionary.</span>
+<span class="w">    </span><span class="sd">"""Transforms pandas dataframe into a dictionary.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        df (pd.DataFrame): The dataframe to &quot;serialize&quot;.</span>
+<span class="sd">        df (pd.DataFrame): The dataframe to "serialize".</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        dict: The pandas dataframe in dictionary format.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="n">PANDAS_SERIALIZATION_ORIENT</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -19976,7 +19976,7 @@ Or pd.Dataframe.</p>
 <span class="normal">37</span>
 <span class="normal">38</span>
 <span class="normal">39</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">dataframe_from_dict</span><span class="p">(</span><span class="n">serialized_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transforms input dict into pandas dataframe.</span>
+<span class="w">    </span><span class="sd">"""Transforms input dict into pandas dataframe.</span>
 
 <span class="sd">    If the input is already a dataframe, it is simply returned unmodified.</span>
 
@@ -19986,7 +19986,7 @@ Or pd.Dataframe.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        pd.DataFrame: The transformed dataframe.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">serialized_df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">serialized_df</span>
 
@@ -20019,7 +20019,7 @@ Or pd.Dataframe.</p>
               <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">42</span>
 <span class="normal">43</span>
 <span class="normal">44</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">polars_df_to_str</span><span class="p">(</span><span class="n">df_pl</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a Polars DataFrame to a JSON string.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert a Polars DataFrame to a JSON string."""</span>
     <span class="k">return</span> <span class="n">df_pl</span><span class="o">.</span><span class="n">write_json</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -20053,7 +20053,7 @@ Or pd.Dataframe.</p>
 <span class="normal">51</span>
 <span class="normal">52</span>
 <span class="normal">53</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">polars_df_from_str</span><span class="p">(</span><span class="n">serialized_pl</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a Polars DataFrame from a JSON string.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert a Polars DataFrame from a JSON string."""</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">serialized_pl</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">serialized_pl</span>
 
@@ -20124,7 +20124,7 @@ Or pd.Dataframe.</p>
 <span class="normal">67</span>
 <span class="normal">68</span>
 <span class="normal">69</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">serialize_model</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Serialise a python object into an utf-8 string.</span>
 
 <span class="sd">    Usually for fitted DiffPrivLib pipeline.</span>
@@ -20134,9 +20134,9 @@ Or pd.Dataframe.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        str: string of serialised model</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">serialized</span> <span class="o">=</span> <span class="n">b64encode</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">serialized</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">serialized</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -20201,14 +20201,14 @@ Or pd.Dataframe.</p>
 <span class="normal">83</span>
 <span class="normal">84</span>
 <span class="normal">85</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">deserialize_model</span><span class="p">(</span><span class="n">serialized_model</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Deserialize a base64 encoded byte string into a python object.</span>
+<span class="w">    </span><span class="sd">"""Deserialize a base64 encoded byte string into a python object.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        serialized_model (Any): Encoded python object.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Any: Deserialized python object.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">serialized_model</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">raw_bytes</span> <span class="o">=</span> <span class="n">b64decode</span><span class="p">(</span><span class="n">serialized_model</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw_bytes</span><span class="p">)</span>
@@ -20327,7 +20327,7 @@ Or pd.Dataframe.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="../../assets/_markdown_exec_pyodide.js"></script>
       

@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../images/favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1381,21 +1381,21 @@
 <span class="c1"># They have already been set for you if you are running locally within a devenv or the Jupyter lab set up by Docker compose.</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="c1"># os.environ[&quot;LOMAS_CLIENT_APP_URL&quot;] = &quot;https://lomas.example.com:443&quot;</span>
-<span class="c1"># os.environ[&quot;LOMAS_CLIENT_OIDC_DISCOVERY_URL&quot;] = &quot;https://dex.example.com:443/.well-known/openid-configuration&quot;</span>
-<span class="c1"># os.environ[&quot;LOMAS_CLIENT_TELEMETRY__ENABLED&quot;] = &quot;false&quot;</span>
-<span class="c1"># os.environ[&quot;LOMAS_CLIENT_TELEMETRY__COLLECTOR_ENDPOINT&quot;] = &quot;http://otel.example.com:445&quot;</span>
-<span class="c1"># os.environ[&quot;LOMAS_CLIENT_TELEMETRY__COLLECTOR_INSECURE&quot;] = &quot;true&quot;</span>
-<span class="c1"># os.environ[&quot;LOMAS_CLIENT_TELEMETRY__SERVICE_ID&quot;] = &quot;my-app-client&quot;</span>
-<span class="c1"># os.environ[&quot;LOMAS_CLIENT_REALM&quot;] = &quot;lomas&quot;</span>
+<span class="c1"># os.environ["LOMAS_CLIENT_APP_URL"] = "https://lomas.example.com:443"</span>
+<span class="c1"># os.environ["LOMAS_CLIENT_OIDC_DISCOVERY_URL"] = "https://dex.example.com:443/.well-known/openid-configuration"</span>
+<span class="c1"># os.environ["LOMAS_CLIENT_TELEMETRY__ENABLED"] = "false"</span>
+<span class="c1"># os.environ["LOMAS_CLIENT_TELEMETRY__COLLECTOR_ENDPOINT"] = "http://otel.example.com:445"</span>
+<span class="c1"># os.environ["LOMAS_CLIENT_TELEMETRY__COLLECTOR_INSECURE"] = "true"</span>
+<span class="c1"># os.environ["LOMAS_CLIENT_TELEMETRY__SERVICE_ID"] = "my-app-client"</span>
+<span class="c1"># os.environ["LOMAS_CLIENT_REALM"] = "lomas"</span>
 
 <span class="c1"># We set these ones because they are specific to this notebook.</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LOMAS_CLIENT_USER_NAME&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;dr.antartica@example.com&quot;</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LOMAS_CLIENT_USER_PASSWORD&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;dr.antartica&quot;</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LOMAS_CLIENT_DATASET_NAME&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;PENGUIN&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"LOMAS_CLIENT_USER_NAME"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"dr.antartica@example.com"</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"LOMAS_CLIENT_USER_PASSWORD"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"dr.antartica"</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"LOMAS_CLIENT_DATASET_NAME"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"PENGUIN"</span>
 
 <span class="c1"># Note that all client settings can also be passed as keyword arguments to the Client constructor.</span>
-<span class="c1"># eg. client = Client(user_name = &quot;Dr.Antartica&quot;) takes precedence over setting the &quot;LOMAS_CLIENT_USER_NAME&quot;</span>
+<span class="c1"># eg. client = Client(user_name = "Dr.Antartica") takes precedence over setting the "LOMAS_CLIENT_USER_NAME"</span>
 <span class="c1"># environment variable.</span>
 
 <span class="c1"># Step 3</span>
@@ -1503,7 +1503,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="../../assets/_markdown_exec_pyodide.js"></script>
       

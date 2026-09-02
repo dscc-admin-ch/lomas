@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../../images/favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1483,18 +1483,18 @@
 <p>Adding a user works either through the straightforward "Add user" section or via the "Bulk user import" function. The bulk import method requires properly formatted yaml file listing users and the datasets accessible to them. Below is an example of such a file. You can also find the demo user collection in <code>server/data/collections/user_collection.yaml</code> while the pydantic model for users is specified in <code>core/lomas_core/models/collections.py</code>.</p>
 <div class="language-yaml highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Alice</span>
-<span class="w">    </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;alice@example.com&quot;</span>
+<span class="w">    </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="s">"alice@example.com"</span>
 <span class="w">    </span><span class="nt">client_secret</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alice</span><span class="w">        </span><span class="c1"># Only if using Dex, not for production.</span>
 <span class="w">  </span><span class="nt">may_query</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
 <span class="w">  </span><span class="nt">datasets</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">IRIS</span><span class="p">:</span><span class="w">                </span><span class="c1"># Can be empty</span>
-<span class="w">      </span><span class="nt">dataset_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;IRIS&quot;</span>
+<span class="w">      </span><span class="nt">dataset_name</span><span class="p">:</span><span class="w"> </span><span class="s">"IRIS"</span>
 <span class="w">      </span><span class="nt">initial_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.0</span>
 <span class="w">      </span><span class="nt">initial_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0001</span>
 <span class="w">      </span><span class="nt">total_spent_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">      </span><span class="nt">total_spent_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">    </span><span class="nt">PENGUIN</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">dataset_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;PENGUIN&quot;</span>
+<span class="w">      </span><span class="nt">dataset_name</span><span class="p">:</span><span class="w"> </span><span class="s">"PENGUIN"</span>
 <span class="w">      </span><span class="nt">initial_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
 <span class="w">      </span><span class="nt">initial_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0005</span>
 <span class="w">      </span><span class="nt">total_spent_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
@@ -1613,7 +1613,7 @@ Use these with caution!</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="../../../assets/_markdown_exec_pyodide.js"></script>
       

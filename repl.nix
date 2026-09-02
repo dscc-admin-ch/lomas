@@ -13,7 +13,7 @@ in
 // nixpkgs.lib
 // flake.packages.${system}
 # pythonSet
-// (pkgs.callPackage ./devenv/lib.nix {
+// (pkgs.callPackage ./modules/packages/_lib.nix {
   inherit (flake.inputs) uv2nix pyproject-nix pyproject-build-systems;
   workspaceRoot = ./.;
 })

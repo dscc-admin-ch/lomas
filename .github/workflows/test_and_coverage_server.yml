@@ -20,7 +20,7 @@ jobs:
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - name: Install devenv.sh
-      run: nix profile add nixpkgs/64c08a7ca051951c8eae34e3e3cb1e202fe36786#devenv
+      run: nix profile add nixpkgs/e8be7818e19ada32105a8af937a6a473b38167ca#devenv
 
     - name: Run all test with coverage
       run: |
@@ -59,12 +59,12 @@ jobs:
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - name: Install devenv.sh
-      run: nix profile add nixpkgs/64c08a7ca051951c8eae34e3e3cb1e202fe36786#devenv
+      run: nix profile add nixpkgs/e8be7818e19ada32105a8af937a6a473b38167ca#devenv
 
     - name: Set Python package
       run: |
         cat > devenv.local.nix <<EOF
-        { pkgs, ... }: { lomas.pyenv.package = pkgs.python$(echo ${{ matrix.python-version }} | tr -d .); }
+        { lomas.pyenv.version = "${{ matrix.python-version }}"; }
         EOF
 
     - name: Run all test with coverage

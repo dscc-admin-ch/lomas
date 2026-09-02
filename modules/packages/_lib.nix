@@ -9,6 +9,7 @@
   ...
 }:
 let
+  inherit pyproject-nix pyproject-build-systems uv2nix;
   inherit (pkgs.callPackages pyproject-nix.build.util { }) mkApplication;
   fs = lib.fileset;
   # unfortunately devenv currently pull the fileset dependency recursively
@@ -48,7 +49,7 @@ rec {
         else
           pkgs.runCommand "lomas-src" { } ''
             mkdir -p $out/lomas
-            cp ${../pyproject.toml} $out/pyproject.toml
+            cp ${lib.path.append workspaceRoot "pyproject.toml"} $out/pyproject.toml
             touch $out/lomas/__init__.py
             for dep in core client server; do
               mkdir -p $out/$dep/lomas_$dep
@@ -69,7 +70,7 @@ rec {
         else
           pkgs.runCommand "lomas-core-src" { } ''
             mkdir -p $out/lomas_core
-            cp ${../core/pyproject.toml} $out/pyproject.toml
+            cp ${lib.path.append workspaceRoot "core/pyproject.toml"} $out/pyproject.toml
             touch $out/lomas_core/__init__.py
           '';
     });
@@ -86,7 +87,7 @@ rec {
         else
           pkgs.runCommand "lomas-client-src" { } ''
             mkdir -p $out/lomas_client
-            cp ${../client/pyproject.toml} $out/pyproject.toml
+            cp ${lib.path.append workspaceRoot "client/pyproject.toml"} $out/pyproject.toml
             touch $out/lomas_client/__init__.py
           '';
     });
@@ -103,7 +104,7 @@ rec {
         else
           pkgs.runCommand "lomas-server-src" { } ''
             mkdir -p $out/lomas_server
-            cp ${../server/pyproject.toml} $out/pyproject.toml
+            cp ${lib.path.append workspaceRoot "server/pyproject.toml"} $out/pyproject.toml
             touch $out/lomas_server/__init__.py
           '';
     });

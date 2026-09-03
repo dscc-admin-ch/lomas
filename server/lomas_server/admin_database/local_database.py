@@ -649,7 +649,7 @@ class LocalAdminDatabase(AdminDatabase):
                         (dataset_name, dataset_json, metadata_json)
                         VALUES (?, ?, ?)
                         """,
-                        (dataset_name, ds.model_dump_json(), metadata.model_json_dump()),
+                        (dataset_name, ds.model_dump_json(), metadata.model_dump_json()),
                     )
                 except sqlite3.IntegrityError as e:
                     # Because we are in the same context, all previous inserts will be rolled back
@@ -812,7 +812,7 @@ class LocalAdminDatabase(AdminDatabase):
         # Step 4: Insert into db
         with _sqlite_connection(self._db_path) as conn:
             conn.execute(
-                "INSERT INTO datasets (dataset_name, dataset, metadata) VALUES (?, ?, ?)",
+                "INSERT INTO datasets (dataset_name, dataset_json, metadata_json) VALUES (?, ?, ?)",
                 (ds_info.dataset_name, ds_info.model_dump_json(), ds_metadata.model_dump_json()),
             )
 
@@ -846,7 +846,7 @@ class LocalAdminDatabase(AdminDatabase):
                 ADMINDB_ERROR_COUNTER.add(1, {"operation": "dataset_key_error"})
                 raise KeyError(f"No dataset with name {dataset_name}.")
 
-        return DSInfo.model_validate(row[0])
+        return DSInfo.model_validate_json(row[0])
 
     @override
     @db_span("db.get_dataset_metadata", table="admin-db")
@@ -861,7 +861,7 @@ class LocalAdminDatabase(AdminDatabase):
                 ADMINDB_ERROR_COUNTER.add(1, {"operation": "dataset_key_error"})
                 raise KeyError(f"No dataset with name {dataset_name}.")
 
-            return TableMetadata.model_validate(row[0])
+            return TableMetadata.model_validate_json(row[0])
 
     @override
     @db_span("db.set_dataset_metadata", table="admin-db")
@@ -872,7 +872,7 @@ class LocalAdminDatabase(AdminDatabase):
         if isinstance(content, bytes):
             content = content.decode("utf-8")
         metadata_dict = json.loads(content)
-        validated_metadata = TableMetadata.from_dict(metadata_dict).model_dump()
+        validated_metadata = TableMetadata.from_dict(metadata_dict).model_dump_json()
 
         with _sqlite_connection(self._db_path) as conn:
             cursor = conn.execute(
@@ -882,7 +882,7 @@ class LocalAdminDatabase(AdminDatabase):
                     metadata_json = ?
                 WHERE dataset_name = ?
                 """,
-                (dataset_name, validated_metadata),
+                (validated_metadata, dataset_name),
             )
             if cursor.rowcount == 0:
                 ADMINDB_ERROR_COUNTER.add(1, {"operation": "dataset_key_error"})
@@ -896,17 +896,21 @@ class LocalAdminDatabase(AdminDatabase):
     def drop_collection(self, collection: TK) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "drop_collection"})
 
-        with _sqlite_connection(self._db_path) as conn:
-            match collection:
-                case TK.USERS:
+        match collection:
+            case TK.USERS:
+                with _sqlite_connection(self._db_path) as conn:
                     conn.execute("DELETE FROM users")
-                case TK.JOBS:
+            case TK.JOBS:
+                with _sqlite_connection(self._db_path) as conn:
                     conn.execute("DELETE FROM jobs")
-                case TK.ARCHIVE:
+            case TK.ARCHIVE:
+                with _sqlite_connection(self._archives_db_path) as conn:
                     conn.execute("DELETE FROM archives")
-                case TK.MISC_KEYS:
+            case TK.MISC_KEYS:
+                with _sqlite_connection(self._db_path) as conn:
                     conn.execute("DELETE FROM misc")
-                case TK.DATASETS:
+            case TK.DATASETS:
+                with _sqlite_connection(self._db_path) as conn:
                     conn.execute("DELETE FROM datasets")
 
         self._init_sqlite_dbs()

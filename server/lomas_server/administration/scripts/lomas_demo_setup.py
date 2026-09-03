@@ -5,6 +5,7 @@ from pathlib import Path
 import httpx2
 from pydantic import Field
 from pydantic_settings import CliApp, SettingsConfigDict
+from returns.functions import raise_exception
 from returns.maybe import Maybe
 from returns.pipeline import flow
 from returns.pointfree import bind, map_
@@ -110,8 +111,8 @@ def lomas_demo_setup(demo_config: DemoAdminConfig | None = None) -> int:
     match add_lomas_demo_data(demo_config):
         case Success(_):
             return Status.EX_OK
-        case Failure(Failure(e)):
-            return e
+        case Failure(e):
+            raise_exception(e)
     return Status.EX_IOERR
 
 

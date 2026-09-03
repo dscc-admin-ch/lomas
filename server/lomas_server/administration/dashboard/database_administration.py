@@ -531,7 +531,7 @@ st.divider()
 st.title("Backup")
 st.write("Creates a backup of the admin database (jobs, users, archives).")
 if st.button("Backup now", key="btn_backup_admin_db"):
-    match query_lomas_auth("/backup", httpx2.post):
+    match query_lomas_auth("/backup", httpx2.get):
         case Success(backup_info):
             size_kb = backup_info["size_bytes"] / 1024
             st.success(f"Backup written to `{backup_info['location']}` ({size_kb:.1f} KB).")

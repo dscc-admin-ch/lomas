@@ -42,6 +42,10 @@ spec:
         volumeMounts:
           - name: db
             mountPath: /db
+          {{- if .Values.server.pvc.backup.enabled }}
+          - name: backup
+            mountPath: /backup
+          {{- end }}
           {{- if .Values.server.pvc.data.enabled }}
           - name: data
             mountPath: /data
@@ -84,6 +88,16 @@ spec:
             value: "/db/"
           - name: LOMAS_SERVER_CLEAN_ADMIN_DATABASE
             value: "{{ .Values.server.runtime_args.clean_admin_database }}"
+          {{- if not .Values.server.runtime_args.s3Backup.enabled }}
+          - name: LOMAS_SERVER_BACKUP__LOCAL_DIRECTORY
+            value: "/backup/"
+          {{- else }}
+          - name: LOMAS_SERVER_BACKUP__URI
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "lomas.server.s3BackupUriSecretName" . }}
+                key: {{ include "lomas.server.s3BackupUriSecretKey" . }}
+          {{- end }}
           - name: LOMAS_SERVER_DATA_DIRECTORY
             value: "/data"
           - name: LOMAS_SERVER_AUTHENTICATOR__AUTHENTICATION_TYPE
@@ -125,6 +139,11 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "lomas.server.dataPVCName" . }}
+        {{- end }}
+        {{- if .Values.server.pvc.backup.enabled }}
+        - name: backup
+          persistentVolumeClaim:
+            claimName: {{ include "lomas.server.backupPVCName" . }}
         {{- end }}
         {{- if .Values.global.configCABundle.enabled }}
         - name: trusted-cabundle

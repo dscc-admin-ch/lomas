@@ -131,8 +131,6 @@ class Config(BaseSettings):
 
     private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
 
-    backup: BackupConfig = Field(default=LocalBackupConfig(local_directory="/tmp/lomas-backups"))
-
     opendp_features: OpenDPFeatures = Field(default=["contrib", "idealized-numerics", "honest-but-curious"])
 
     telemetry: Telemetry = Field(default_factory=Telemetry, description=CLI_SUPPRESS)
@@ -165,6 +163,8 @@ class ServerConfig(Config):
     database_directory: Path = Field(default=Path("/tmp/lomas-db"))
 
     clean_admin_database: bool = Field(default=False)
+
+    backup: BackupConfig = Field(default=LocalBackupConfig(local_directory="/tmp/lomas-backups"))
 
     data_directory: Path = Field(default=Path("../data"))
 

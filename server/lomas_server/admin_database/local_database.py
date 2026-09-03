@@ -2,6 +2,7 @@ import json
 import sqlite3
 from collections.abc import Generator
 from contextlib import AbstractContextManager, closing, contextmanager, nullcontext
+from datetime import timedelta
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
 from typing import Any, BinaryIO, override
@@ -232,10 +233,36 @@ class LocalAdminDatabase(AdminDatabase):
 
         return Job.model_validate_json(row[0])
 
+    @db_span("db.expire_jobs", table="admin-db")
+    def expire_jobs(self, delay: timedelta = timedelta(seconds=2)) -> list[UUID]:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "exipre_jobs"})
+
+        with _sqlite_connection(self._db_path) as conn:
+            rows = conn.execute(
+                """
+                UPDATE jobs
+                SET
+                    status = ?
+                WHERE
+                    status = ?
+                    AND
+                    (unixepoch('now') - started_at) > ?
+                RETURNING uid;
+                """,
+                (str(JobStatus.PENDING), str(JobStatus.IN_PROGRESS), int(delay.total_seconds())),
+            ).fetchall()
+
+        for row in rows:
+            logger.debug(f"expiring Job {row[0]}")
+
+        return [UUID(row[0]) for row in rows]
+
     @override
     @db_span("db.get_job_pending", table="admin-db")
     def get_job_pending(self) -> Job | None:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_job_pending"})
+
+        self.expire_jobs()
 
         with _sqlite_connection(self._db_path) as conn:
             row = conn.execute(
@@ -257,7 +284,7 @@ class LocalAdminDatabase(AdminDatabase):
                 conn.execute(
                     "INSERT INTO jobs "
                     "(uid, user_name, dataset_name, status, started_at, job_json) "
-                    "VALUES (?, ?, ?, ?, 'now', ?)",
+                    "VALUES (?, ?, ?, ?, unixepoch('now'), ?)",
                     (
                         str(job.uid),
                         job.requested_by,

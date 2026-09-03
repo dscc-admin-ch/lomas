@@ -148,22 +148,3 @@ def get_lomas_logger(name: str, level: str = "NOTSET") -> logging.Logger:
     logging.getLogger(name).setLevel(level)
 
     return logging.getLogger(name)
-
-
-# Exceptions
-# -----------------------------------------------------------------------------
-
-
-class ExceptionType(StrEnum):
-    """Lomas server exception types.
-
-    To be used as discriminator when parsing corresponding models
-    """
-
-    INVALID_QUERY = "InvalidQueryException"
-    USER_NOT_FOUND = "UserNotFoundException"
-    DATASET_NOT_FOUND = "DatasetNotFoundException"
-    JOB_NOT_FOUND = "JobNotFoundException"
-    EXTERNAL_LIBRARY = "ExternalLibraryException"
-    UNAUTHORIZED_ACCESS = "UnauthorizedAccessException"
-    INTERNAL_SERVER = "InternalServerException"

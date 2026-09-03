@@ -190,7 +190,6 @@ def handle_query_to_job(
 
     new_task = Job(requested_by=user.name, dataset_name=dataset_name, query=query)
 
-    # app.state.jobs[str(new_task.uid)] = new_task
     admin_database.put_job(new_task)
 
     return new_task

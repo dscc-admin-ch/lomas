@@ -205,15 +205,8 @@ in
 
     # Config for sqlite backup (S3)
     LOMAS_SERVER_backup__uri =
-      "http://"
-      + config.lomas.garage.keyId
-      + ":"
-      + config.lomas.garage.secretKey
-      + "@"
-      + config.lomas.garage.host
-      + ":"
-      + toString config.lomas.garage.port
-      + "/bucket/backup";
+      with config.lomas.garage;
+      "http://${keyId}:${secretKey}@${host}:${toString port}/bucket/backup";
 
     # Lomas Runtime
     LOMAS_SERVER_log_level = "INFO";

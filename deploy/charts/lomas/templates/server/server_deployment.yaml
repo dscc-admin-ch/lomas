@@ -97,6 +97,10 @@ spec:
               secretKeyRef:
                 name: {{ include "lomas.server.s3BackupUriSecretName" . }}
                 key: {{ include "lomas.server.s3BackupUriSecretKey" . }}
+          - name: AWS_REQUEST_CHECKSUM_CALCULATION
+            value: "when_required"
+          - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+            value: "when_required"
           {{- end }}
           - name: LOMAS_SERVER_DATA_DIRECTORY
             value: "/data"

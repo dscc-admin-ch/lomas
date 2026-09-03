@@ -208,6 +208,9 @@ in
       with config.lomas.garage;
       "http://${keyId}:${secretKey}@${host}:${toString port}/bucket/backup";
 
+    AWS_REQUEST_CHECKSUM_CALCULATION = "when_required";
+    AWS_RESPONSE_CHECKSUM_VALIDATION = "when_required";
+
     # Lomas Runtime
     LOMAS_SERVER_log_level = "INFO";
     LOMAS_SERVER_lomas_log_level = "DEBUG";

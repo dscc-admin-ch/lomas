@@ -5,7 +5,6 @@ import zipfile
 from collections.abc import Generator
 from contextlib import AbstractContextManager, closing, contextmanager, nullcontext
 from datetime import UTC, datetime
-from functools import wraps
 from pathlib import Path
 from tempfile import SpooledTemporaryFile, TemporaryDirectory
 from typing import Any, BinaryIO, override
@@ -974,7 +973,7 @@ class LocalAdminDatabase(AdminDatabase):
 
     def _sqlite_paths_to_backup(self) -> list[Path]:
         """Paths of the sqlite files that make up the database state to snapshot."""
-        return [self._db_path, self._archives_db_path, self._misc_db_path]
+        return [self._db_path, self._archives_db_path]
 
     @staticmethod
     def _snapshot_sqlite_file(src_path: Path, dest_path: Path) -> None:

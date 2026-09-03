@@ -491,7 +491,7 @@ class AdminDatabase(ABC):
     def backup(self) -> bytes:
         """Creates a backup of the database and returns it as a Zip archive.
 
-        The backup is a zip archive containing snapshots of the underlying storage (db, archives, misc).
+        The backup is a zip archive containing snapshots of the underlying storage (db, archives).
         It can be stored locally or in a S3.
 
         Returns:

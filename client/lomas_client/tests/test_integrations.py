@@ -469,9 +469,8 @@ def test_backup():
         # Load each sqlite db out of the backup zip and check its tables
         backup_path = Path(body["location"])
         expected_tables_by_file = {
-            "db.sqlite3": {"jobs", "users"},
+            "db.sqlite3": {"jobs", "users", "misc", "datasets"},
             "archives.sqlite3": {"archives"},
-            "misc.sqlite3": {"misc"},
         }
 
         with zipfile.ZipFile(backup_path) as archive, tempfile.TemporaryDirectory() as extract_dir:
@@ -503,4 +502,6 @@ def test_backup():
 
                 finally:
                     conn.close()
-                assert expected_tables <= tables, f"{filename} missing tables {expected_tables - tables}"
+                assert tables == expected_tables, (
+                    f"{filename} table mismatch: extra={tables - expected_tables}, missing={expected_tables - tables}"
+                )

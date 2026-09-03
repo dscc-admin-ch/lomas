@@ -7,7 +7,6 @@ class TopDBKey(StrEnum):
     ARCHIVE = "queries_archive"
     USERS = "users"
     DATASETS = "datasets"
-    METADATA = "metadata"
     MISC_KEYS = "misc"
     JOBS = "jobs"
 
@@ -27,9 +26,3 @@ class BudgetDBKey(StrEnum):
 
     INITIAL = "initial_budget"
     SPENT = "total_spent_budget"
-
-
-WRITE_CONCERN_LEVEL = "majority"
-
-# Limit each element to a max MAX_BSON_SIZE (inserted document must be < 16MB)
-MAX_BSON_SIZE = 4 * 1024 * 1024  # 4 MB

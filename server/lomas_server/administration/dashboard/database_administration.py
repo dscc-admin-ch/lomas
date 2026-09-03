@@ -495,7 +495,7 @@ ds_delete_select_io = flow(
 )
 
 st.subheader("Delete full collection")
-col1, col2, col3, col4 = st.columns(4, vertical_alignment="center")
+col1, col2, col3 = st.columns(3, vertical_alignment="center")
 
 with col1:
     if st.button("Delete all Users", type="primary", key="delete_all_users"):
@@ -520,14 +520,6 @@ with col2:
         )
 
 with col3:
-    if st.button("Delete all Metadata", type="primary", key="delete_all_metadata"):
-        confirm_delete(
-            "Are you sure you want to delete ALL METADATA?",
-            lambda: drop_lomas_collection(TK.METADATA),
-            "All Metadata deleted.",
-        )
-
-with col4:
     if st.button("Delete all Archives", type="primary", key="delete_all_archives"):
         confirm_delete(
             "Are you sure you want to delete ALL ARCHIVES?",

@@ -1,21 +1,17 @@
-import asyncio
 import json
-import shelve
 import sqlite3
-from collections.abc import Callable, Generator
+from collections.abc import Generator
 from contextlib import AbstractContextManager, closing, contextmanager, nullcontext
-from functools import wraps
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
-from typing import Any, BinaryIO, Concatenate, override
+from typing import Any, BinaryIO, override
 from uuid import UUID
 
 import boto3
 import yaml
 from csvw_eo.metadata_structure import TableMetadata
 from fastapi import UploadFile
-from filelock import SoftFileLock
-from pydantic import Field, HttpUrl
+from pydantic import HttpUrl
 
 from lomas_core.exceptions import (
     InternalServerException,
@@ -49,17 +45,6 @@ from lomas_server.utils.metrics import (
 from lomas_server.utils.span import db_span
 
 logger = get_lomas_logger(__name__)
-
-
-def with_lock[DB: LocalAdminDatabase, **P, T](
-    fn: Callable[Concatenate[DB, P], T],
-) -> Callable[Concatenate[DB, P], T]:
-    @wraps(fn)
-    def wrapper(self: DB, *args: P.args, **kwargs: P.kwargs) -> T:
-        with self.lock:
-            return fn(self, *args, **kwargs)
-
-    return wrapper
 
 
 @contextmanager
@@ -98,24 +83,16 @@ class LocalAdminDatabase(AdminDatabase):
 
     directory: Path
 
-    lock: SoftFileLock = Field(exclude=True, default=None)  # Protects inter-process concurrency.
-    asyncio_lock: asyncio.Lock = asyncio.Lock()  # Protects softlock re-entry between concurrent coroutines.
-
     def __init__(self, directory: Path) -> None:
         self.directory = directory
         if self.directory.exists() and not self.directory.is_dir():
             raise NotADirectoryError(f"{self.directory} exists and is not a directory.")
         self.directory.mkdir(parents=True, exist_ok=True)
 
-        self._shelve_path = self.directory / "admin"
-        self._lock_path = self.directory / "admin.lock"
         self._db_path = self.directory / "db.sqlite3"
         self._archives_db_path = self.directory / "archives.sqlite3"
-        self._misc_db_path = self.directory / "misc.sqlite3"
 
-        self.lock = SoftFileLock(self._lock_path, is_singleton=True, timeout=10)
-
-        self._set_defaults()
+        self._init_sqlite_dbs()
 
     def get_db_conn(self) -> AbstractContextManager[sqlite3.Connection]:
         """Creates connection context to sqlite database.
@@ -130,17 +107,6 @@ class LocalAdminDatabase(AdminDatabase):
         """Wipe database to empty."""
         for collection in TK:
             self.drop_collection(collection)
-
-    @with_lock
-    def _set_defaults(self) -> None:
-        """Sets the default values for all collections in the database."""
-        # create the file if it doesn't exists yet (makes open with flag='r' safe)
-        with shelve.open(self._shelve_path, writeback=True) as db:
-            # Initialize to empty by default
-            db.setdefault(TK.DATASETS, {})
-            db.setdefault(TK.METADATA, {})
-
-        self._init_sqlite_dbs()
 
     def _init_sqlite_dbs(self) -> None:
         """Set defaults for jobs db."""
@@ -205,6 +171,23 @@ class LocalAdminDatabase(AdminDatabase):
                     user_json TEXT NOT NULL
                 );
                 """
+                # Dataset table # TODO metadata access null or not null
+                """
+                CREATE TABLE IF NOT EXISTS datasets (
+                    dataset_name TEXT PRIMARY KEY,
+                    dataset_json TEXT NOT NULL,
+                    metadata_json TEXT NOT NULL
+                );
+                """
+                # Misc table
+                f"""
+                CREATE TABLE IF NOT EXISTS misc (
+                    name TEXT PRIMARY KEY,
+                    value TEXT NULL,
+                    disabled INTEGER NOT NULL
+                );
+                INSERT OR IGNORE INTO misc (name, value, disabled) VALUES ('{MiscDBKeys.BOOTSTRAP:s}', NULL, 0);
+                """
             )
 
         with _sqlite_connection(self._archives_db_path) as conn:
@@ -221,18 +204,6 @@ class LocalAdminDatabase(AdminDatabase):
                 CREATE INDEX IF NOT EXISTS idx_job_user_name ON archives(user_name);
                 CREATE INDEX IF NOT EXISTS idx_job_dataset_name ON archives(dataset_name);
                 CREATE INDEX IF NOT EXISTS idx_jobs_user_dataset ON archives(user_name, dataset_name);
-                """
-            )
-
-        with _sqlite_connection(self._misc_db_path) as conn:
-            conn.executescript(
-                f"""
-                CREATE TABLE IF NOT EXISTS misc (
-                    name TEXT PRIMARY KEY,
-                    value TEXT NULL,
-                    disabled INTEGER NOT NULL
-                );
-                INSERT OR IGNORE INTO misc (name, value, disabled) VALUES ('{MiscDBKeys.BOOTSTRAP:s}', NULL, 0);
                 """
             )
 
@@ -256,10 +227,12 @@ class LocalAdminDatabase(AdminDatabase):
             row = conn.execute("SELECT job_json FROM jobs WHERE uid = ?", (str(uid),)).fetchone()
 
         if row is None:
+            ADMINDB_ERROR_COUNTER.add(1, {"operation": "key-error-user"})
             raise KeyError(f"No job with uid {uid}")
 
         return Job.model_validate_json(row[0])
 
+    @override
     @db_span("db.get_job_pending", table="admin-db")
     def get_job_pending(self) -> Job | None:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_job_pending"})
@@ -278,7 +251,7 @@ class LocalAdminDatabase(AdminDatabase):
     @override
     @db_span("db.put_job", table="admin-db")
     def put_job(self, job: Job) -> None:
-        ADMINDB_QUERY_COUNTER.add(1, {"operation": "put_job"})
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "put_job"})
         with _sqlite_connection(self._db_path) as conn:
             try:
                 conn.execute(
@@ -294,12 +267,13 @@ class LocalAdminDatabase(AdminDatabase):
                     ),
                 )
             except sqlite3.IntegrityError as e:
+                ADMINDB_ERROR_COUNTER.add(1, {"operation": "job-key-error"})
                 raise KeyError(f"Job with uid {job.uid} already exists.") from e
 
     @override
     @db_span("db.update_job", table="admin-db")
     def update_job(self, job_update: Job, current_conn: sqlite3.Connection | None = None) -> None:
-        ADMINDB_QUERY_COUNTER.add(1, {"operation": "update_job"})
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "update_job"})
 
         uid = job_update.uid
         job = self.get_job(uid, current_conn)
@@ -320,6 +294,7 @@ class LocalAdminDatabase(AdminDatabase):
                 (merged_job.status, merged_job.model_dump_json(), str(merged_job.uid)),
             )
             if cursor.rowcount == 0:
+                ADMINDB_ERROR_COUNTER.add(1, {"operation": "job_key_error"})
                 raise KeyError(f"No job with uid {job_update.uid}")
 
     # Archives
@@ -328,7 +303,7 @@ class LocalAdminDatabase(AdminDatabase):
     @override
     @db_span("db.archive_job", table="admin-db")
     def archive_job(self, uid: UUID) -> None:
-        ADMINDB_QUERY_COUNTER.add(1, {"operation": "archive_job"})
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "archive_job"})
         job = self.get_job(uid)
 
         # Ignore cost and dummy queries
@@ -415,23 +390,34 @@ class LocalAdminDatabase(AdminDatabase):
                         )
                     except sqlite3.IntegrityError as e:
                         # Because we are in the same context, all previous inserts will be rolled back
+                        ADMINDB_ERROR_COUNTER.add(1, {"operation": "user_key_error"})
                         raise KeyError(f"User with name {user.id.name} already exists.") from e
 
+    @override
+    @db_span("db.users", table="admin-db")
     def users(self) -> list[User]:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "users"})
         with _sqlite_connection(self._db_path) as conn:
             rows = conn.execute("SELECT user_json FROM users").fetchall()
             return [User.model_validate_json(row[0]) for row in rows]
 
+    @override
+    @db_span("db.get_user", table="admin-db")
     def get_user(self, user_name: str, current_conn: sqlite3.Connection | None = None) -> User:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_user"})
         with _sqlite_connection(self._db_path) if current_conn is None else nullcontext(current_conn) as conn:
             row = conn.execute("SELECT user_json FROM users WHERE user_name = ?", (user_name,)).fetchone()
 
             if row is None:
+                ADMINDB_ERROR_COUNTER.add(1, {"operation": "user_key_error"})
                 raise KeyError(f"No user with name {user_name}.")
 
             return User.model_validate_json(row[0])
 
+    @override
+    @db_span("db.replace_user", table="admin-db")
     def replace_user(self, user: User, current_conn: sqlite3.Connection | None = None) -> None:
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "replace_user"})
         with _sqlite_connection(self._db_path) if current_conn is None else nullcontext(current_conn) as conn:
             cursor = conn.execute(
                 """
@@ -447,8 +433,10 @@ class LocalAdminDatabase(AdminDatabase):
             )
 
             if cursor.rowcount == 0:
+                ADMINDB_ERROR_COUNTER.add(1, {"operation": "user_key_error"})
                 raise KeyError(f"No user with name {user.id.name}")
 
+    @override
     @db_span("db.add_dataset_to_user", table="admin-db")
     def add_dataset_to_user(self, username: str, dataset_name: str, initial_budget: Budget) -> None:
         ADMINDB_INSERT_COUNTER.add(1, {"operation": "add_dataset_to_user"})
@@ -457,6 +445,7 @@ class LocalAdminDatabase(AdminDatabase):
         user.datasets = user.datasets | {dataset_name: ds}
         self.replace_user(user)
 
+    @override
     @db_span("db.del_dataset_to_user", table="admin-db")
     def del_dataset_to_user(self, username: str, dataset_name: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "del_dataset_to_user"})
@@ -464,6 +453,7 @@ class LocalAdminDatabase(AdminDatabase):
         del user.datasets[dataset_name]
         self.replace_user(user)
 
+    @override
     @db_span("db.add_users_via_yaml", table="admin-db")
     def add_users_via_yaml(
         self, yaml_file: Path | BinaryIO | SpooledTemporaryFile, clean: bool, overwrite: bool
@@ -494,8 +484,13 @@ class LocalAdminDatabase(AdminDatabase):
                 yaml_dict = yaml.safe_load(yaml_file.resolve().open(encoding="utf-8"))
             case BinaryIO() | SpooledTemporaryFile():
                 yaml_dict = yaml.safe_load(yaml_file)
-        self.load_users_collection(UserCollection(**yaml_dict).users, overwrite=overwrite)
 
+        user_list = UserCollection(**yaml_dict).users
+        ADMINDB_INSERT_COUNTER.add(len(user_list), {"operation": "add_users_via_yaml"})
+
+        self.load_users_collection(user_list, overwrite=overwrite)
+
+    @override
     @db_span("db.put_user", table="admin-db")
     def put_user(self, user: User) -> None:
         """Add new user in users collection with default values for all fields.
@@ -521,8 +516,10 @@ class LocalAdminDatabase(AdminDatabase):
                     (user.id.name, user.id.email, user.may_query, user.admin, user.model_dump_json()),
                 )
             except sqlite3.IntegrityError as e:
+                ADMINDB_ERROR_COUNTER.add(1, {"operation": "user_key_error"})
                 raise KeyError(f"User with name {user.id.name} already exists.") from e
 
+    @override
     @db_span("db.del_user", table="admin-db")
     def del_user(self, user_name: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "del_user"})
@@ -541,10 +538,12 @@ class LocalAdminDatabase(AdminDatabase):
     @override
     @db_span("db.is_user_admin", table="admin-db")
     def is_user_admin(self, user_name: str) -> bool:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "is_user_admin"})
         with _sqlite_connection(self._db_path) as conn:
             row = conn.execute("SELECT admin FROM users WHERE user_name = ?", (user_name,)).fetchone()
 
             if row is None:
+                ADMINDB_ERROR_COUNTER.add(1, {"operation": "user_key_error"})
                 raise KeyError(f"No user with name {user_name}")
 
             return bool(row[0])
@@ -563,6 +562,7 @@ class LocalAdminDatabase(AdminDatabase):
         user = self.get_user(user_name)
         return getattr(user.datasets[dataset_name], parameter)
 
+    @override
     @db_span("db.set_budget", table="admin-db")
     def set_budget(
         self,
@@ -579,13 +579,12 @@ class LocalAdminDatabase(AdminDatabase):
                 self.replace_user(user, conn)
             except Exception as exc:  # pylint: disable=broad-exception-caught
                 conn.rollback()
-
+                ADMINDB_ERROR_COUNTER.add(1, {"operation": "any_error"})
                 raise exc
 
     # Datasets
     ###########################################################################
 
-    @with_lock
     def load_dataset_collection(self, datasets: list[DSInfo], path_prefix: Path) -> None:
         """Load a list of datasets.
 
@@ -593,11 +592,9 @@ class LocalAdminDatabase(AdminDatabase):
             datasets (list[DSInfo]): A list of dataset info.
             path_prefix (Path): The path prefix to preprend to all paths specified in the dataset infos.
         """
-        with shelve.open(self._shelve_path, writeback=True) as db:
-            # Step 1: add datasets
-            new_datasets = {}
+        with _sqlite_connection(self._db_path) as conn:
             for ds in datasets:
-                # Overwrite path
+                # Step 1: overwrite path
                 if isinstance(ds.dataset_access, DSPathAccess):
                     match ds.dataset_access.path:
                         case HttpUrl():
@@ -611,16 +608,7 @@ class LocalAdminDatabase(AdminDatabase):
                         case Path():
                             ds.metadata_access.path = path_prefix / ds.metadata_access.path
 
-                # Fill datasets_list
-                new_datasets[ds.dataset_name] = ds.model_dump()
-
-            # Add dataset collection
-            if new_datasets:
-                db[TK.DATASETS].update(new_datasets)
-
-            db[TK.METADATA] = {}
-            # Step 2: add metadata collections (one metadata per dataset)
-            for ds in datasets:
+                # Step 2: add metadata collections (one metadata per dataset)
                 dataset_name = ds.dataset_name
                 metadata_access = ds.metadata_access
 
@@ -651,16 +639,33 @@ class LocalAdminDatabase(AdminDatabase):
                         raise InternalServerException(
                             f"Unknown metadata_db_type PrivateDatabaseType: {metadata_access.database_type}"
                         )
-                db[TK.METADATA][dataset_name] = TableMetadata.from_dict(metadata_dict).model_dump()
-                logger.info(f"Added metadata of {dataset_name} dataset.")
 
-    @with_lock
+                metadata = TableMetadata.from_dict(metadata_dict)
+                # Step 3: add to database
+                try:
+                    conn.execute(
+                        """
+                        INSERT INTO datasets
+                        (dataset_name, dataset_json, metadata_json)
+                        VALUES (?, ?, ?)
+                        """,
+                        (dataset_name, ds.model_dump_json(), metadata.model_json_dump()),
+                    )
+                except sqlite3.IntegrityError as e:
+                    # Because we are in the same context, all previous inserts will be rolled back
+                    ADMINDB_ERROR_COUNTER.add(1, {"operation": "dataset_key_error"})
+                    raise KeyError(f"Dataset with name {dataset_name} already exists.") from e
+
+    @override
+    @db_span("db.datasets", table="admin-db")
     def datasets(self) -> list[DSInfo]:
-        with shelve.open(self._shelve_path, flag="r") as db:
-            return list(map(DSInfo.model_validate, db.get(TK.DATASETS, {}).values()))
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "datasets"})
+        with _sqlite_connection(self._db_path) as conn:
+            rows = conn.execute("SELECT dataset_json FROM datasets").fetchall()
+            return [DSInfo.model_validate_json(row[0]) for row in rows]
 
+    @override
     @db_span("db.add_datasets_via_yaml", table="admin-db")
-    @with_lock
     def add_datasets_via_yaml(
         self,
         yaml_file: Path | BinaryIO | SpooledTemporaryFile,
@@ -683,17 +688,20 @@ class LocalAdminDatabase(AdminDatabase):
             None
         """
         if clean:
-            self.drop_collection("datasets")
+            self.drop_collection(TK.DATASETS)
 
         match yaml_file:
             case Path():
                 yaml_dict = yaml.safe_load(yaml_file.resolve().open(encoding="utf-8"))
             case BinaryIO() | SpooledTemporaryFile():
                 yaml_dict = yaml.safe_load(yaml_file)
-        self.load_dataset_collection(DatasetsCollection(**yaml_dict).datasets, path_prefix)
 
+        datasets = DatasetsCollection(**yaml_dict).datasets
+        ADMINDB_INSERT_COUNTER.add(len(datasets), {"operation": "add_datasets_via_yaml"})
+        self.load_dataset_collection(datasets, path_prefix)
+
+    @override
     @db_span("db.add_dataset", table="admin-db")
-    @with_lock
     def add_dataset(
         self,
         dataset_name: str,
@@ -799,49 +807,64 @@ class LocalAdminDatabase(AdminDatabase):
 
         # Step 3: Validate
         ds_info = DSInfo.model_validate(dataset)
-        validated_dataset = ds_info.model_dump()
-        validated_metadata = TableMetadata.from_dict(metadata_dict).model_dump()
+        ds_metadata = TableMetadata.from_dict(metadata_dict)
 
         # Step 4: Insert into db
-        with shelve.open(self._shelve_path, writeback=True) as db:
-            db[TK.DATASETS][ds_info.dataset_name] = validated_dataset
-            db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
-            db.sync()
+        with _sqlite_connection(self._db_path) as conn:
+            conn.execute(
+                "INSERT INTO datasets (dataset_name, dataset, metadata) VALUES (?, ?, ?)",
+                (ds_info.dataset_name, ds_info.model_dump_json(), ds_metadata.model_dump_json()),
+            )
 
+    @override
     @db_span("db.delete_dataset", table="admin-db")
-    @with_lock
     def del_dataset(self, dataset_name: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "delete_dataset"})
-        with shelve.open(self._shelve_path, writeback=True) as db:
-            del db[TK.DATASETS][dataset_name]
+        with _sqlite_connection(self._db_path) as conn:
+            conn.execute("DELETE FROM datasets WHERE dataset_name = ?", (dataset_name,))
 
     @override
     @db_span("db.does_dataset_exist", table="admin-db")
-    @with_lock
     def does_dataset_exist(self, dataset_name: str) -> bool:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "does_dataset_exist"})
-        return dataset_name in map(lambda ds: ds.dataset_name, self.datasets())
+        with _sqlite_connection(self._db_path) as conn:
+            row = conn.execute("SELECT 1 FROM datasets WHERE dataset_name = ?", (dataset_name,)).fetchone()
+
+            return row is not None
 
     @override
     @db_span("db.get_dataset", table="admin-db")
-    @with_lock
     def get_dataset(self, dataset_name: str) -> DSInfo:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_dataset"})
-        with shelve.open(self._shelve_path, flag="r") as db:
-            dataset = db[TK.DATASETS][dataset_name]
-            return DSInfo.model_validate(dataset)
+
+        with _sqlite_connection(self._db_path) as conn:
+            row = conn.execute(
+                "SELECT dataset_json FROM datasets WHERE dataset_name = ?", (dataset_name,)
+            ).fetchone()
+
+            if row is None:
+                ADMINDB_ERROR_COUNTER.add(1, {"operation": "dataset_key_error"})
+                raise KeyError(f"No dataset with name {dataset_name}.")
+
+        return DSInfo.model_validate(row[0])
 
     @override
     @db_span("db.get_dataset_metadata", table="admin-db")
-    @with_lock
     def get_dataset_metadata(self, dataset_name: str) -> TableMetadata:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_dataset_metadata"})
-        with shelve.open(self._shelve_path, flag="r") as db:
-            metadata = db.get(TK.METADATA, {}).get(dataset_name)
-            return TableMetadata.model_validate(metadata)
+        with _sqlite_connection(self._db_path) as conn:
+            row = conn.execute(
+                "SELECT metadata_json FROM datasets WHERE dataset_name = ?", (dataset_name,)
+            ).fetchone()
 
+            if row is None:
+                ADMINDB_ERROR_COUNTER.add(1, {"operation": "dataset_key_error"})
+                raise KeyError(f"No dataset with name {dataset_name}.")
+
+            return TableMetadata.model_validate(row[0])
+
+    @override
     @db_span("db.set_dataset_metadata", table="admin-db")
-    @with_lock
     def set_dataset_metadata(self, dataset_name: str, json_file: UploadFile) -> None:
         ADMINDB_INSERT_COUNTER.add(1, {"operation": "set_dataset_metadata"})
         json_file.seek(0)
@@ -850,49 +873,59 @@ class LocalAdminDatabase(AdminDatabase):
             content = content.decode("utf-8")
         metadata_dict = json.loads(content)
         validated_metadata = TableMetadata.from_dict(metadata_dict).model_dump()
-        with shelve.open(self._shelve_path, writeback=True) as db:
-            db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
+
+        with _sqlite_connection(self._db_path) as conn:
+            cursor = conn.execute(
+                """
+                UPDATE datasets
+                SET
+                    metadata_json = ?
+                WHERE dataset_name = ?
+                """,
+                (dataset_name, validated_metadata),
+            )
+            if cursor.rowcount == 0:
+                ADMINDB_ERROR_COUNTER.add(1, {"operation": "dataset_key_error"})
+                raise KeyError(f"No dataset with name {dataset_name}")
 
     # Other
     ###########################################################################
 
+    @override
     @db_span("db.drop_collection", table="admin-db")
-    @with_lock
     def drop_collection(self, collection: TK) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "drop_collection"})
 
-        match collection:
-            case TK.USERS:
-                with _sqlite_connection(self._db_path) as conn:
+        with _sqlite_connection(self._db_path) as conn:
+            match collection:
+                case TK.USERS:
                     conn.execute("DELETE FROM users")
-            case TK.JOBS:
-                with _sqlite_connection(self._db_path) as conn:
+                case TK.JOBS:
                     conn.execute("DELETE FROM jobs")
-            case TK.ARCHIVE:
-                with _sqlite_connection(self._archives_db_path) as conn:
+                case TK.ARCHIVE:
                     conn.execute("DELETE FROM archives")
-            case TK.MISC_KEYS:
-                with _sqlite_connection(self._misc_db_path) as conn:
+                case TK.MISC_KEYS:
                     conn.execute("DELETE FROM misc")
-            case _:
-                # Handle shelve stuff.
-                with shelve.open(self._shelve_path, writeback=True) as db:
-                    if collection in db:
-                        del db[collection]
+                case TK.DATASETS:
+                    conn.execute("DELETE FROM datasets")
 
-        self._set_defaults()
+        self._init_sqlite_dbs()
 
     @override
+    @db_span("db.set_bootstrap", table="admin-db")
     def set_bootstrap(self, bootstrap: str) -> None:
-        with _sqlite_connection(self._misc_db_path) as conn:
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "set_bootstrap"})
+        with _sqlite_connection(self._db_path) as conn:
             conn.execute(
                 "UPDATE misc SET value = ?, disabled = ? WHERE name = ?",
                 (bootstrap, int(False), MiscDBKeys.BOOTSTRAP),
             )
 
     @override
+    @db_span("db.get_bootstrap", table="admin-db")
     def get_bootstrap(self) -> str | None:
-        with _sqlite_connection(self._misc_db_path) as conn:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_bootstrap"})
+        with _sqlite_connection(self._db_path) as conn:
             row = conn.execute("SELECT value FROM misc WHERE name = ?", (MiscDBKeys.BOOTSTRAP,)).fetchone()
             match row:
                 case (bootstrap_key, *_):
@@ -900,19 +933,24 @@ class LocalAdminDatabase(AdminDatabase):
                 case None:
                     return None
                 case _:
+                    ADMINDB_ERROR_COUNTER.add(1, {"operation": "invalid_misc_value_return"})
                     raise InternalServerException("Invalid Query Returns")
 
     @override
+    @db_span("db.set_bootstrap_disabled", table="admin-db")
     def set_bootstrap_disabled(self, bootstrap_disabled: bool = True) -> None:
-        with _sqlite_connection(self._misc_db_path) as conn:
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "set_bootstrap_disabled"})
+        with _sqlite_connection(self._db_path) as conn:
             conn.execute(
                 "UPDATE misc SET disabled = ? WHERE name = ?",
                 (int(bootstrap_disabled), MiscDBKeys.BOOTSTRAP),
             )
 
     @override
+    @db_span("db.get_bootstrap_disabled", table="admin-db")
     def get_bootstrap_disabled(self) -> bool:
-        with _sqlite_connection(self._misc_db_path) as conn:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_bootstrap_disabled"})
+        with _sqlite_connection(self._db_path) as conn:
             row = conn.execute("SELECT disabled FROM misc WHERE name = ?", (MiscDBKeys.BOOTSTRAP,)).fetchone()
             match row:
                 case (disabled_int, *_):
@@ -920,4 +958,5 @@ class LocalAdminDatabase(AdminDatabase):
                 case None:
                     return False
                 case _:
+                    ADMINDB_ERROR_COUNTER.add(1, {"operation": "invalid_misc_value_return"})
                     raise InternalServerException("Invalid Query Returns")

@@ -203,6 +203,14 @@ in
     # Too many unrelated (3party dep warnings for now)
     # PYTHONWARNDEFAULTENCODING = 1;
 
+    # Config for sqlite backup (S3)
+    LOMAS_SERVER_backup__uri =
+      with config.lomas.garage;
+      "http://${keyId}:${secretKey}@${host}:${toString port}/bucket/backup";
+
+    AWS_REQUEST_CHECKSUM_CALCULATION = "when_required";
+    AWS_RESPONSE_CHECKSUM_VALIDATION = "when_required";
+
     # Lomas Runtime
     LOMAS_SERVER_log_level = "INFO";
     LOMAS_SERVER_lomas_log_level = "DEBUG";

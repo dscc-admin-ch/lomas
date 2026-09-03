@@ -1,11 +1,15 @@
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
+from urllib.parse import unquote
 
 from pydantic import (
+    AnyUrl,
     BaseModel,
     Field,
     HttpUrl,
+    UrlConstraints,
     computed_field,
+    model_validator,
 )
 from pydantic_core import Url
 from pydantic_settings import CLI_SUPPRESS, BaseSettings, SettingsConfigDict
@@ -30,6 +34,68 @@ class S3CredentialsConfig(PrivateDBCredentials):
     credentials_name: str
     access_key_id: str
     secret_access_key: str
+
+
+class BackupS3Config(BaseModel):
+    """S3 destination for admin database backups."""
+
+    uri: Annotated[
+        AnyUrl,
+        UrlConstraints(allowed_schemes=["http", "https", "aws", "s3"]),
+    ]
+
+    @model_validator(mode="after")
+    def check_uri_content(self) -> Self:
+        if self.uri.username is None:
+            raise ValueError("Backup S3 uri is missing access_key_id.")
+        if self.uri.password is None:
+            raise ValueError("Backup S3 uri is missing secret_access_key.")
+
+        path = (self.uri.path or "").lstrip("/")
+        bucket, _, _ = path.partition("/")
+        if not bucket:
+            raise ValueError("Backup S3 uri is missing a bucket name.")
+        return self
+
+    @computed_field
+    def access_key_id(self) -> str:
+        return unquote(self.uri.username)
+
+    @computed_field
+    def secret_access_key(self) -> str:
+        return unquote(self.uri.password)
+
+    @computed_field
+    def endpoint_url(self) -> str:
+        port = f":{self.uri.port}" if self.uri.port else ""
+        return f"{self.uri.scheme}://{self.uri.host}{port}"
+
+    @computed_field
+    def bucket(self) -> str:
+        path = (self.uri.path or "").lstrip("/")
+        bucket, _, _ = path.partition("/")
+        return bucket
+
+    @computed_field
+    def key_prefix(self) -> str:
+        path = (self.uri.path or "").lstrip("/")
+        _, _, prefix = path.partition("/")
+        return f"{prefix.rstrip('/')}/" if prefix else "lomas-backups/"
+
+
+class LocalBackupConfig(BaseModel):
+    """Local destination for admin database backups."""
+
+    @model_validator(mode="after")
+    def is_absolute(self) -> Self:
+        if not self.local_directory.is_absolute():
+            raise ValueError("Use an absolute path.")
+        return self
+
+    local_directory: Path
+
+
+BackupConfig = LocalBackupConfig | BackupS3Config
 
 
 class DexAdminConfig(BaseModel):
@@ -97,6 +163,8 @@ class ServerConfig(Config):
     database_directory: Path = Field(default=Path("/tmp/lomas-db"))
 
     clean_admin_database: bool = Field(default=False)
+
+    backup: BackupConfig = Field(default=LocalBackupConfig(local_directory="/tmp/lomas-backups"))
 
     data_directory: Path = Field(default=Path("../data"))
 

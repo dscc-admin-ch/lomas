@@ -19,3 +19,51 @@ spec:
       storage: {{ .Values.server.pvc.db.sizeLimit | quote }}
     requests:
       storage: {{ .Values.server.pvc.db.sizeRequest | quote }}
+---
+{{- if .Values.server.pvc.data.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "lomas.server.dataPVCName" . }}
+  labels:
+    {{- include "lomas.server.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.server.pvc.data.persistence.resourcePolicy }}
+    "helm.sh/resource-policy": {{ .Values.server.pvc.data.persistence.resourcePolicy }}
+    {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.server.pvc.data.accessMode }}
+  {{- if .Values.server.pvc.data.storageClassName }}
+  storageClassName: {{ .Values.server.pvc.data.storageClassName | quote }}
+  {{- end }}
+  resources:
+    limits:
+      storage: {{ .Values.server.pvc.data.sizeLimit | quote }}
+    requests:
+      storage: {{ .Values.server.pvc.data.sizeRequest | quote }}
+{{- end }}
+---
+{{- if .Values.server.pvc.backup.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "lomas.server.backupPVCName" . }}
+  labels:
+    {{- include "lomas.server.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.server.pvc.backup.persistence.resourcePolicy }}
+    "helm.sh/resource-policy": {{ .Values.server.pvc.backup.persistence.resourcePolicy }}
+    {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.server.pvc.backup.accessMode }}
+  {{- if .Values.server.pvc.backup.storageClassName }}
+  storageClassName: {{ .Values.server.pvc.backup.storageClassName | quote }}
+  {{- end }}
+  resources:
+    limits:
+      storage: {{ .Values.server.pvc.backup.sizeLimit | quote }}
+    requests:
+      storage: {{ .Values.server.pvc.backup.sizeRequest | quote }}
+{{- end }}

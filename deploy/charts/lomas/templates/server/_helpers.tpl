@@ -37,6 +37,9 @@ app.kubernetes.io/component: {{ include "lomas.worker.name" . }}
 {{- define "lomas.server.dataPVCName" -}}
 {{- printf "%s-%s" (include "lomas.server.fullname" .) "data" }}
 {{- end}}
+{{- define "lomas.server.backupPVCName" -}}
+{{- printf "%s-%s" (include "lomas.server.fullname" .) "backup" }}
+{{- end}}
 {{- define "lomas.server.dbPVCName" -}}
 {{- printf "%s-%s" (include "lomas.server.fullname" .) "db" }}
 {{- end}}
@@ -76,6 +79,24 @@ app.kubernetes.io/component: {{ include "lomas.worker.name" . }}
         {{- printf "%s" (tpl .Values.server.runtime_args.worker_api_key.existingKey $) -}}
     {{- else -}}
         {{- printf "worker_api_key" -}}
+    {{- end -}}
+{{- end -}}
+
+{{/* s3 backup uri secret */}}
+{{- define "lomas.server.s3BackupUriSecretName" -}}
+{{- $secretName := .Values.server.runtime_args.s3Backup.uri.existingSecret -}}
+{{- if $secretName -}}
+    {{- printf "%s" (tpl $secretName $) -}}
+{{- else -}}
+    {{- printf "%s-server-s3-backup-uri-secret" (include "lomas.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "lomas.server.s3BackupUriSecretKey" -}}
+    {{- if and .Values.server.runtime_args.s3Backup.uri.existingSecret .Values.server.runtime_args.s3Backup.uri.existingKey -}}
+        {{- printf "%s" (tpl .Values.server.runtime_args.s3Backup.uri.existingKey $) -}}
+    {{- else -}}
+        {{- printf "s3-backup-uri" -}}
     {{- end -}}
 {{- end -}}
 

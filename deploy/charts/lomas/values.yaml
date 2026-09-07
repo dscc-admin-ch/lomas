@@ -60,6 +60,12 @@ server:
       query_userinfo: true
       authentication_type: oidc
     clean_admin_database: false # careful!
+    s3Backup:
+      enable: false # If not enabled, local path backup will be enabled (see pvc.backup)
+      uri:
+        existingSecret: ""
+        existingSecretKey: ""
+        value: ""
   pvc:
     db: # used for sqlite admin db
       storageClassName: "" # is not set if empty string
@@ -70,9 +76,19 @@ server:
         # If set to "keep", sets the helm/resource-policy of the pvc to keep,
         # so that the pvc is not deleted across reinstalls.
         resourcePolicy: ""
+    backup: # used for local database backups
+      enabled: true
+      storageClassName: "" # is not set if empty string
+      sizeLimit: 2Gi
+      sizeRequest: 1Gi
+      accessMode: "ReadWriteOnce"
+      persistence:
+        # If set to "keep", sets the helm/resource-policy of the pvc to keep,
+        # so that the pvc is not deleted across reinstalls.
+        resourcePolicy: ""
     data: # used for storing data (e.g. csv), mounted to /data at both server and worker.
       enabled: true
-      storageClassName: "nas-ssd-encrypt" # is not set if empty string
+      storageClassName: "" # is not set if empty string
       sizeLimit: 2Gi
       sizeRequest: 1Gi
       accessMode: "ReadWriteMany"

@@ -23,9 +23,10 @@ from lomas_core.models.responses import (
 )
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.local_database import LocalAdminDatabase
-from lomas_server.models.responses import ConfigResponse
+from lomas_server.models.responses import BackupResponse, ConfigResponse
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES
 from lomas_server.routes.utils import get_user_id_from_authenticator
+from lomas_server.utils.backup_storage import store_backup
 
 router = APIRouter()
 example_get_admin_db_data_body = Body(EXAMPLE_GET_ADMIN_DB_DATA)
@@ -344,6 +345,21 @@ def set_dataset_metadata_admin(
         raise DatasetNotFoundException(dataset_name)
 
     db.set_dataset_metadata(dataset_name, file.file)
+
+
+@router.get("/backup", responses=API_ERROR_RESPONSES)
+def backup_admin_database(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+) -> BackupResponse:
+
+    db: LocalAdminDatabase = request.app.state.admin_database
+    config = request.app.state.config
+
+    data = db.backup()
+    destination = store_backup(data, db.backup_filename(), config.database_directory, config.backup)
+
+    return BackupResponse(location=destination.location, is_s3=destination.is_s3, size_bytes=len(data))
 
 
 @router.get("/bootstrap", responses=API_ERROR_RESPONSES)

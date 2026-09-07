@@ -1,8 +1,13 @@
 import io
+import os
 import re
+import sqlite3
 import sys
+import tempfile
 import time
+import zipfile
 from dataclasses import dataclass
+from pathlib import Path
 from urllib.parse import urljoin
 
 import numpy as np
@@ -15,7 +20,9 @@ from authlib.integrations.base_client.errors import OAuthError
 from bs4 import BeautifulSoup
 from csvw_eo.constants import COL_NAME, TABLE_SCHEMA
 from diffprivlib import models
+from fastapi.testclient import TestClient
 from opendp.mod import enable_features
+from pydantic import ValidationError
 from sklearn.pipeline import Pipeline
 
 from lomas_client import Client
@@ -27,7 +34,8 @@ from lomas_server.administration.dex.dex_admin import (
     del_all_dex_users,
 )
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
-from lomas_server.models.config import AdminConfig, ServerConfig
+from lomas_server.app import get_admin_app
+from lomas_server.models.config import AdminConfig, BackupS3Config, LocalBackupConfig, ServerConfig
 
 enable_features("contrib")
 
@@ -415,3 +423,85 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
     assert response_archives is not None
     assert response_archives.epsilon == DEFAULT_EPSILON
     assert response_archives.delta == pytest.approx(0.0, abs=0.1)
+
+
+def test_backup():
+    # With S3
+    config = ServerConfig()
+    config.database.wipe()
+    config.database.set_bootstrap(config.bootstrap)
+
+    with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
+        response = client.get("/backup")
+        body = response.json()
+        assert body["is_s3"] is True
+        assert body["location"].startswith("s3://")
+
+    # Raise an error if uri isn't correctly defined
+    # For instance missing user:password / bucket_name, etc.
+    with pytest.raises(ValidationError):
+        ServerConfig(backup=BackupS3Config(uri="https://localhost:3900/bucket"))
+
+    # With local_directory setup
+    config = ServerConfig(backup=LocalBackupConfig(local_directory="/tmp/lomas-custom-backups"))
+    with TestClient(get_admin_app(config), headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
+        # Create one query to test backup content
+        lomas_demo_setup()
+        user_name = "Jack"
+        client_u = Client(
+            user_name=f"{user_name}@example.com", user_password=user_name.lower(), dataset_name="TITANIC"
+        )
+
+        context = client_u.get_context(epsilon=DEFAULT_EPSILON)
+        plan = context.query().select(pl.col("Age").dp.mean(bounds=(0, 120)), dp.len())
+        client_u.opendp.query(plan, epsilon=DEFAULT_EPSILON)
+
+        # Backup bew db state
+        response = client.get("/backup")
+        body = response.json()
+
+        # Check if custom location works
+        assert body["is_s3"] is False
+        assert body["location"].startswith("/tmp/lomas-custom-backups/")
+        assert os.path.exists(body["location"])
+
+        # Test that we have correct tables saved in backup
+        # Load each sqlite db out of the backup zip and check its tables
+        backup_path = Path(body["location"])
+        expected_tables_by_file = {
+            "db.sqlite3": {"jobs", "users", "misc", "datasets"},
+            "archives.sqlite3": {"archives"},
+        }
+
+        with zipfile.ZipFile(backup_path) as archive, tempfile.TemporaryDirectory() as extract_dir:
+            assert set(archive.namelist()) == set(expected_tables_by_file)
+
+            for filename, expected_tables in expected_tables_by_file.items():
+                db_path = Path(extract_dir) / filename
+                db_path.write_bytes(archive.read(filename))
+
+                conn = sqlite3.connect(db_path)
+                try:
+                    # Check tables are correctly saved in each db
+                    tables = {
+                        row[0]
+                        for row in conn.execute(
+                            "SELECT name FROM sqlite_master WHERE type='table'"
+                        ).fetchall()
+                    }
+
+                    # Check that the client query is saved in backup
+                    if tables == {"archives"}:
+                        row = conn.execute(
+                            "SELECT uid, user_name, dataset_name, status FROM archives;"
+                        ).fetchone()
+
+                        assert row[1] == user_name
+                        assert row[2] == "TITANIC"
+                        assert row[3] == "complete"
+
+                finally:
+                    conn.close()
+                assert tables == expected_tables, (
+                    f"{filename} table mismatch: extra={tables - expected_tables}, missing={expected_tables - tables}"
+                )

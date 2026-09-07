@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import boto3
+from botocore.config import Config as config_botocore_S3
 
 from lomas_core.models.constants import get_lomas_logger
 from lomas_server.models.config import BackupConfig, BackupS3Config, LocalBackupConfig
@@ -55,6 +56,10 @@ def _store_backup_s3(data: bytes, filename: str, s3_config: BackupS3Config) -> B
         endpoint_url=str(s3_config.endpoint_url) if s3_config.endpoint_url else None,
         aws_access_key_id=s3_config.access_key_id,
         aws_secret_access_key=s3_config.secret_access_key,
+        config=config_botocore_S3(
+            request_checksum_calculation="when_required",
+            response_checksum_validation="when_required",
+        ),
     )
     client.put_object(Bucket=s3_config.bucket, Key=key, Body=data)
 

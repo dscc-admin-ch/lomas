@@ -67,8 +67,7 @@ class BackupS3Config(BaseModel):
 
     @computed_field
     def endpoint_url(self) -> str:
-        port = f":{self.uri.port}" if self.uri.port else ""
-        return f"{self.uri.scheme}://{self.uri.host}{port}"
+        return str(HttpUrl.build(scheme=self.uri.scheme, host=self.uri.host, port=self.uri.port))
 
     @computed_field
     def bucket(self) -> str:

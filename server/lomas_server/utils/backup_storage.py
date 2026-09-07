@@ -36,7 +36,7 @@ def store_backup(
             return _store_backup_local(
                 data,
                 filename,
-                backup_config.local_directory or (database_directory / "backups"),  # type: ignore [truthy-bool]
+                backup_config.local_directory,
             )
 
 
@@ -53,7 +53,7 @@ def _store_backup_s3(data: bytes, filename: str, s3_config: BackupS3Config) -> B
 
     client = boto3.client(
         "s3",
-        endpoint_url=str(s3_config.endpoint_url) if s3_config.endpoint_url else None,
+        endpoint_url=str(s3_config.endpoint_url),
         aws_access_key_id=s3_config.access_key_id,
         aws_secret_access_key=s3_config.secret_access_key,
         config=config_botocore_S3(

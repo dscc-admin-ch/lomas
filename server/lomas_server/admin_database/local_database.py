@@ -1001,7 +1001,7 @@ class LocalAdminDatabase(AdminDatabase):
             with zipfile.ZipFile(buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
                 for src_path in self._sqlite_paths_to_backup():
                     if not src_path.exists():
-                        # If nothing writtenm, we don't save
+                        # If nothing written, we don't save
                         continue
 
                     snapshot_path = tmp_path / src_path.name

@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import time
+from collections.abc import Callable
 from functools import partial
 from typing import Any
 
@@ -11,10 +12,9 @@ from fastapi import status
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from returns.functions import raise_exception
-from returns.result import Failure, Success
+from returns.result import Failure, ResultE, Success
 from rich.progress import BarColumn, Progress, SpinnerColumn, TimeElapsedColumn
 
-from lomas_core.exceptions import InternalServerException
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.collections import (
     DSInfo,
@@ -22,6 +22,7 @@ from lomas_core.models.collections import (
 )
 from lomas_core.models.constants import JobStatus, LomasHeaders, get_lomas_logger, init_logging
 from lomas_core.models.requests import (
+    AnyLomasRequest,
     CostQueryModel,
     DiffPrivLibRequestModel,
     DummyQueryModel,
@@ -30,6 +31,7 @@ from lomas_core.models.requests import (
     SmartnoiseSQLRequestModel,
 )
 from lomas_core.models.responses import (
+    AnyLomasQueryResponse,
     Budget,
     CostResponse,
     Job,
@@ -112,10 +114,9 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
     logger.debug("Handling query.")
 
     try:
-        query_model = job.query
-        assert query_model is not None
-        user_name = job.requested_by
-        assert user_name is not None
+        assert job.query is not None  # type narrowing
+        query_model: AnyLomasRequest = job.query
+        user_name: str = job.requested_by
 
         if isinstance(query_model, DummyQueryModel):
             data_connector = get_dummy_dataset_for_query(admin_database, query_model)
@@ -125,6 +126,7 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
             )
 
         dp_querier: DPQuerier
+        query_response: AnyLomasQueryResponse
         match query_model:
             case SmartnoiseSQLRequestModel():
                 dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
@@ -132,10 +134,6 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
                 dp_querier = OpenDPQuerier(data_connector, admin_database)
             case DiffPrivLibRequestModel():
                 dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
-            case _:
-                raise InternalServerException(f"Library not supported: {query_model.library}")
-
-        match query_model:
             case CostQueryModel():
                 budget_cost = dp_querier.cost(query_model)
                 query_response = CostResponse(epsilon=budget_cost.epsilon, delta=budget_cost.delta)
@@ -170,7 +168,32 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
         return job
 
 
-async def process_message(config: WorkerConfig) -> None:
+def get_next_job(config: WorkerConfig) -> ResultE[str | None]:
+    return query_lomas(
+        "/w/job/pending",
+        httpx2.get,
+        host=config.admin_api,
+        headers={LomasHeaders.APIKEY: config.worker_api_key},
+    )
+
+
+def process_post_job(config: WorkerConfig, job_done: Job) -> ResultE[str | None]:
+    return query_lomas(
+        "/w/job",
+        httpx2.put,
+        host=config.admin_api,
+        headers={LomasHeaders.APIKEY: config.worker_api_key},
+        json=job_done.model_dump(
+            exclude_unset=True, mode="json"
+        ),  # Requires json mode to make UUID (not json serializable) into str.
+    )
+
+
+async def process_message(
+    config: WorkerConfig,
+    get_next_job: Callable[[WorkerConfig], ResultE[str | None]] = get_next_job,
+    process_post_job: Callable[[WorkerConfig, Job], ResultE[str | None]] = process_post_job,
+) -> None:
     """General Job processing loop."""
     with contextlib.ExitStack() as stack:
         consecutive_sleep = 0
@@ -185,13 +208,7 @@ async def process_message(config: WorkerConfig) -> None:
             consecutive_sleep += 1
             await asyncio.sleep(2)
 
-            res = query_lomas(
-                "/w/job/pending",
-                httpx2.get,
-                host=config.admin_api,
-                headers={LomasHeaders.APIKEY: config.worker_api_key},
-            )
-            match res:
+            match get_next_job(config):
                 case Success(None):
                     if not config.tui:
                         logger.debug("No pending Jobs - Waiting")
@@ -211,15 +228,8 @@ async def process_message(config: WorkerConfig) -> None:
                     if job_done.status == JobStatus.FAILED:
                         job_progress.update(task_id, description="[red]FAILED")
 
-                    res = query_lomas(
-                        "/w/job",
-                        httpx2.put,
-                        host=config.admin_api,
-                        headers={LomasHeaders.APIKEY: config.worker_api_key},
-                        json=job_done.model_dump(
-                            exclude_unset=True, mode="json"
-                        ),  # Requires json mode to make UUID (not json serializable) into str.
-                    )
+                    process_post_job(config, job_done)
+
                     consecutive_sleep = 0
                 case Failure(e):
                     logger.warning(str(e))

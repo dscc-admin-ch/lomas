@@ -4,7 +4,7 @@ import sqlite3
 import zipfile
 from collections.abc import Generator
 from contextlib import AbstractContextManager, closing, contextmanager, nullcontext
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from tempfile import SpooledTemporaryFile, TemporaryDirectory
 from typing import Any, BinaryIO, override

@@ -179,7 +179,7 @@ class WorkerConfig(Config):
 
     @computed_field
     def admin_api(self) -> HttpUrl:
-        return HttpUrl(url=f"http://{self.server_host_addr}:{self.admin_host_port}")
+        return HttpUrl.build(scheme="http", host=self.server_host_addr, port=self.admin_host_port)
 
 
 class AdminConfig(BaseSettings):

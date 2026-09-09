@@ -134,6 +134,8 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
                 dp_querier = OpenDPQuerier(data_connector, admin_database)
             case DiffPrivLibRequestModel():
                 dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
+
+        match query_model:
             case CostQueryModel():
                 budget_cost = dp_querier.cost(query_model)
                 query_response = CostResponse(epsilon=budget_cost.epsilon, delta=budget_cost.delta)

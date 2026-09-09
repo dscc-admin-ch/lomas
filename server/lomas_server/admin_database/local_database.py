@@ -237,24 +237,28 @@ class LocalAdminDatabase(AdminDatabase):
         return Job.model_validate_json(row[0])
 
     @db_span("db.expire_jobs", table="admin-db")
-    def expire_jobs(self, delay: timedelta = timedelta(minutes=3)) -> None:
+    def expire_jobs(self, delay: timedelta = timedelta(minutes=3)) -> list[UUID]:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "exipre_jobs"})
 
         with _sqlite_connection(self._db_path) as conn:
             rows = conn.execute(
                 """
                 UPDATE jobs
-                    SET status = ?
+                SET
+                    status = ?
                 WHERE
                     status = ?
                     AND
                     (unixepoch('now') - started_at) > ?
+                RETURNING uid;
                 """,
                 (str(JobStatus.PENDING), str(JobStatus.IN_PROGRESS), int(delay.total_seconds())),
             ).fetchall()
 
-            for row in rows:
-                logger.debug(f"expiring Job {row[0]}")
+        for row in rows:
+            logger.debug(f"expiring Job {row[0]}")
+
+        return [UUID(row[0]) for row in rows]
 
     @override
     @db_span("db.get_job_pending", table="admin-db")
@@ -267,8 +271,11 @@ class LocalAdminDatabase(AdminDatabase):
             row = conn.execute(
                 """
                 UPDATE jobs
-                    SET status = ?, started_at = unixepoch('now')
-                WHERE status = ?
+                SET
+                    status = ?,
+                    started_at = unixepoch('now')
+                WHERE
+                    status = ?
                 RETURNING job_json
                 ORDER BY created_at
                 LIMIT 1
@@ -281,18 +288,15 @@ class LocalAdminDatabase(AdminDatabase):
 
         return Job.model_validate_json(row[0])
 
-    def get_job_status(self, uid: UUID, current_conn: sqlite3.Connection | None = None) -> JobStatus:
+    def get_job_status(self, uid: UUID, current_conn: sqlite3.Connection | None = None) -> JobStatus | None:
         with _sqlite_connection(self._db_path) if current_conn is None else nullcontext(current_conn) as conn:
             row = conn.execute(
-                """
-                SELECT status FROM jobs
-                WHERE uid = ?
-                """,
+                "SELECT status FROM jobs WHERE uid = ?",
                 (str(uid),),
             ).fetchone()
 
         if row is None:
-            raise KeyError(f"Job with uid {uid} not found.")
+            return None
 
         return JobStatus(row[0])
 
@@ -303,9 +307,12 @@ class LocalAdminDatabase(AdminDatabase):
         with _sqlite_connection(self._db_path) as conn:
             try:
                 conn.execute(
-                    "INSERT INTO jobs "
-                    "(uid, user_name, dataset_name, status, created_at, started_at, job_json) "
-                    "VALUES (?, ?, ?, ?, unixepoch('now'), null, ?)",
+                    """
+                    INSERT INTO jobs
+                        (uid, user_name, dataset_name, status, created_at, started_at, job_json)
+                    VALUES
+                        (?, ?, ?, ?, unixepoch('now'), NULL, ?)
+                    """,
                     (
                         str(job.uid),
                         job.requested_by,

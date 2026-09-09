@@ -213,7 +213,7 @@ def set_query_result(admin_database: LocalAdminDatabase, job_update: Job) -> Non
     with admin_database.get_db_conn() as conn:
         job = admin_database.get_job(job_update.uid, conn)
 
-        if not admin_database.get_job_status(job, conn) == JobStatus.IN_PROGRESS:
+        if not admin_database.get_job_status(job.uid, conn) == JobStatus.IN_PROGRESS:
             raise InvalidQueryException(f"Job with uid {job_update.uid} not in progress anymore")
 
         try:

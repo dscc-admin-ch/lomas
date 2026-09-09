@@ -1,8 +1,10 @@
 import os
 import re
 import socket
+from datetime import timedelta
 from pathlib import Path
 
+import anyio
 import numpy as np
 import pytest
 from fastapi import status
@@ -33,6 +35,7 @@ from lomas_core.models.requests_examples import (
 from lomas_core.models.responses import (
     Budget,
     DummyDsResponse,
+    Job,
     QueryResponse,
 )
 from lomas_server.app import get_user_app
@@ -380,3 +383,37 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
                 + "epsilon remaining 2.0, "
                 + "delta remaining 0.004970000100000034."
             )
+
+    def test_job_timeout(self) -> None:
+        app = get_user_app(self.config)
+        fake_job = Job(requested_by="pytest", dataset_name="test", query=None)
+        expiry_delay = timedelta(seconds=2)
+
+        with TestClient(app, headers=self.headers) as client:
+            db = app.state.admin_database
+            assert db.get_job_pending() is None
+
+            # Add out job by hand
+            db.put_job(fake_job)
+            assert db.get_job_pending() == fake_job
+
+            # Request it similar to worker
+            fake_job.status = JobStatus.IN_PROGRESS
+            db.update_job(fake_job)
+
+            # no longer pending
+            assert db.get_job_pending() is None
+
+            # expiry too soon
+            db.expire_jobs()
+            # didn't do anything
+            assert db.get_job_pending() is None
+
+            # sleep one more second for safety ...
+            client.portal.call(anyio.sleep, expiry_delay.total_seconds() + 1)
+            # force shorter refresh
+            db.expire_jobs(expiry_delay)
+
+            # should be back in there
+            assert db.get_job_pending() is not None
+            assert db.get_job_pending().status == JobStatus.PENDING

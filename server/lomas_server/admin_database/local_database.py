@@ -236,7 +236,7 @@ class LocalAdminDatabase(AdminDatabase):
         return Job.model_validate_json(row[0])
 
     @db_span("db.expire_jobs", table="admin-db")
-    def expire_jobs(self, delay: timedelta = timedelta(seconds=2)) -> list[UUID]:
+    def expire_jobs(self, delay: timedelta = timedelta(minutes=3)) -> list[UUID]:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "exipre_jobs"})
 
         with _sqlite_connection(self._db_path) as conn:

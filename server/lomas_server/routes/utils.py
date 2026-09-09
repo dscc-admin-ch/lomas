@@ -16,6 +16,7 @@ from lomas_core.exceptions import (
 )
 from lomas_core.models.collections import DSPathAccess, DSS3Access, UserId
 from lomas_core.models.constants import (
+    JobResultStatus,
     JobStatus,
     LomasHeaders,
     PrivateDatabaseType,
@@ -212,12 +213,12 @@ def set_query_result(admin_database: LocalAdminDatabase, job_update: Job) -> Non
     with admin_database.get_db_conn() as conn:
         job = admin_database.get_job(job_update.uid, conn)
 
-        if not job.status == JobStatus.IN_PROGRESS:
+        if not admin_database.get_job_status(job, conn) == JobStatus.IN_PROGRESS:
             raise InvalidQueryException(f"Job with uid {job_update.uid} not in progress anymore")
 
         try:
             # Make sure job did not fail
-            if job_update.status == JobStatus.COMPLETE:
+            if job_update.status == JobResultStatus.COMPLETE:
                 # If job fails, goes directly to finally
 
                 # Validate budget
@@ -252,7 +253,7 @@ def set_query_result(admin_database: LocalAdminDatabase, job_update: Job) -> Non
 
             job_update.error = error_model
             job_update.status_code = status_code
-            job_update.status = JobStatus.FAILED
+            job_update.status = JobResultStatus.FAILED
 
             raise exc
         finally:

@@ -51,6 +51,14 @@ class JobStatus(StrEnum):
     COMPLETE = "complete"
 
 
+class JobResultStatus(StrEnum):
+    """Possible job result status."""
+
+    INCOMPLETE = "incomplete"
+    FAILED = "failed"
+    COMPLETE = "complete"
+
+
 class LomasHeaders(StrEnum):
     APIKEY = "x-api-key"
     FORUSER = "x-for-user"

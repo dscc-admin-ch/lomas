@@ -20,7 +20,7 @@ from lomas_core.models.collections import (
     DSInfo,
     User,
 )
-from lomas_core.models.constants import JobStatus, LomasHeaders, get_lomas_logger, init_logging
+from lomas_core.models.constants import JobResultStatus, LomasHeaders, get_lomas_logger, init_logging
 from lomas_core.models.requests import (
     AnyLomasRequest,
     CostQueryModel,
@@ -150,7 +150,7 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
                 query_response = dp_querier.handle_query(query_model, user_name)
 
         job.result = query_response
-        job.status = JobStatus.COMPLETE
+        job.status = JobResultStatus.COMPLETE
         job.status_code = status.HTTP_200_OK
 
         elapsed = time.time() - start_sec
@@ -161,7 +161,7 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
     except Exception as exc:  # pylint: disable=broad-exception-caught
         error_model, status_code = model_from_lomas_exception(exc)
 
-        job.status = JobStatus.FAILED
+        job.status = JobResultStatus.FAILED
         job.error = error_model
         job.status_code = status_code
 
@@ -225,7 +225,7 @@ async def process_message(
 
                     job_done = handle_query(config, Proxy(partial(admin_database_proxy, config)), job)
                     job_progress.update(task_id, completed=1)
-                    if job_done.status == JobStatus.FAILED:
+                    if job_done.status == JobResultStatus.FAILED:
                         job_progress.update(task_id, description="[red]FAILED")
 
                     process_post_job(config, job_done)

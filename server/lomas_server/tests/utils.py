@@ -6,7 +6,7 @@ import httpx2
 from fastapi import status
 from pydantic import JsonValue
 
-from lomas_core.models.constants import AuthenticationType, JobStatus
+from lomas_core.models.constants import AuthenticationType, JobResultStatus
 from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.responses import Job
 
@@ -26,7 +26,7 @@ def wait_for_job(client: httpx2.Client, endpoint: str, headers: dict[str, str] |
     """Periodically query the job endpoint sleeping in between until it completes / times-out."""
     for _ in sleeping_retry(120, error=False):
         job_query = client.get(endpoint, headers=headers).json()
-        if job_query["status"] in {JobStatus.COMPLETE, JobStatus.FAILED}:
+        if job_query["status"] in {JobResultStatus.COMPLETE, JobResultStatus.FAILED}:
             return Job.model_validate(job_query)
 
     raise TimeoutError(f"Job {endpoint} didn't complete in time")
@@ -44,7 +44,7 @@ def submit_job_wait(
             requested_by="",
             dataset_name="",
             query=None,
-            status=JobStatus.FAILED,
+            status=JobResultStatus.FAILED,
             status_code=query_job_submit.status_code,
             error=error,
         )

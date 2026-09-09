@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from lomas_core.exceptions import InvalidQueryException, LomasAPIException
-from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED, JobStatus
+from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED, JobResultStatus
 from lomas_core.models.requests_examples import (
     EXAMPLE_OPENDP_POLARS,
     EXAMPLE_OPENDP_POLARS_COST,
@@ -170,7 +170,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
                 "/opendp_query",
                 json=example_opendp_polars_datetime,
             )
-            assert job.status == JobStatus.FAILED
+            assert job.status == JobResultStatus.FAILED
 
     @pytest.mark.long
     def test_opendp_polars_cost(self) -> None:

@@ -121,7 +121,8 @@ class LocalAdminDatabase(AdminDatabase):
                     user_name TEXT NOT NULL,
                     dataset_name TEXT NOT NULL,
                     status TEXT NOT NULL,
-                    started_at TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    started_at TEXT,
                     job_json TEXT NOT NULL
                 );
                 CREATE INDEX IF NOT EXISTS idx_job_user_name ON jobs(user_name);
@@ -138,10 +139,10 @@ class LocalAdminDatabase(AdminDatabase):
                 BEGIN
                     DELETE FROM jobs
                     WHERE status != 'in_progress'
-                    AND started_at IN (
-                        SELECT started_at FROM jobs
+                    AND created_at IN (
+                        SELECT created_at FROM jobs
                         WHERE status != 'in_progress'
-                        ORDER BY started_at DESC
+                        ORDER BY created_at DESC
                         LIMIT -1 OFFSET 200 -- Keep the 200 newest completed jobs
                     );
                 END;
@@ -156,10 +157,10 @@ class LocalAdminDatabase(AdminDatabase):
                 BEGIN
                     DELETE FROM jobs
                     WHERE status != 'in_progress'
-                    AND started_at IN (
-                        SELECT started_at FROM jobs
+                    AND created_at IN (
+                        SELECT created_at FROM jobs
                         WHERE status != 'in_progress'
-                        ORDER BY started_at DESC
+                        ORDER BY created_at DESC
                         LIMIT -1 OFFSET 200
                     );
                 END;
@@ -236,28 +237,24 @@ class LocalAdminDatabase(AdminDatabase):
         return Job.model_validate_json(row[0])
 
     @db_span("db.expire_jobs", table="admin-db")
-    def expire_jobs(self, delay: timedelta = timedelta(minutes=3)) -> list[UUID]:
+    def expire_jobs(self, delay: timedelta = timedelta(minutes=3)) -> None:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "exipre_jobs"})
 
         with _sqlite_connection(self._db_path) as conn:
             rows = conn.execute(
                 """
                 UPDATE jobs
-                SET
-                    status = ?
+                    SET status = ?
                 WHERE
                     status = ?
                     AND
                     (unixepoch('now') - started_at) > ?
-                RETURNING uid;
                 """,
                 (str(JobStatus.PENDING), str(JobStatus.IN_PROGRESS), int(delay.total_seconds())),
             ).fetchall()
 
-        for row in rows:
-            logger.debug(f"expiring Job {row[0]}")
-
-        return [UUID(row[0]) for row in rows]
+            for row in rows:
+                logger.debug(f"expiring Job {row[0]}")
 
     @override
     @db_span("db.get_job_pending", table="admin-db")
@@ -268,14 +265,36 @@ class LocalAdminDatabase(AdminDatabase):
 
         with _sqlite_connection(self._db_path) as conn:
             row = conn.execute(
-                "SELECT job_json FROM jobs WHERE status = ? ORDER BY started_at LIMIT 1",
-                (str(JobStatus.PENDING),),
+                """
+                UPDATE jobs
+                    SET status = ?, started_at = unixepoch('now')
+                WHERE status = ?
+                RETURNING job_json
+                ORDER BY created_at
+                LIMIT 1
+                """,
+                (str(JobStatus.IN_PROGRESS), str(JobStatus.PENDING)),
             ).fetchone()
 
         if row is None:
             return None
 
         return Job.model_validate_json(row[0])
+
+    def get_job_status(self, uid: UUID, current_conn: sqlite3.Connection | None = None) -> JobStatus:
+        with _sqlite_connection(self._db_path) if current_conn is None else nullcontext(current_conn) as conn:
+            row = conn.execute(
+                """
+                SELECT status FROM jobs
+                WHERE uid = ?
+                """,
+                (str(uid),),
+            ).fetchone()
+
+        if row is None:
+            raise KeyError(f"Job with uid {uid} not found.")
+
+        return JobStatus(row[0])
 
     @override
     @db_span("db.put_job", table="admin-db")
@@ -285,13 +304,13 @@ class LocalAdminDatabase(AdminDatabase):
             try:
                 conn.execute(
                     "INSERT INTO jobs "
-                    "(uid, user_name, dataset_name, status, started_at, job_json) "
-                    "VALUES (?, ?, ?, ?, unixepoch('now'), ?)",
+                    "(uid, user_name, dataset_name, status, created_at, started_at, job_json) "
+                    "VALUES (?, ?, ?, ?, unixepoch('now'), null, ?)",
                     (
                         str(job.uid),
                         job.requested_by,
                         job.dataset_name,
-                        job.status,
+                        JobStatus.PENDING,
                         job.model_dump_json(),
                     ),
                 )
@@ -320,7 +339,7 @@ class LocalAdminDatabase(AdminDatabase):
                     job_json = ?
                 WHERE uid = ?;
                 """,
-                (merged_job.status, merged_job.model_dump_json(), str(merged_job.uid)),
+                (JobStatus(merged_job.status), merged_job.model_dump_json(), str(merged_job.uid)),
             )
             if cursor.rowcount == 0:
                 ADMINDB_ERROR_COUNTER.add(1, {"operation": "job_key_error"})

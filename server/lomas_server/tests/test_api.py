@@ -19,6 +19,7 @@ from lomas_core.exceptions import (
 )
 from lomas_core.models.constants import (
     DUMMY_NB_ROWS,
+    JobResultStatus,
     JobStatus,
 )
 from lomas_core.models.exceptions import LomasAPIErrorModel
@@ -362,21 +363,21 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
             # spend 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == JobStatus.COMPLETE
+            assert job.status == JobResultStatus.COMPLETE
             assert job.status_code == status.HTTP_200_OK
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == JobStatus.COMPLETE
+            assert job.status == JobResultStatus.COMPLETE
             assert job.status_code == status.HTTP_200_OK
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 3*4.0 (total_spent = 12.0 > INITIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == JobStatus.FAILED
+            assert job.status == JobResultStatus.FAILED
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == LomasAPIErrorModel(
                 message="Not enough budget for this query "
@@ -397,10 +398,6 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             db.put_job(fake_job)
             assert db.get_job_pending() == fake_job
 
-            # Request it similar to worker
-            fake_job.status = JobStatus.IN_PROGRESS
-            db.update_job(fake_job)
-
             # no longer pending
             assert db.get_job_pending() is None
 
@@ -415,5 +412,8 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             db.expire_jobs(expiry_delay)
 
             # should be back in there
-            assert db.get_job_pending() is not None
-            assert db.get_job_pending().status == JobStatus.PENDING
+            assert db.get_job_status(fake_job.uid) == JobStatus.PENDING
+            job_pending = db.get_job_pending()
+            assert job_pending is not None
+            assert job_pending.status == JobResultStatus.INCOMPLETE
+            assert db.get_job_status(fake_job.uid) == JobStatus.IN_PROGRESS

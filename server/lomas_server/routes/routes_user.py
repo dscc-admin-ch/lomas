@@ -12,7 +12,7 @@ from lomas_core.exceptions import (
     UnauthorizedAccessException,
 )
 from lomas_core.models.collections import UserId
-from lomas_core.models.constants import JobStatus
+from lomas_core.models.constants import JobResultStatus
 from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
 from lomas_core.models.requests_examples import (
     EXAMPLE_GET_ADMIN_DB_DATA,
@@ -85,7 +85,7 @@ async def status_handler(
     if job.requested_by != user_id.name:
         raise UnauthorizedAccessException(f"User {user_id.name} does not have access to job with uid {uid}")
 
-    if job.status == JobStatus.FAILED:
+    if job.status == JobResultStatus.FAILED:
         response.status_code = job.status_code
 
     return job

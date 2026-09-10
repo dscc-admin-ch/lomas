@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import Annotated
 
 from csvw_eo.metadata_structure import TableMetadata
@@ -11,7 +10,6 @@ from lomas_core.exceptions import (
 )
 from lomas_core.models.collections import DSInfo, User, UserId
 from lomas_core.models.constants import (
-    JobStatus,
     LomasHeaders,
 )
 from lomas_core.models.requests import DummyQueryModel, LomasRequestModel, QueryModel
@@ -63,10 +61,6 @@ async def get_next_pending(
     if next_pending is None:
         response.status_code = status.HTTP_204_NO_CONTENT
         return None
-
-    update_job = deepcopy(next_pending)
-    update_job.status = JobStatus.IN_PROGRESS
-    admin_database.update_job(update_job)
 
     return next_pending
 

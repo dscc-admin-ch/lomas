@@ -1,8 +1,10 @@
 import os
 import re
 import socket
+from datetime import timedelta
 from pathlib import Path
 
+import anyio
 import numpy as np
 import pytest
 from fastapi import status
@@ -17,6 +19,7 @@ from lomas_core.exceptions import (
 )
 from lomas_core.models.constants import (
     DUMMY_NB_ROWS,
+    JobResultStatus,
     JobStatus,
 )
 from lomas_core.models.exceptions import LomasAPIErrorModel
@@ -33,6 +36,7 @@ from lomas_core.models.requests_examples import (
 from lomas_core.models.responses import (
     Budget,
     DummyDsResponse,
+    Job,
     QueryResponse,
 )
 from lomas_server.app import get_user_app
@@ -359,24 +363,57 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
             # spend 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == JobStatus.COMPLETE
+            assert job.status == JobResultStatus.COMPLETE
             assert job.status_code == status.HTTP_200_OK
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == JobStatus.COMPLETE
+            assert job.status == JobResultStatus.COMPLETE
             assert job.status_code == status.HTTP_200_OK
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 3*4.0 (total_spent = 12.0 > INITIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == JobStatus.FAILED
+            assert job.status == JobResultStatus.FAILED
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == LomasAPIErrorModel(
                 message="Not enough budget for this query "
                 + "epsilon remaining 2.0, "
                 + "delta remaining 0.004970000100000034."
             )
+
+    def test_job_timeout(self) -> None:
+        app = get_user_app(self.config)
+        fake_job = Job(requested_by="pytest", dataset_name="test", query=None)
+        expiry_delay = timedelta(seconds=2)
+
+        with TestClient(app, headers=self.headers) as client:
+            db = app.state.admin_database
+            assert db.get_job_pending() is None
+
+            # Add out job by hand
+            db.put_job(fake_job)
+            assert db.get_job_pending() == fake_job
+
+            # no longer pending
+            assert db.get_job_pending() is None
+
+            # expiry too soon
+            db.expire_jobs()
+            # didn't do anything
+            assert db.get_job_pending() is None
+
+            # sleep one more second for safety ...
+            client.portal.call(anyio.sleep, expiry_delay.total_seconds() + 1)
+            # force shorter refresh
+            db.expire_jobs(expiry_delay)
+
+            # should be back in there
+            assert db.get_job_status(fake_job.uid) == JobStatus.PENDING
+            job_pending = db.get_job_pending()
+            assert job_pending is not None
+            assert job_pending.status == JobResultStatus.INCOMPLETE
+            assert db.get_job_status(fake_job.uid) == JobStatus.IN_PROGRESS

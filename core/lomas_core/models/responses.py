@@ -18,7 +18,7 @@ from pydantic import (
 )
 
 from lomas_core.constants import DPLibraries
-from lomas_core.models.constants import JobStatus, QueryResponseTypes
+from lomas_core.models.constants import JobResultStatus, QueryResponseTypes
 from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.requests import AnyLomasRequest
 from lomas_core.models.utils import (
@@ -211,7 +211,7 @@ class Job(ResponseModel):
     """Name of the user that requested this job."""
     dataset_name: str
     """Name of the dataset targetted by this job."""
-    status: JobStatus = JobStatus.PENDING
+    status: JobResultStatus = JobResultStatus.INCOMPLETE
     """Job status."""
     query: AnyLomasRequest | None
     """Job query."""

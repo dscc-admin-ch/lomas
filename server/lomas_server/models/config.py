@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from typing import Annotated, Literal, Self
 from urllib.parse import unquote
@@ -173,13 +174,13 @@ class ServerConfig(Config):
 
 
 class WorkerConfig(Config):
-    tui: bool = Field(default=False, description="Terminal friendly output")
+    tui: bool = Field(default_factory=sys.stdout.isatty, description="Terminal friendly output")
 
     server_host_addr: str = Field(default="localhost")
 
     @computed_field
     def admin_api(self) -> HttpUrl:
-        return HttpUrl(url=f"http://{self.server_host_addr}:{self.admin_host_port}")
+        return HttpUrl.build(scheme="http", host=self.server_host_addr, port=self.admin_host_port)
 
 
 class AdminConfig(BaseSettings):

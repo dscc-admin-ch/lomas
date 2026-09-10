@@ -199,14 +199,15 @@ async def process_message(
     """General Job processing loop."""
     with contextlib.ExitStack() as stack:
         consecutive_sleep = 0
-        status = None
+        status, err_msg = None, ""
         if config.tui:
             status = stack.enter_context(job_progress.console.status("Polling ..."))
             stack.enter_context(job_progress)
 
         while True:
             if status is not None:
-                status.update(status=f"Polling ... {consecutive_sleep}")
+                status.update(status=f"Polling ... {consecutive_sleep}{err_msg}")
+                err_msg = ""
             consecutive_sleep += 1
             await asyncio.sleep(2)
 
@@ -228,11 +229,16 @@ async def process_message(
                     job_done = handle_query(config, Proxy(partial(admin_database_proxy, config)), job)
                     job_progress.update(task_id, completed=1)
                     if job_done.status == JobResultStatus.FAILED:
-                        job_progress.update(task_id, description="[red]FAILED")
+                        job_progress.update(task_id, description="[red]FAILED[/red]")
 
                     process_post_job(config, job_done)
 
                     consecutive_sleep = 0
+                case Failure(httpx2.HTTPError() as e):
+                    if status is not None:
+                        err_msg = f"     [bold red]{e}[/bold red]"
+                    else:
+                        logger.warning(str(e))
                 case Failure(e):
                     logger.warning(str(e))
 

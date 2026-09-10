@@ -1,3 +1,4 @@
+import json
 from functools import partial
 from pathlib import Path
 
@@ -15,6 +16,7 @@ from returns.result import Failure, ResultE, Success
 from lomas_core.models.collections import User, UserCollection, UserId
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
+from lomas_core.models.responses import Budget
 from lomas_server.admin_database.constants import TopDBKey as TK
 from lomas_server.administration.dashboard.utils import (
     confirm_delete,
@@ -100,37 +102,37 @@ selected_row: ResultE[pd.DataFrame] = flow(
     bind(lambda idx: get_user_df().map(lambda df: df.iloc[idx])),
 )
 
-
 budget_editor = flow(
     selected_row,
     # allow safe \.dsofuser
     bind_result(ensure_user_has_datasets),
     # build the editor
+    map_(lambda row: row.dsofuser),
+    map_(lambda dsofuser: dsofuser.assign(initial_budget=dsofuser.initial_budget.apply(json.dumps))),
+    map_(lambda dsofuser: dsofuser.assign(total_spent_budget=dsofuser.total_spent_budget.apply(json.dumps))),
     map_(
         lambda row: st.data_editor(
-            row.dsofuser,
+            row,
             column_config={
                 "dataset_name": st.column_config.TextColumn(label="Dataset", disabled=True),
-                "initial_epsilon": st.column_config.NumberColumn(
-                    label="ε",
-                    required=True,
-                    min_value=0.0,
-                    max_value=EPSILON_LIMIT,
-                    step=EPSILON_STEP,
-                    format="%f",
+                "initial_budget": st.column_config.TextColumn(
+                    label="initial_budget", required=True, disabled=False
                 ),
-                "initial_delta": st.column_config.NumberColumn(
-                    label="δ",
-                    required=True,
-                    min_value=0.0,
-                    max_value=DELTA_LIMIT,
-                    step=DELTA_STEP,
-                    format="%f",
+                "total_spent_budget": st.column_config.TextColumn(
+                    label="total_spent_budget", required=True, disabled=True
                 ),
-                "total_spent_epsilon": st.column_config.NumberColumn(label="spent ε", disabled=True),
-                "total_spent_delta": st.column_config.NumberColumn(label="spent δ", disabled=True),
             },
             hide_index=True,
+        )
+    ),
+    map_(
+        lambda dsofuser: dsofuser.assign(
+            initial_budget=dsofuser.initial_budget.apply(Budget.model_validate_json)
+        )
+    ),
+    map_(
+        lambda dsofuser: dsofuser.assign(
+            total_spent_budget=dsofuser.total_spent_budget.apply(Budget.model_validate_json)
         )
     ),
 )
@@ -138,14 +140,20 @@ budget_editor = flow(
 
 def update_budget(row: ResultE[pd.DataFrame], edited_row: pd.DataFrame) -> None:
     user_select = row.Name
-    diff = edited_row.set_index("dataset_name") - row.dsofuser.set_index("dataset_name")
+
+    initial_dsofuser = row.dsofuser.copy()
+    initial_dsofuser.initial_budget = initial_dsofuser.initial_budget.apply(Budget.model_validate)
+    initial_dsofuser.total_spent_budget = initial_dsofuser.total_spent_budget.apply(Budget.model_validate)
+
+    diff = edited_row.set_index("dataset_name") - initial_dsofuser.set_index("dataset_name")
+
     for t in diff.itertuples():
-        if t.initial_epsilon != 0 or t.initial_delta != 0:
+        if t.initial_budget != Budget.zero():
             new_val = edited_row.set_index("dataset_name").loc[t.Index]
             budgetReq = LomasBudgetRequest(
                 dataset_name=t.Index,
-                epsilon=new_val.initial_epsilon,
-                delta=new_val.initial_delta,
+                epsilon=new_val.initial_budget.epsilon,
+                delta=new_val.initial_budget.delta,
             )
             query_lomas_auth(
                 f"/users/{user_select}/dataset/budget",

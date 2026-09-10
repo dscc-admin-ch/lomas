@@ -4902,7 +4902,10 @@ Defaults to DEFAULT_READ_TIMEOUT.</p>
 <span class="normal">202</span>
 <span class="normal">203</span>
 <span class="normal">204</span>
-<span class="normal">205</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">wait_for_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_uid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n_retry</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1800</span><span class="p">,</span> <span class="n">sleep_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Job</span><span class="p">:</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">wait_for_job</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job_uid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n_retry</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1800</span><span class="p">,</span> <span class="n">sleep_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Job</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Periodically query the job endpoint sleeping in between until it completes / times-out."""</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_retry</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
@@ -4920,7 +4923,10 @@ Defaults to DEFAULT_READ_TIMEOUT.</p>
                 <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="n">CONNECT_TIMEOUT</span><span class="p">),</span>
             <span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
         <span class="c1"># Check for error before accessing "status"</span>
-        <span class="k">if</span> <span class="s2">"status"</span> <span class="ow">in</span> <span class="n">job_query</span> <span class="ow">and</span> <span class="n">job_query</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span><span class="n">JobStatus</span><span class="o">.</span><span class="n">COMPLETE</span><span class="p">,</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">}:</span>
+        <span class="k">if</span> <span class="s2">"status"</span> <span class="ow">in</span> <span class="n">job_query</span> <span class="ow">and</span> <span class="n">job_query</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span>
+            <span class="n">JobResultStatus</span><span class="o">.</span><span class="n">COMPLETE</span><span class="p">,</span>
+            <span class="n">JobResultStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">,</span>
+        <span class="p">}:</span>
             <span class="k">return</span> <span class="n">Job</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">job_query</span><span class="p">)</span>
 
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sleep_sec</span><span class="p">)</span>
@@ -7960,7 +7966,7 @@ the file layout is same as in the code repository.</p>
 
     <span class="n">job_uid</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">"uid"</span><span class="p">]</span>
     <span class="n">job</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">wait_for_job</span><span class="p">(</span><span class="n">job_uid</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">JobStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">JobResultStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">job</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"job </span><span class="si">{</span><span class="n">job_uid</span><span class="si">!r}</span><span class="s2"> failed without error !"</span>
         <span class="n">job</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">raise_exception</span><span class="p">()</span>
 

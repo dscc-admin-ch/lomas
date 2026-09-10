@@ -86,7 +86,7 @@ def get_user_df() -> ResultE[pd.DataFrame]:
                     u.id.name,
                     u.id.email,
                     list(u.datasets.keys()),
-                    pd.DataFrame([ds.model_dump() for ds in u.datasets.values()]),
+                    pd.DataFrame([ds.model_dump(mode="python") for ds in u.datasets.values()]),
                 ]
                 for u in users
             ],

@@ -40,7 +40,7 @@ jobs:
           REF="${{ github.ref_name }}"
           if [ "${{ github.ref_type }}" = "tag"]; then
             MAJMIN=$(echo "${REF#v}" | awk -F. '{print $1"."$2}')
-            nix devevlop -c mike deploy "$MAJMIN" latest --update-aliases --push
+            nix develop -c mike deploy "$MAJMIN" latest --update-aliases --push
           else
-            nix devevlop -c mike deploy develop --push
+            nix develop -c mike deploy develop --push
           fi

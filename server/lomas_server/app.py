@@ -91,3 +91,7 @@ def get_user_app(config: ServerConfig) -> FastAPI:
 
 def get_admin_app(config: ServerConfig) -> FastAPI:
     return get_app(config, [routes_admin.router, routes_worker.router])
+
+
+def get_full_app(config: ServerConfig) -> FastAPI:
+    return get_app(config, [routes_dp.router, routes_user.router, routes_admin.router, routes_worker.router])

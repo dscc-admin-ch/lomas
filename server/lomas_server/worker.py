@@ -1,7 +1,8 @@
 import asyncio
 import contextlib
+import itertools as it
 import time
-from collections.abc import Callable
+import types
 from functools import partial
 from typing import Any
 
@@ -12,7 +13,7 @@ from fastapi import status
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from returns.functions import raise_exception
-from returns.result import Failure, ResultE, Success
+from returns.result import Failure, Success
 from rich.progress import BarColumn, Progress, SpinnerColumn, TimeElapsedColumn
 
 from lomas_core.instrumentation import init_telemetry
@@ -43,7 +44,6 @@ from lomas_server.dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQue
 from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import WorkerConfig
-from lomas_server.routes.error_handler import model_from_lomas_exception
 from lomas_server.routes.utils import get_dataset_connector
 from lomas_server.utils.query import query_lomas
 from lomas_server.utils.startup import (
@@ -65,12 +65,14 @@ job_progress = Progress(
 )
 
 
-def admin_database_proxy(config: WorkerConfig, method_name: str, kwargs: dict[str, Any]) -> Any:
+def admin_database_proxy(
+    config: WorkerConfig, client: types.ModuleType, method_name: str, kwargs: dict[str, Any]
+) -> Any:
     match (method_name, kwargs):
         case ("get_remaining_budget", {"user_name": user_name, "dataset_name": dataset_name}):
             res = query_lomas(
                 "/w/get_remaining_budget",
-                httpx2.post,
+                client.post,
                 host=config.admin_api,
                 headers={LomasHeaders.APIKEY: config.worker_api_key, LomasHeaders.FORUSER: user_name},
                 json={"dataset_name": dataset_name},
@@ -79,7 +81,7 @@ def admin_database_proxy(config: WorkerConfig, method_name: str, kwargs: dict[st
         case ("get_dataset_metadata", {"dataset_name": dataset_name}):
             res = query_lomas(
                 f"/w/dataset/{dataset_name}/metadata",
-                httpx2.get,
+                client.get,
                 host=config.admin_api,
                 headers={LomasHeaders.APIKEY: config.worker_api_key},
             ).map(TableMetadata.model_validate)
@@ -87,7 +89,7 @@ def admin_database_proxy(config: WorkerConfig, method_name: str, kwargs: dict[st
         case ("get_dataset", {"dataset_name": dataset_name}):
             res = query_lomas(
                 f"/w/dataset/{dataset_name}",
-                httpx2.get,
+                client.get,
                 host=config.admin_api,
                 headers={LomasHeaders.APIKEY: config.worker_api_key},
             ).map(DSInfo.model_validate)
@@ -96,7 +98,7 @@ def admin_database_proxy(config: WorkerConfig, method_name: str, kwargs: dict[st
             # TODO: should this mechanic be changed ? do we even want to attempt Semaphore over network ?
             res = query_lomas(
                 f"/w/users/{user_name}",
-                httpx2.get,
+                client.get,
                 host=config.admin_api,
                 headers={LomasHeaders.APIKEY: config.worker_api_key},
             ).map(User.model_validate)
@@ -113,88 +115,57 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
     start_sec = time.time()
     logger.debug("Handling query.")
 
-    try:
-        assert job.query is not None  # type narrowing
-        query_model: AnyLomasRequest = job.query
-        user_name: str = job.requested_by
+    assert job.query is not None  # type narrowing
+    query_model: AnyLomasRequest = job.query
+    user_name: str = job.requested_by
 
-        if isinstance(query_model, DummyQueryModel):
-            data_connector = get_dummy_dataset_for_query(admin_database, query_model)
-        else:
-            data_connector = get_dataset_connector(
-                admin_database, query_model.dataset_name, config.private_db_credentials
+    if isinstance(query_model, DummyQueryModel):
+        data_connector = get_dummy_dataset_for_query(admin_database, query_model)
+    else:
+        data_connector = get_dataset_connector(
+            admin_database, query_model.dataset_name, config.private_db_credentials
+        )
+
+    dp_querier: DPQuerier
+    query_response: AnyLomasQueryResponse
+    match query_model:
+        case SmartnoiseSQLRequestModel():
+            dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
+        case OpenDPRequestModel():
+            dp_querier = OpenDPQuerier(data_connector, admin_database)
+        case DiffPrivLibRequestModel():
+            dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
+
+    match query_model:
+        case CostQueryModel():
+            budget_cost = dp_querier.cost(query_model)
+            query_response = CostResponse(epsilon=budget_cost.epsilon, delta=budget_cost.delta)
+        case DummyQueryModel():
+            budget_cost = dp_querier.cost(query_model)
+            result = dp_querier.query(query_model)
+            query_response = QueryResponse(
+                requested_by=user_name,
+                result=result,
+                epsilon=budget_cost.epsilon,
+                delta=budget_cost.delta,
             )
+        case QueryModel():
+            query_response = dp_querier.handle_query(query_model, user_name)
 
-        dp_querier: DPQuerier
-        query_response: AnyLomasQueryResponse
-        match query_model:
-            case SmartnoiseSQLRequestModel():
-                dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
-            case OpenDPRequestModel():
-                dp_querier = OpenDPQuerier(data_connector, admin_database)
-            case DiffPrivLibRequestModel():
-                dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
+    job.result = query_response
+    job.status = JobResultStatus.COMPLETE
+    job.status_code = status.HTTP_200_OK
 
-        match query_model:
-            case CostQueryModel():
-                budget_cost = dp_querier.cost(query_model)
-                query_response = CostResponse(epsilon=budget_cost.epsilon, delta=budget_cost.delta)
-            case DummyQueryModel():
-                budget_cost = dp_querier.cost(query_model)
-                result = dp_querier.query(query_model)
-                query_response = QueryResponse(
-                    requested_by=user_name,
-                    result=result,
-                    epsilon=budget_cost.epsilon,
-                    delta=budget_cost.delta,
-                )
-            case QueryModel():
-                query_response = dp_querier.handle_query(query_model, user_name)
+    elapsed = time.time() - start_sec
+    logger.debug(f"Done ({elapsed:.2f})")
 
-        job.result = query_response
-        job.status = JobResultStatus.COMPLETE
-        job.status_code = status.HTTP_200_OK
-
-        elapsed = time.time() - start_sec
-        logger.debug(f"Done ({elapsed:.2f})")
-
-        return job
-
-    except Exception as exc:  # pylint: disable=broad-exception-caught
-        error_model, status_code = model_from_lomas_exception(exc)
-
-        job.status = JobResultStatus.FAILED
-        job.error = error_model
-        job.status_code = status_code
-
-        return job
-
-
-def get_next_job(config: WorkerConfig) -> ResultE[str | None]:
-    return query_lomas(
-        "/w/job/pending",
-        httpx2.get,
-        host=config.admin_api,
-        headers={LomasHeaders.APIKEY: config.worker_api_key},
-    )
-
-
-def process_post_job(config: WorkerConfig, job_done: Job) -> ResultE[str | None]:
-    return query_lomas(
-        "/w/job",
-        httpx2.put,
-        host=config.admin_api,
-        headers={LomasHeaders.APIKEY: config.worker_api_key},
-        json=job_done.model_dump(
-            exclude_unset=True, mode="json"
-        ),  # Requires json mode to make UUID (not json serializable) into str.
-    )
+    return job
 
 
 async def process_message(
     config: WorkerConfig,
-    get_next_job: Callable[[WorkerConfig], ResultE[str | None]] = get_next_job,
-    process_post_job: Callable[[WorkerConfig, Job], ResultE[str | None]] = process_post_job,
+    client: types.ModuleType = httpx2,
+    n_steps: int | None = None,
 ) -> None:
     """General Job processing loop."""
     with contextlib.ExitStack() as stack:
@@ -204,20 +175,25 @@ async def process_message(
             status = stack.enter_context(job_progress.console.status("Polling ..."))
             stack.enter_context(job_progress)
 
-        while True:
+        for _ in it.repeat(None, times=n_steps) if n_steps is not None else it.repeat(None):
             if status is not None:
                 status.update(status=f"Polling ... {consecutive_sleep}{err_msg}")
                 err_msg = ""
             consecutive_sleep += 1
             await asyncio.sleep(2)
 
-            match get_next_job(config):
+            next_job = query_lomas(
+                "/w/job/pending",
+                client.get,
+                host=config.admin_api,
+                headers={LomasHeaders.APIKEY: config.worker_api_key},
+            ).map(lambda job_json: Job.model_validate(job_json) if job_json is not None else None)
+
+            match next_job:
                 case Success(None):
                     if not config.tui:
                         logger.debug("No pending Jobs - Waiting")
-                case Success(job_json):
-                    job = Job.model_validate(job_json)
-
+                case Success(job):
                     task_id = job_progress.add_task(
                         f"{job.uid}",
                         total=1,
@@ -226,12 +202,20 @@ async def process_message(
                         job=job,
                     )
 
-                    job_done = handle_query(config, Proxy(partial(admin_database_proxy, config)), job)
+                    job_done = handle_query(config, Proxy(partial(admin_database_proxy, config, client)), job)
                     job_progress.update(task_id, completed=1)
                     if job_done.status == JobResultStatus.FAILED:
                         job_progress.update(task_id, description="[red]FAILED[/red]")
 
-                    process_post_job(config, job_done)
+                    query_lomas(
+                        "/w/job",
+                        client.put,
+                        host=config.admin_api,
+                        headers={LomasHeaders.APIKEY: config.worker_api_key},
+                        json=job_done.model_dump(
+                            exclude_unset=True, mode="json"
+                        ),  # Requires json mode to make UUID (not json serializable) into str.
+                    )
 
                     consecutive_sleep = 0
                 case Failure(httpx2.HTTPError() as e):

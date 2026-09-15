@@ -3,6 +3,7 @@ import contextlib
 import itertools as it
 import time
 import types
+from collections.abc import Callable
 from functools import partial
 from typing import Any
 
@@ -13,7 +14,7 @@ from fastapi import status
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from returns.functions import raise_exception
-from returns.result import Failure, Success
+from returns.result import Failure, ResultE, Success
 from rich.progress import BarColumn, Progress, SpinnerColumn, TimeElapsedColumn
 
 from lomas_core.instrumentation import init_telemetry
@@ -162,10 +163,23 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
     return job
 
 
+def process_post_job(config: WorkerConfig, client: types.ModuleType, job_done: Job) -> ResultE[str | None]:
+    return query_lomas(
+        "/w/job",
+        client.put,
+        host=config.admin_api,
+        headers={LomasHeaders.APIKEY: config.worker_api_key},
+        json=job_done.model_dump(
+            exclude_unset=True, mode="json"
+        ),  # Requires json mode to make UUID (not json serializable) into str.
+    )
+
+
 async def process_message(
     config: WorkerConfig,
     client: types.ModuleType = httpx2,
     n_steps: int | None = None,
+    process_post_job: Callable[[WorkerConfig, types.ModuleType, Job], ResultE[str | None]] = process_post_job,
 ) -> None:
     """General Job processing loop."""
     with contextlib.ExitStack() as stack:
@@ -207,15 +221,7 @@ async def process_message(
                     if job_done.status == JobResultStatus.FAILED:
                         job_progress.update(task_id, description="[red]FAILED[/red]")
 
-                    query_lomas(
-                        "/w/job",
-                        client.put,
-                        host=config.admin_api,
-                        headers={LomasHeaders.APIKEY: config.worker_api_key},
-                        json=job_done.model_dump(
-                            exclude_unset=True, mode="json"
-                        ),  # Requires json mode to make UUID (not json serializable) into str.
-                    )
+                    process_post_job(config, client, job_done)
 
                     consecutive_sleep = 0
                 case Failure(httpx2.HTTPError() as e):

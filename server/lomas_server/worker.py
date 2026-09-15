@@ -163,7 +163,16 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
     return job
 
 
-def process_post_job(config: WorkerConfig, client: types.ModuleType, job_done: Job) -> ResultE[str | None]:
+def get_next_job(config: WorkerConfig, client: types.ModuleType) -> ResultE[Job | None]:
+    return query_lomas(
+        "/w/job/pending",
+        client.get,
+        host=config.admin_api,
+        headers={LomasHeaders.APIKEY: config.worker_api_key},
+    ).map(lambda job_json: Job.model_validate(job_json) if job_json is not None else None)
+
+
+def job_post_process(config: WorkerConfig, client: types.ModuleType, job_done: Job) -> ResultE[str | None]:
     return query_lomas(
         "/w/job",
         client.put,
@@ -179,7 +188,9 @@ async def process_message(
     config: WorkerConfig,
     client: types.ModuleType = httpx2,
     n_steps: int | None = None,
-    process_post_job: Callable[[WorkerConfig, types.ModuleType, Job], ResultE[str | None]] = process_post_job,
+    *,
+    get_next_job: Callable[[WorkerConfig, types.ModuleType], ResultE[Job | None]] = get_next_job,
+    job_post_process: Callable[[WorkerConfig, types.ModuleType, Job], ResultE[str | None]] = job_post_process,
 ) -> None:
     """General Job processing loop."""
     with contextlib.ExitStack() as stack:
@@ -196,14 +207,7 @@ async def process_message(
             consecutive_sleep += 1
             await asyncio.sleep(2)
 
-            next_job = query_lomas(
-                "/w/job/pending",
-                client.get,
-                host=config.admin_api,
-                headers={LomasHeaders.APIKEY: config.worker_api_key},
-            ).map(lambda job_json: Job.model_validate(job_json) if job_json is not None else None)
-
-            match next_job:
+            match get_next_job(config, client):
                 case Success(None):
                     if not config.tui:
                         logger.debug("No pending Jobs - Waiting")
@@ -221,7 +225,7 @@ async def process_message(
                     if job_done.status == JobResultStatus.FAILED:
                         job_progress.update(task_id, description="[red]FAILED[/red]")
 
-                    process_post_job(config, client, job_done)
+                    job_post_process(config, client, job_done)
 
                     consecutive_sleep = 0
                 case Failure(httpx2.HTTPError() as e):

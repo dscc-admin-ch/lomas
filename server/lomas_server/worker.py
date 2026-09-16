@@ -1,12 +1,11 @@
-import asyncio
 import contextlib
-import itertools as it
 import time
 import types
 from collections.abc import Callable
 from functools import partial
 from typing import Any
 
+import anyio
 import httpx2
 from aio_pika.patterns.rpc import Proxy
 from csvw_eo.metadata_structure import TableMetadata
@@ -189,6 +188,8 @@ async def process_message(
     *,
     get_next_job: Callable[[WorkerConfig, types.ModuleType], ResultE[Job | None]] = get_next_job,
     job_post_process: Callable[[WorkerConfig, types.ModuleType, Job], ResultE[str | None]] = job_post_process,
+    init_delay: float = 0.5,
+    max_delay: float = 10,
 ) -> None:
     """General Job processing loop."""
     with contextlib.ExitStack() as stack:
@@ -198,12 +199,13 @@ async def process_message(
             status = stack.enter_context(job_progress.console.status("Polling ..."))
             stack.enter_context(job_progress)
 
-        for _ in it.repeat(None, times=n_steps) if n_steps is not None else it.repeat(None):
+        async for _ in anyio.itertools.repeat(None, times=n_steps):
             if status is not None:
                 status.update(status=f"Polling ... {consecutive_sleep}{err_msg}")
                 err_msg = ""
             consecutive_sleep += 1
-            await asyncio.sleep(2)
+
+            await anyio.sleep(min(init_delay * 1.5**consecutive_sleep, max_delay))
 
             match get_next_job(config, client):
                 case Success(None):
@@ -267,7 +269,7 @@ def run(config: WorkerConfig | None = None) -> None:
 
     logger.info("Waiting for messages. To exit press CTRL+C")
     with restart_self_on_change():
-        asyncio.run(process_queue(config))
+        anyio.run(process_queue, config)
 
 
 if __name__ == "__main__":

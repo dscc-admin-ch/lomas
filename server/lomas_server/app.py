@@ -1,8 +1,8 @@
-import asyncio
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from functools import partial
 
+import anyio
 from fastapi import APIRouter, FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
@@ -53,7 +53,7 @@ async def lifespan(config: ServerConfig, lomas_app: FastAPI) -> AsyncGenerator[N
     lomas_app.state.ready_event.set()
     try:
         yield  # lomas_app is handling requests
-    except asyncio.CancelledError:
+    except anyio.get_cancelled_exc_class():
         logger.info("Cancelled")
     except BaseException as e:
         logger.exception(e)
@@ -66,7 +66,7 @@ def get_app(config: ServerConfig, routers: list[APIRouter]) -> FastAPI:
     app = FastAPI(lifespan=partial(lifespan, config))
 
     # Add ready event
-    app.state.ready_event = asyncio.Event()
+    app.state.ready_event = anyio.Event()
 
     # Setting metrics middleware
     app.add_middleware(FastAPIMetricMiddleware, app_name=config.telemetry.service_name)

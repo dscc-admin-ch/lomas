@@ -1,14 +1,12 @@
-import asyncio
 import contextlib
-import functools
 import os
 import signal
 import sys
 from collections.abc import AsyncIterator, Iterator
 from copy import deepcopy
 from pathlib import Path
-from typing import Never
 
+import anyio
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from uvicorn.config import LOGGING_CONFIG
@@ -76,22 +74,7 @@ def get_uvicorn_log_config() -> dict:
     return log_config
 
 
-class TerminateTaskGroup(Exception):
-    """Exception raised to terminate a task group."""
-
-
-async def force_terminate_task_group() -> Never:
-    """Used to force termination of a task group."""
-    raise TerminateTaskGroup
-
-
-def ask_exit(signame: str, tg: asyncio.TaskGroup) -> None:
-    """Signal handler for TaskGroup termination."""
-    logger.info(f"got signal {signame}: exit")
-    tg.create_task(force_terminate_task_group())
-
-
-class ReloadTaskGroup(Exception):
+class ReloadTaskGroup(BaseException):
     """Exception raised to reload a task group."""
 
 
@@ -119,25 +102,31 @@ def restart_self_on_change() -> Iterator[None]:
         os.execl(sys.executable, "python", *sys.argv)
 
 
+async def signal_handler(scope: anyio.CancelScope) -> None:
+    with anyio.open_signal_receiver(signal.SIGINT, signal.SIGTERM) as signals:
+        async for signum in signals:
+            if signum == signal.SIGINT:
+                logger.info("Ctrl+C pressed!")
+            else:
+                logger.info("Terminated!")
+
+            scope.cancel()
+            return
+
+
 @contextlib.asynccontextmanager
-async def interruptible_notify_taskgroup(reload: bool = False) -> AsyncIterator[asyncio.TaskGroup]:
-    loop = asyncio.get_running_loop()
+async def interruptible_notify_taskgroup(reload: bool = False) -> AsyncIterator[anyio.abc.TaskGroup]:
     try:
-        async with asyncio.TaskGroup() as tg:
+        async with anyio.create_task_group() as tg:
+            tg.start_soon(signal_handler, tg.cancel_scope)
             yield tg
-
-            # register signal for polite TaskGroup termination
-            for signame in ["SIGINT", "SIGTERM"]:
-                loop.add_signal_handler(getattr(signal, signame), functools.partial(ask_exit, signame, tg))
-
             if reload:
                 tg.create_task(reload_on_change())
             notify(b"READY=1")
         # All tasks in Taskgroup are awaited here (aexit of TaskGroup context)
-    except* ReloadTaskGroup:
-        logger.info("Reloading")
+    except anyio.get_cancelled_exc_class():
+        notify(b"STOPPING=1")
+
+    except ReloadTaskGroup:
         notify(b"RELOADING=1")
         raise
-    except* TerminateTaskGroup:
-        logger.info("Terminated")
-        notify(b"STOPPING=1")

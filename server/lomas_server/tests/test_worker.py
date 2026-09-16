@@ -74,9 +74,12 @@ def get_job_status(job_uid, client, headers):
 def worker_run(client):
     worker_config = WorkerConfig()
     with start_blocking_portal(name="worker_portal") as portal:
-        yield lambda **kwargs: portal.call(
-            partial(process_message, worker_config, client, n_steps=1, **kwargs)
-        )
+
+        def work_in_thread(**kwargs):
+            do_work = partial(process_message, worker_config, client, n_steps=1, **kwargs)
+            return portal.call(do_work)
+
+        yield work_in_thread
 
 
 def test_worker(testdb, config, headers):
@@ -111,17 +114,19 @@ def test_worker_timeout(testdb, config, headers):
         job = Job.model_validate(response.json())
 
         work(job_post_process=lambda *_: print("not sending it back"))
+        start_time = client.portal.call(anyio.current_time)
 
         # from server: nothing done yet
         assert job_status(job.uid).status == JobResultStatus.INCOMPLETE
 
         # too soon shouldn't get any job
+        client.portal.call(anyio.sleep, 1)
         work()
 
         assert job_status(job.uid).status == JobResultStatus.INCOMPLETE
 
         # wait for expiry
-        client.portal.call(anyio.sleep, database_job_expiry_delay.total_seconds() - 2)
+        client.portal.call(anyio.sleep_until, start_time + database_job_expiry_delay.total_seconds())
         # now we should get it
         work()
 

@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 import pandas as pd
 import polars as pl
 from diffprivlib.validation import DiffprivlibMixin
+from fastapi import status
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -29,6 +30,7 @@ from lomas_core.models.utils import (
     polars_df_to_str,
     serialize_model,
 )
+from lomas_server.routes.error_handler import model_from_lomas_exception
 
 
 class ResponseModel(BaseModel):
@@ -223,3 +225,20 @@ class Job(ResponseModel):
     """Status code for job response."""
     archived_at: datetime | None = None
     """Time of archive."""
+
+    def complete(self, result: AnyLomasQueryResponse) -> Self:
+        self.status = JobResultStatus.COMPLETE
+        self.result = result
+        self.status_code = status.HTTP_200_OK
+        return self
+
+    def fail(self, exc: Exception) -> Self:
+        self.status = JobResultStatus.FAILED
+        self.error, self.status_code = model_from_lomas_exception(exc)
+        return self
+
+    def success(self) -> bool:
+        return self.status == JobResultStatus.COMPLETE
+
+    def failure(self) -> bool:
+        return self.status == JobResultStatus.FAILED

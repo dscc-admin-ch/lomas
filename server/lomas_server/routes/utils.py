@@ -16,7 +16,6 @@ from lomas_core.exceptions import (
 )
 from lomas_core.models.collections import DSPathAccess, DSS3Access, UserId
 from lomas_core.models.constants import (
-    JobResultStatus,
     JobStatus,
     LomasHeaders,
     PrivateDatabaseType,
@@ -35,7 +34,6 @@ from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
 from lomas_server.models.config import PrivateDBCredentials, S3CredentialsConfig, ServerConfig
-from lomas_server.routes.error_handler import model_from_lomas_exception
 
 logger = get_lomas_logger(__name__)
 
@@ -218,7 +216,7 @@ def set_query_result(admin_database: LocalAdminDatabase, job_update: Job) -> Non
 
         try:
             # Make sure job did not fail
-            if job_update.status == JobResultStatus.COMPLETE:
+            if job_update.success():
                 # If job fails, goes directly to finally
 
                 # Validate budget
@@ -249,12 +247,7 @@ def set_query_result(admin_database: LocalAdminDatabase, job_update: Job) -> Non
             conn.rollback()
 
             # If anything goes bad, just fail the job
-            error_model, status_code = model_from_lomas_exception(exc)
-
-            job_update.error = error_model
-            job_update.status_code = status_code
-            job_update.status = JobResultStatus.FAILED
-
+            job.fail(exc)
             raise exc
         finally:
             # Always update job

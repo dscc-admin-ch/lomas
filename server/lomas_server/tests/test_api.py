@@ -363,21 +363,21 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
             # spend 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == JobResultStatus.COMPLETE
+            assert job.success()
             assert job.status_code == status.HTTP_200_OK
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == JobResultStatus.COMPLETE
+            assert job.success()
             assert job.status_code == status.HTTP_200_OK
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 3*4.0 (total_spent = 12.0 > INITIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == JobResultStatus.FAILED
+            assert job.failure()
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == LomasAPIErrorModel(
                 message="Not enough budget for this query "

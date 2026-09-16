@@ -62,7 +62,7 @@ def get_job_status(job_uid, client, headers):
     assert job_response.status_code == 200
     job = Job.model_validate(job_response.json())
     assert job.uid == job_uid
-    return job.status
+    return job
 
 
 @contextlib.contextmanager
@@ -87,7 +87,7 @@ def test_worker(testdb, config, headers):
 
         work()
 
-        assert job_status(job.uid) == JobResultStatus.COMPLETE
+        assert job_status(job.uid).success()
 
 
 def test_worker_timeout(testdb, config, headers):
@@ -108,19 +108,19 @@ def test_worker_timeout(testdb, config, headers):
         work(job_post_process=lambda *_: print("not sending it back"))
 
         # from server: nothing done yet
-        assert job_status(job.uid) == JobResultStatus.INCOMPLETE
+        assert job_status(job.uid).status == JobResultStatus.INCOMPLETE
 
         # too soon shouldn't get any job
         work()
 
-        assert job_status(job.uid) == JobResultStatus.INCOMPLETE
+        assert job_status(job.uid).status == JobResultStatus.INCOMPLETE
 
         # wait for expiry
         client.portal.call(anyio.sleep, database_job_expiry_delay.total_seconds() - 2)
         # now we should get it
         work()
 
-        assert job_status(job.uid) == JobResultStatus.COMPLETE
+        assert job_status(job.uid).success()
 
         # simulate late reply
         # with pytest.raises(InvalidQueryException, match=r'Job .* not in progress anymore'):

@@ -10,7 +10,6 @@ from typing import Any
 import httpx2
 from aio_pika.patterns.rpc import Proxy
 from csvw_eo.metadata_structure import TableMetadata
-from fastapi import status
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from returns.functions import raise_exception
@@ -22,7 +21,7 @@ from lomas_core.models.collections import (
     DSInfo,
     User,
 )
-from lomas_core.models.constants import JobResultStatus, LomasHeaders, get_lomas_logger, init_logging
+from lomas_core.models.constants import LomasHeaders, get_lomas_logger, init_logging
 from lomas_core.models.requests import (
     AnyLomasRequest,
     CostQueryModel,
@@ -116,51 +115,50 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
     start_sec = time.time()
     logger.debug("Handling query.")
 
-    assert job.query is not None  # type narrowing
-    query_model: AnyLomasRequest = job.query
-    user_name: str = job.requested_by
+    try:
+        assert job.query is not None  # type narrowing
+        query_model: AnyLomasRequest = job.query
+        user_name: str = job.requested_by
 
-    if isinstance(query_model, DummyQueryModel):
-        data_connector = get_dummy_dataset_for_query(admin_database, query_model)
-    else:
-        data_connector = get_dataset_connector(
-            admin_database, query_model.dataset_name, config.private_db_credentials
-        )
-
-    dp_querier: DPQuerier
-    query_response: AnyLomasQueryResponse
-    match query_model:
-        case SmartnoiseSQLRequestModel():
-            dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
-        case OpenDPRequestModel():
-            dp_querier = OpenDPQuerier(data_connector, admin_database)
-        case DiffPrivLibRequestModel():
-            dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
-
-    match query_model:
-        case CostQueryModel():
-            budget_cost = dp_querier.cost(query_model)
-            query_response = CostResponse(epsilon=budget_cost.epsilon, delta=budget_cost.delta)
-        case DummyQueryModel():
-            budget_cost = dp_querier.cost(query_model)
-            result = dp_querier.query(query_model)
-            query_response = QueryResponse(
-                requested_by=user_name,
-                result=result,
-                epsilon=budget_cost.epsilon,
-                delta=budget_cost.delta,
+        if isinstance(query_model, DummyQueryModel):
+            data_connector = get_dummy_dataset_for_query(admin_database, query_model)
+        else:
+            data_connector = get_dataset_connector(
+                admin_database, query_model.dataset_name, config.private_db_credentials
             )
-        case QueryModel():
-            query_response = dp_querier.handle_query(query_model, user_name)
 
-    job.result = query_response
-    job.status = JobResultStatus.COMPLETE
-    job.status_code = status.HTTP_200_OK
+        dp_querier: DPQuerier
+        query_response: AnyLomasQueryResponse
+        match query_model:
+            case SmartnoiseSQLRequestModel():
+                dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
+            case OpenDPRequestModel():
+                dp_querier = OpenDPQuerier(data_connector, admin_database)
+            case DiffPrivLibRequestModel():
+                dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
 
-    elapsed = time.time() - start_sec
-    logger.debug(f"Done ({elapsed:.2f})")
+        match query_model:
+            case CostQueryModel():
+                budget_cost = dp_querier.cost(query_model)
+                query_response = CostResponse(epsilon=budget_cost.epsilon, delta=budget_cost.delta)
+            case DummyQueryModel():
+                budget_cost = dp_querier.cost(query_model)
+                result = dp_querier.query(query_model)
+                query_response = QueryResponse(
+                    requested_by=user_name,
+                    result=result,
+                    epsilon=budget_cost.epsilon,
+                    delta=budget_cost.delta,
+                )
+            case QueryModel():
+                query_response = dp_querier.handle_query(query_model, user_name)
 
-    return job
+        elapsed = time.time() - start_sec
+        logger.debug(f"Done ({elapsed:.2f})")
+
+        return job.complete(query_response)
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        return job.fail(exc)
 
 
 def get_next_job(config: WorkerConfig, client: types.ModuleType) -> ResultE[Job | None]:
@@ -222,7 +220,7 @@ async def process_message(
 
                     job_done = handle_query(config, Proxy(partial(admin_database_proxy, config, client)), job)
                     job_progress.update(task_id, completed=1)
-                    if job_done.status == JobResultStatus.FAILED:
+                    if job_done.failure():
                         job_progress.update(task_id, description="[red]FAILED[/red]")
 
                     job_post_process(config, client, job_done)

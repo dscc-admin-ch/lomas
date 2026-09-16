@@ -21,7 +21,7 @@ from lomas_core.models.responses import (
     Budget,
     Job,
 )
-from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.admin_database.constants import BudgetDBKey, TopDBKey as TK
 from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.models.responses import BackupResponse, ConfigResponse
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES
@@ -194,7 +194,7 @@ def delete_user(
 def delete_collection(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
-    collection_name: str,
+    collection_name: TK,
 ) -> None:
     """Drops the given collection from the administration database.
 

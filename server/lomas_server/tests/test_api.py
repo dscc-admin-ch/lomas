@@ -402,7 +402,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert db.get_job_pending() is None
 
             # expiry too soon
-            db.expire_jobs()
+            db.expire_jobs(timedelta(minutes=10))
             # didn't do anything
             assert db.get_job_pending() is None
 

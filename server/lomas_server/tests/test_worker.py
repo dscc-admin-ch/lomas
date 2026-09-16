@@ -2,6 +2,7 @@ import contextlib
 from datetime import timedelta
 from functools import partial
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import anyio
 import pytest
@@ -21,7 +22,11 @@ from lomas_server.worker import WorkerConfig, process_message
 
 @pytest.fixture
 def config():
-    return ServerConfig(authenticator=FreePassAuthenticator(authentication_type=AuthenticationType.FREE_PASS))
+    with TemporaryDirectory(prefix="lomas-db-test-") as tempdir:
+        yield ServerConfig(
+            database_directory=Path(tempdir),
+            authenticator=FreePassAuthenticator(authentication_type=AuthenticationType.FREE_PASS),
+        )
 
 
 @pytest.fixture

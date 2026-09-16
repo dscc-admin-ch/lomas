@@ -20,7 +20,7 @@ from pydantic import (
 
 from lomas_core.constants import DPLibraries
 from lomas_core.models.constants import JobResultStatus, QueryResponseTypes
-from lomas_core.models.exceptions import LomasAPIErrorModel
+from lomas_core.models.exceptions import LomasAPIErrorModel, model_from_lomas_exception
 from lomas_core.models.requests import AnyLomasRequest
 from lomas_core.models.utils import (
     dataframe_from_dict,
@@ -30,7 +30,6 @@ from lomas_core.models.utils import (
     polars_df_to_str,
     serialize_model,
 )
-from lomas_server.routes.error_handler import model_from_lomas_exception
 
 
 class ResponseModel(BaseModel):

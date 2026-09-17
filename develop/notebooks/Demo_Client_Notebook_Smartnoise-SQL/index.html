@@ -2624,6 +2624,8 @@ except ModuleNotFoundError:
 <span class="c1"># They have already been set for you if you are running locally within a devenv or the Jupyter lab set up by Docker compose.</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="c1"># os.environ["LOMAS_CLIENT_APP_URL"] = "https://lomas-demo.lab.sspcloud.fr:443"</span>
+<span class="c1"># os.environ["LOMAS_CLIENT_OIDC_DISCOVERY_URL"] = "https://lomas-demo-dex.lab.sspcloud.fr:443/.well-known/openid-configuration"</span>
 <span class="c1"># os.environ["LOMAS_CLIENT_APP_URL"] = "https://lomas.example.com:443"</span>
 <span class="c1"># os.environ["LOMAS_CLIENT_OIDC_DISCOVERY_URL"] = "https://dex.example.com:443/.well-known/openid-configuration"</span>
 <span class="c1"># os.environ["LOMAS_CLIENT_TELEMETRY__ENABLED"] = "false"</span>
@@ -2648,6 +2650,8 @@ except ModuleNotFoundError:
 # They have already been set for you if you are running locally within a devenv or the Jupyter lab set up by Docker compose.
 
 import os
+# os.environ["LOMAS_CLIENT_APP_URL"] = "https://lomas-demo.lab.sspcloud.fr:443"
+# os.environ["LOMAS_CLIENT_OIDC_DISCOVERY_URL"] = "https://lomas-demo-dex.lab.sspcloud.fr:443/.well-known/openid-configuration"
 # os.environ["LOMAS_CLIENT_APP_URL"] = "https://lomas.example.com:443"
 # os.environ["LOMAS_CLIENT_OIDC_DISCOVERY_URL"] = "https://dex.example.com:443/.well-known/openid-configuration"
 # os.environ["LOMAS_CLIENT_TELEMETRY__ENABLED"] = "false"
@@ -3059,7 +3063,7 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre><span class="ansi-green-fg">'Average bill length on dummy: 41.78mm.'</span></pre>
+<pre><span class="ansi-green-fg">'Average bill length on dummy: 46.99mm.'</span></pre>
 </div>
 </div>
 </div>
@@ -3263,14 +3267,14 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre><span class="ansi-green-fg">'Average bill length on dummy: 49.13mm.'</span></pre>
+<pre><span class="ansi-green-fg">'Average bill length on dummy: 51.51mm.'</span></pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=26">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3303,6 +3307,22 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
     mechanisms = {"count": "gaussian", "sum_float": "laplace"}
 )
 cost</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre><span class="ansi-magenta-intense-fg ansi-bold">CostResponse</span><span class="ansi-bold">(</span><span class="ansi-yellow-fg">epsilon</span>=<span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-cyan-intense-fg ansi-bold">.5</span>, <span class="ansi-yellow-fg">delta</span>=<span class="ansi-cyan-intense-fg ansi-bold">2</span><span class="ansi-cyan-intense-fg ansi-bold">.49998000004803e-05</span>, <span class="ansi-yellow-fg">response_type</span>=<span class="ansi-bold">&lt;</span><span class="ansi-magenta-intense-fg ansi-bold">QueryResponseTypes.COST:</span> <span class="ansi-green-fg">'cost'</span><span class="ansi-bold">&gt;</span><span class="ansi-bold">)</span></pre>
 </div>
 </div>
 </div>
@@ -3358,8 +3378,8 @@ cost</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=29">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=29">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3382,6 +3402,18 @@ cost</div>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-16">avg_bill_length = avg_bill_length_response.result.df['avg_bill_length_mm'].iloc[0]
 print(f"Average bill length on private data: {np.round(avg_bill_length, 2)}mm.")</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Average bill length on private data: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">44.</span>09mm.
+</pre>
 </div>
 </div>
 </div>
@@ -3417,8 +3449,8 @@ print(f"Average bill length on private data: {np.round(avg_bill_length, 2)}mm.")
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=33">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3457,9 +3489,36 @@ dummy_res</div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=34">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre>
+<span class="ansi-magenta-intense-fg ansi-bold">QueryResponse</span><span class="ansi-bold">(</span>
+    <span class="ansi-yellow-fg">epsilon</span>=<span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-cyan-intense-fg ansi-bold">.5</span>,
+    <span class="ansi-yellow-fg">delta</span>=<span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-cyan-intense-fg ansi-bold">.4999949999983109e-05</span>,
+    <span class="ansi-yellow-fg">response_type</span>=<span class="ansi-bold">&lt;</span><span class="ansi-magenta-intense-fg ansi-bold">QueryResponseTypes.QUERY:</span> <span class="ansi-green-fg">'query'</span>&gt;,
+    <span class="ansi-yellow-fg">requested_by</span>=<span class="ansi-green-fg">'Dr.Antartica'</span>,
+    <span class="ansi-yellow-fg">result</span>=<span class="ansi-magenta-intense-fg ansi-bold">SmartnoiseSQLQueryResult</span><span class="ansi-bold">(</span>
+        <span class="ansi-yellow-fg">type</span>=&lt;DPLibraries.SMARTNOISE_SQL: <span class="ansi-green-fg">'smartnoise_sql'</span><span class="ansi-bold">&gt;</span>,
+        <span class="ansi-yellow-fg">df</span>=   avg_bill_length_mm
+<span class="ansi-cyan-intense-fg ansi-bold">0</span>           <span class="ansi-cyan-intense-fg ansi-bold">53.086976</span>
+    <span class="ansi-bold">)</span>
+<span class="ansi-bold">)</span></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=34">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3494,6 +3553,33 @@ dummy_res</div>
     dummy = True,
 )
 dummy_res</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre>
+<span class="ansi-magenta-intense-fg ansi-bold">QueryResponse</span><span class="ansi-bold">(</span>
+    <span class="ansi-yellow-fg">epsilon</span>=<span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-cyan-intense-fg ansi-bold">.5</span>,
+    <span class="ansi-yellow-fg">delta</span>=<span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-cyan-intense-fg ansi-bold">.4999949999983109e-05</span>,
+    <span class="ansi-yellow-fg">response_type</span>=<span class="ansi-bold">&lt;</span><span class="ansi-magenta-intense-fg ansi-bold">QueryResponseTypes.QUERY:</span> <span class="ansi-green-fg">'query'</span>&gt;,
+    <span class="ansi-yellow-fg">requested_by</span>=<span class="ansi-green-fg">'Dr.Antartica'</span>,
+    <span class="ansi-yellow-fg">result</span>=<span class="ansi-magenta-intense-fg ansi-bold">SmartnoiseSQLQueryResult</span><span class="ansi-bold">(</span>
+        <span class="ansi-yellow-fg">type</span>=&lt;DPLibraries.SMARTNOISE_SQL: <span class="ansi-green-fg">'smartnoise_sql'</span><span class="ansi-bold">&gt;</span>,
+        <span class="ansi-yellow-fg">df</span>=        res_0      res_1       res_2
+<span class="ansi-cyan-intense-fg ansi-bold">0</span>  <span class="ansi-cyan-intense-fg ansi-bold">100.364221</span>  <span class="ansi-cyan-intense-fg ansi-bold">4155.4097</span>  <span class="ansi-cyan-intense-fg ansi-bold">100.245303</span>
+    <span class="ansi-bold">)</span>
+<span class="ansi-bold">)</span></pre>
 </div>
 </div>
 </div>
@@ -3603,8 +3689,8 @@ dummy_res</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=41">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=41">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3627,6 +3713,22 @@ dummy_res</div>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-21">dummy_std = np.round(dummy_res.result.df['std_bill_length_mm'].iloc[0], 2)
 f"The dummy standard variation is {dummy_std}."</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre><span class="ansi-green-fg">'The dummy standard variation is 12.02.'</span></pre>
 </div>
 </div>
 </div>
@@ -3677,8 +3779,8 @@ f"The dummy standard variation is {dummy_std}."</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=44">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3699,6 +3801,22 @@ f"The dummy standard variation is {dummy_std}."</div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="sa">f</span><span class="s1">'This query would actually cost her </span><span class="si">{</span><span class="n">cost</span><span class="o">.</span><span class="n">epsilon</span><span class="si">}</span><span class="s1"> epsilon and </span><span class="si">{</span><span class="n">cost</span><span class="o">.</span><span class="n">delta</span><span class="si">}</span><span class="s1"> delta.'</span>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-23">f'This query would actually cost her {cost.epsilon} epsilon and {cost.delta} delta.'</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre><span class="ansi-green-fg">'This query would actually cost her 2.0 epsilon and 1.4999949999983109e-05 delta.'</span></pre>
 </div>
 </div>
 </div>
@@ -3749,8 +3867,8 @@ f"The dummy standard variation is {dummy_std}."</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=47">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3777,6 +3895,18 @@ print(f"Standard deviation of bill length: {np.round(std_bill_length, 2)}.")</di
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Standard deviation of bill length: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">13.26</span>.
+</pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48">
@@ -3788,8 +3918,8 @@ print(f"Standard deviation of bill length: {np.round(std_bill_length, 2)}.")</di
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=49">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=49">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3818,9 +3948,21 @@ print(f"Standard error of bill length: {np.round(standard_error, 2)}.")</div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=50">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Standard error of bill length: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.71</span>.
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=50">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3847,6 +3989,18 @@ print(f"Standard error of bill length: {np.round(standard_error, 2)}.")</div>
 ZSCORE = 1.96
 lower_bound, upper_bound = avg_bill_length - ZSCORE*standard_error, avg_bill_length + ZSCORE*standard_error
 print(f"The 95% confidence interval of the bill length of all penguins is [{np.round(lower_bound, 2)}, {np.round(upper_bound, 2)}].")</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">The <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">95</span>% confidence interval of the bill length of all penguins is <span style="font-weight: bold">[</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">42.6</span>, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">45.4</span><span style="font-weight: bold">]</span>.
+</pre>
 </div>
 </div>
 </div>
@@ -3901,8 +4055,8 @@ delta = 1e-5</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3931,9 +4085,30 @@ cost</div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre>
+<span class="ansi-magenta-intense-fg ansi-bold">CostResponse</span><span class="ansi-bold">(</span>
+    <span class="ansi-yellow-fg">epsilon</span>=<span class="ansi-cyan-intense-fg ansi-bold">4</span><span class="ansi-cyan-intense-fg ansi-bold">.0</span>,
+    <span class="ansi-yellow-fg">delta</span>=<span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-cyan-intense-fg ansi-bold">.4999949999983109e-05</span>,
+    <span class="ansi-yellow-fg">response_type</span>=<span class="ansi-bold">&lt;</span><span class="ansi-magenta-intense-fg ansi-bold">QueryResponseTypes.COST:</span> <span class="ansi-green-fg">'cost'</span><span class="ansi-bold">&gt;</span>
+<span class="ansi-bold">)</span></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3962,9 +4137,30 @@ cost</div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre>
+<span class="ansi-magenta-intense-fg ansi-bold">CostResponse</span><span class="ansi-bold">(</span>
+    <span class="ansi-yellow-fg">epsilon</span>=<span class="ansi-cyan-intense-fg ansi-bold">4</span><span class="ansi-cyan-intense-fg ansi-bold">.0</span>,
+    <span class="ansi-yellow-fg">delta</span>=<span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-cyan-intense-fg ansi-bold">.4999949999983109e-05</span>,
+    <span class="ansi-yellow-fg">response_type</span>=<span class="ansi-bold">&lt;</span><span class="ansi-magenta-intense-fg ansi-bold">QueryResponseTypes.COST:</span> <span class="ansi-green-fg">'cost'</span><span class="ansi-bold">&gt;</span>
+<span class="ansi-bold">)</span></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3993,6 +4189,27 @@ cost</div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre>
+<span class="ansi-magenta-intense-fg ansi-bold">CostResponse</span><span class="ansi-bold">(</span>
+    <span class="ansi-yellow-fg">epsilon</span>=<span class="ansi-cyan-intense-fg ansi-bold">4</span><span class="ansi-cyan-intense-fg ansi-bold">.0</span>,
+    <span class="ansi-yellow-fg">delta</span>=<span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-cyan-intense-fg ansi-bold">.4999949999983109e-05</span>,
+    <span class="ansi-yellow-fg">response_type</span>=<span class="ansi-bold">&lt;</span><span class="ansi-magenta-intense-fg ansi-bold">QueryResponseTypes.COST:</span> <span class="ansi-green-fg">'cost'</span><span class="ansi-bold">&gt;</span>
+<span class="ansi-bold">)</span></pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57">
@@ -4004,8 +4221,8 @@ cost</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4030,6 +4247,64 @@ cost</div>
 <div class="clipboard-copy-txt" id="cell-32"># Convert metadata to Smartnoise-SQL compliant metadata
 snsql_metadata = csvw_to_smartnoise_sql(metadata)
 snsql_metadata</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre>
+<span class="ansi-bold">{</span>
+    <span class="ansi-green-fg">''</span>: <span class="ansi-bold">{</span>
+        <span class="ansi-green-fg">''</span>: <span class="ansi-bold">{</span>
+            <span class="ansi-green-fg">'df'</span>: <span class="ansi-bold">{</span>
+                <span class="ansi-green-fg">'max_ids'</span>: <span class="ansi-cyan-intense-fg ansi-bold">1</span>,
+                <span class="ansi-green-fg">'rows'</span>: <span class="ansi-cyan-intense-fg ansi-bold">344</span>,
+                <span class="ansi-green-fg">'species'</span>: <span class="ansi-bold">{</span><span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'species'</span>, <span class="ansi-green-fg">'type'</span>: <span class="ansi-green-fg">'string'</span>, <span class="ansi-green-fg">'nullable'</span>: <span class="ansi-green-intense-fg">True</span><span class="ansi-bold">}</span>,
+                <span class="ansi-green-fg">'island'</span>: <span class="ansi-bold">{</span><span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'island'</span>, <span class="ansi-green-fg">'type'</span>: <span class="ansi-green-fg">'string'</span>, <span class="ansi-green-fg">'nullable'</span>: <span class="ansi-green-intense-fg">True</span><span class="ansi-bold">}</span>,
+                <span class="ansi-green-fg">'bill_length_mm'</span>: <span class="ansi-bold">{</span>
+                    <span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'bill_length_mm'</span>,
+                    <span class="ansi-green-fg">'type'</span>: <span class="ansi-green-fg">'float'</span>,
+                    <span class="ansi-green-fg">'nullable'</span>: <span class="ansi-green-intense-fg">True</span>,
+                    <span class="ansi-green-fg">'lower'</span>: <span class="ansi-cyan-intense-fg ansi-bold">30.0</span>,
+                    <span class="ansi-green-fg">'upper'</span>: <span class="ansi-cyan-intense-fg ansi-bold">65.0</span>
+                <span class="ansi-bold">}</span>,
+                <span class="ansi-green-fg">'bill_depth_mm'</span>: <span class="ansi-bold">{</span>
+                    <span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'bill_depth_mm'</span>,
+                    <span class="ansi-green-fg">'type'</span>: <span class="ansi-green-fg">'float'</span>,
+                    <span class="ansi-green-fg">'nullable'</span>: <span class="ansi-green-intense-fg">True</span>,
+                    <span class="ansi-green-fg">'lower'</span>: <span class="ansi-cyan-intense-fg ansi-bold">13.0</span>,
+                    <span class="ansi-green-fg">'upper'</span>: <span class="ansi-cyan-intense-fg ansi-bold">23.0</span>
+                <span class="ansi-bold">}</span>,
+                <span class="ansi-green-fg">'flipper_length_mm'</span>: <span class="ansi-bold">{</span>
+                    <span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'flipper_length_mm'</span>,
+                    <span class="ansi-green-fg">'type'</span>: <span class="ansi-green-fg">'float'</span>,
+                    <span class="ansi-green-fg">'nullable'</span>: <span class="ansi-green-intense-fg">True</span>,
+                    <span class="ansi-green-fg">'lower'</span>: <span class="ansi-cyan-intense-fg ansi-bold">150.0</span>,
+                    <span class="ansi-green-fg">'upper'</span>: <span class="ansi-cyan-intense-fg ansi-bold">250.0</span>
+                <span class="ansi-bold">}</span>,
+                <span class="ansi-green-fg">'body_mass_g'</span>: <span class="ansi-bold">{</span>
+                    <span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'body_mass_g'</span>,
+                    <span class="ansi-green-fg">'type'</span>: <span class="ansi-green-fg">'float'</span>,
+                    <span class="ansi-green-fg">'nullable'</span>: <span class="ansi-green-intense-fg">True</span>,
+                    <span class="ansi-green-fg">'lower'</span>: <span class="ansi-cyan-intense-fg ansi-bold">2000.0</span>,
+                    <span class="ansi-green-fg">'upper'</span>: <span class="ansi-cyan-intense-fg ansi-bold">7000.0</span>
+                <span class="ansi-bold">}</span>,
+                <span class="ansi-green-fg">'sex'</span>: <span class="ansi-bold">{</span><span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'sex'</span>, <span class="ansi-green-fg">'type'</span>: <span class="ansi-green-fg">'string'</span>, <span class="ansi-green-fg">'nullable'</span>: <span class="ansi-green-intense-fg">True</span><span class="ansi-bold">}</span>,
+                <span class="ansi-green-fg">'row_privacy'</span>: <span class="ansi-green-intense-fg">True</span>
+            <span class="ansi-bold">}</span>
+        <span class="ansi-bold">}</span>
+    <span class="ansi-bold">}</span>
+<span class="ansi-bold">}</span></pre>
 </div>
 </div>
 </div>
@@ -4066,8 +4341,8 @@ QUERY = "SELECT STD(bill_length_mm) as std_bl FROM df"
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4102,6 +4377,22 @@ dp_query</div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre><span class="ansi-bold">&lt;</span><span class="ansi-magenta-intense-fg ansi-bold">snsql._ast.ast.Query</span> object at <span class="ansi-cyan-intense-fg ansi-bold">0x7ee41837cdd0</span><span class="ansi-bold">&gt;</span></pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
@@ -4113,8 +4404,8 @@ dp_query</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=62">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4139,6 +4430,22 @@ dp_query</div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre><span class="ansi-bold">{</span><span class="ansi-green-fg">'std_bl'</span>: <span class="ansi-bold">&lt;</span><span class="ansi-magenta-intense-fg ansi-bold">snsql._ast.tokens.Symbol</span> object at <span class="ansi-cyan-intense-fg ansi-bold">0x7ee4184a98b0</span><span class="ansi-bold">&gt;</span><span class="ansi-bold">}</span></pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=63">
@@ -4154,8 +4461,8 @@ dp_query</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4184,6 +4491,28 @@ syms</div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre>
+<span class="ansi-bold">{</span>
+    <span class="ansi-green-fg">'keycount'</span>: <span class="ansi-bold">&lt;</span><span class="ansi-magenta-intense-fg ansi-bold">snsql._ast.tokens.Symbol</span> object at <span class="ansi-cyan-intense-fg ansi-bold">0x7ee4184f10d0</span>&gt;,
+    <span class="ansi-green-fg">'sum_alias_0xf3d7'</span>: &lt;snsql._ast.tokens.Symbol object at <span class="ansi-cyan-intense-fg ansi-bold">0x7ee4183599c0</span>&gt;,
+    <span class="ansi-green-fg">'count_bill_length_mm'</span>: &lt;snsql._ast.tokens.Symbol object at <span class="ansi-cyan-intense-fg ansi-bold">0x7ee418359a70</span>&gt;,
+    <span class="ansi-green-fg">'sum_bill_length_mm'</span>: &lt;snsql._ast.tokens.Symbol object at <span class="ansi-cyan-intense-fg ansi-bold">0x7ee4184a9770</span><span class="ansi-bold">&gt;</span>
+<span class="ansi-bold">}</span></pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
@@ -4195,8 +4524,8 @@ syms</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=66">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4221,6 +4550,27 @@ syms</div>
 <div class="clipboard-copy-txt" id="cell-37">QUERY = "SELECT COUNT(bill_length_mm) AS count_bl, AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df GROUP BY species"
 cost = client.smartnoise_sql.cost(query = QUERY, epsilon = epsilon, delta = delta)
 cost</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre>
+<span class="ansi-magenta-intense-fg ansi-bold">CostResponse</span><span class="ansi-bold">(</span>
+    <span class="ansi-yellow-fg">epsilon</span>=<span class="ansi-cyan-intense-fg ansi-bold">4</span><span class="ansi-cyan-intense-fg ansi-bold">.0</span>,
+    <span class="ansi-yellow-fg">delta</span>=<span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-cyan-intense-fg ansi-bold">.4999949999983109e-05</span>,
+    <span class="ansi-yellow-fg">response_type</span>=<span class="ansi-bold">&lt;</span><span class="ansi-magenta-intense-fg ansi-bold">QueryResponseTypes.COST:</span> <span class="ansi-green-fg">'cost'</span><span class="ansi-bold">&gt;</span>
+<span class="ansi-bold">)</span></pre>
 </div>
 </div>
 </div>

@@ -21,10 +21,7 @@ def add_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(LomasAPIException)
     async def lomas_exception_handler(_: Request, exc: LomasAPIException) -> JSONResponse:
         # Log exception
-        if not isinstance(exc, LomasAPIException):
-            logger.exception(f"Unforseen exception occured: {exc}")  # noqa:LOG004
-        else:
-            logger.exception(exc)  # noqa:LOG004
+        logger.exception(exc)  # noqa:LOG004
         model, status_code = model_from_lomas_exception(exc)
         return JSONResponse(status_code=status_code, content=jsonable_encoder(model))
 

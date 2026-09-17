@@ -16,10 +16,7 @@ from returns.result import Failure, ResultE, Success
 from rich.progress import BarColumn, Progress, SpinnerColumn, TimeElapsedColumn
 
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.collections import (
-    DSInfo,
-    User,
-)
+from lomas_core.models.collections import DSInfo
 from lomas_core.models.constants import LomasHeaders, get_lomas_logger, init_logging
 from lomas_core.models.requests import (
     AnyLomasRequest,
@@ -92,15 +89,6 @@ def admin_database_proxy(
                 host=config.admin_api,
                 headers={LomasHeaders.APIKEY: config.worker_api_key},
             ).map(DSInfo.model_validate)
-
-        case ("get_user", {"user_name": user_name}):
-            # TODO: should this mechanic be changed ? do we even want to attempt Semaphore over network ?
-            res = query_lomas(
-                f"/w/users/{user_name}",
-                client.get,
-                host=config.admin_api,
-                headers={LomasHeaders.APIKEY: config.worker_api_key},
-            ).map(User.model_validate)
 
         case _:
             raise ValueError(f"Invalid Proxy method: {method_name}")
@@ -181,7 +169,7 @@ def job_post_process(config: WorkerConfig, client: types.ModuleType, job_done: J
     )
 
 
-async def process_message(
+async def worker_loop(
     config: WorkerConfig,
     client: types.ModuleType = httpx2,
     n_steps: int | None = None,
@@ -189,7 +177,7 @@ async def process_message(
     get_next_job: Callable[[WorkerConfig, types.ModuleType], ResultE[Job | None]] = get_next_job,
     job_post_process: Callable[[WorkerConfig, types.ModuleType, Job], ResultE[str | None]] = job_post_process,
     init_delay: float = 0.5,
-    max_delay: float = 10,
+    max_delay: float = 5,
 ) -> None:
     """General Job processing loop."""
     with contextlib.ExitStack() as stack:
@@ -237,10 +225,10 @@ async def process_message(
                     logger.warning(str(e))
 
 
-async def process_queue(config: WorkerConfig) -> None:
+async def start_worker_loop(config: WorkerConfig) -> None:
     """Handle & await all pika processing queues."""
     async with interruptible_notify_taskgroup(reload=config.reload) as tg:
-        tg.create_task(process_message(config))
+        tg.create_task(worker_loop(config))
 
 
 class WorkerCliConfig(WorkerConfig):
@@ -269,7 +257,7 @@ def run(config: WorkerConfig | None = None) -> None:
 
     logger.info("Waiting for messages. To exit press CTRL+C")
     with restart_self_on_change():
-        anyio.run(process_queue, config)
+        anyio.run(start_worker_loop, config)
 
 
 if __name__ == "__main__":

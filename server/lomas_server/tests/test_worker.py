@@ -17,7 +17,7 @@ from lomas_core.models.responses import Job
 from lomas_server.app import get_full_app
 from lomas_server.auth.auth import FreePassAuthenticator
 from lomas_server.models.config import ServerConfig
-from lomas_server.worker import WorkerConfig, process_message
+from lomas_server.worker import WorkerConfig, worker_loop
 
 
 @pytest.fixture
@@ -76,7 +76,7 @@ def worker_run(client):
     with start_blocking_portal(name="worker_portal") as portal:
 
         def work_in_thread(**kwargs):
-            do_work = partial(process_message, worker_config, client, n_steps=1, **kwargs)
+            do_work = partial(worker_loop, worker_config, client, n_steps=1, **kwargs)
             return portal.call(do_work)
 
         yield work_in_thread

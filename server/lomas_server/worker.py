@@ -176,8 +176,6 @@ async def worker_loop(
     *,
     get_next_job: Callable[[WorkerConfig, types.ModuleType], ResultE[Job | None]] = get_next_job,
     job_post_process: Callable[[WorkerConfig, types.ModuleType, Job], ResultE[str | None]] = job_post_process,
-    init_delay: float = 0.5,
-    max_delay: float = 5,
 ) -> None:
     """General Job processing loop."""
     with contextlib.ExitStack() as stack:
@@ -193,7 +191,7 @@ async def worker_loop(
                 err_msg = ""
             consecutive_sleep += 1
 
-            await anyio.sleep(min(init_delay * 1.5**consecutive_sleep, max_delay))
+            await anyio.sleep(min(config.init_delay * 1.5**consecutive_sleep, config.max_delay))
 
             match get_next_job(config, client):
                 case Success(None):

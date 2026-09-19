@@ -8,7 +8,6 @@ from pydantic import ValidationError
 
 from lomas_client.http_client import LomasHttpClient
 from lomas_core.exceptions import InternalServerException
-from lomas_core.models.constants import JobResultStatus
 from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.responses import ResponseModel
 
@@ -63,7 +62,7 @@ def validate_model_response[ResponseT: ResponseModel](
 
     job_uid = response.json()["uid"]
     job = client.wait_for_job(job_uid)
-    if job.status == JobResultStatus.FAILED:
+    if job.failure():
         assert job.error is not None, f"job {job_uid!r} failed without error !"
         job.error.raise_exception()
 

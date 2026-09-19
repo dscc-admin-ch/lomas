@@ -1,14 +1,14 @@
-import asyncio
 import contextlib
 import time
+import types
 from collections.abc import Callable
 from functools import partial
 from typing import Any
 
+import anyio
 import httpx2
 from aio_pika.patterns.rpc import Proxy
 from csvw_eo.metadata_structure import TableMetadata
-from fastapi import status
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from returns.functions import raise_exception
@@ -16,11 +16,8 @@ from returns.result import Failure, ResultE, Success
 from rich.progress import BarColumn, Progress, SpinnerColumn, TimeElapsedColumn
 
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.collections import (
-    DSInfo,
-    User,
-)
-from lomas_core.models.constants import JobResultStatus, LomasHeaders, get_lomas_logger, init_logging
+from lomas_core.models.collections import DSInfo
+from lomas_core.models.constants import LomasHeaders, get_lomas_logger, init_logging
 from lomas_core.models.requests import (
     AnyLomasRequest,
     CostQueryModel,
@@ -43,7 +40,6 @@ from lomas_server.dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQue
 from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import WorkerConfig
-from lomas_server.routes.error_handler import model_from_lomas_exception
 from lomas_server.routes.utils import get_dataset_connector
 from lomas_server.utils.query import query_lomas
 from lomas_server.utils.startup import (
@@ -65,12 +61,14 @@ job_progress = Progress(
 )
 
 
-def admin_database_proxy(config: WorkerConfig, method_name: str, kwargs: dict[str, Any]) -> Any:
+def admin_database_proxy(
+    config: WorkerConfig, client: types.ModuleType, method_name: str, kwargs: dict[str, Any]
+) -> Any:
     match (method_name, kwargs):
         case ("get_remaining_budget", {"user_name": user_name, "dataset_name": dataset_name}):
             res = query_lomas(
                 "/w/get_remaining_budget",
-                httpx2.post,
+                client.post,
                 host=config.admin_api,
                 headers={LomasHeaders.APIKEY: config.worker_api_key, LomasHeaders.FORUSER: user_name},
                 json={"dataset_name": dataset_name},
@@ -79,7 +77,7 @@ def admin_database_proxy(config: WorkerConfig, method_name: str, kwargs: dict[st
         case ("get_dataset_metadata", {"dataset_name": dataset_name}):
             res = query_lomas(
                 f"/w/dataset/{dataset_name}/metadata",
-                httpx2.get,
+                client.get,
                 host=config.admin_api,
                 headers={LomasHeaders.APIKEY: config.worker_api_key},
             ).map(TableMetadata.model_validate)
@@ -87,19 +85,10 @@ def admin_database_proxy(config: WorkerConfig, method_name: str, kwargs: dict[st
         case ("get_dataset", {"dataset_name": dataset_name}):
             res = query_lomas(
                 f"/w/dataset/{dataset_name}",
-                httpx2.get,
+                client.get,
                 host=config.admin_api,
                 headers={LomasHeaders.APIKEY: config.worker_api_key},
             ).map(DSInfo.model_validate)
-
-        case ("get_user", {"user_name": user_name}):
-            # TODO: should this mechanic be changed ? do we even want to attempt Semaphore over network ?
-            res = query_lomas(
-                f"/w/users/{user_name}",
-                httpx2.get,
-                host=config.admin_api,
-                headers={LomasHeaders.APIKEY: config.worker_api_key},
-            ).map(User.model_validate)
 
         case _:
             raise ValueError(f"Invalid Proxy method: {method_name}")
@@ -151,38 +140,27 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
             case QueryModel():
                 query_response = dp_querier.handle_query(query_model, user_name)
 
-        job.result = query_response
-        job.status = JobResultStatus.COMPLETE
-        job.status_code = status.HTTP_200_OK
-
         elapsed = time.time() - start_sec
         logger.debug(f"Done ({elapsed:.2f})")
 
-        return job
-
+        return job.complete(query_response)
     except Exception as exc:  # pylint: disable=broad-exception-caught
-        error_model, status_code = model_from_lomas_exception(exc)
-
-        job.status = JobResultStatus.FAILED
-        job.error = error_model
-        job.status_code = status_code
-
-        return job
+        return job.fail(exc)
 
 
-def get_next_job(config: WorkerConfig) -> ResultE[str | None]:
+def get_next_job(config: WorkerConfig, client: types.ModuleType) -> ResultE[Job | None]:
     return query_lomas(
         "/w/job/pending",
-        httpx2.get,
+        client.get,
         host=config.admin_api,
         headers={LomasHeaders.APIKEY: config.worker_api_key},
-    )
+    ).map(lambda job_json: Job.model_validate(job_json) if job_json is not None else None)
 
 
-def process_post_job(config: WorkerConfig, job_done: Job) -> ResultE[str | None]:
+def job_post_process(config: WorkerConfig, client: types.ModuleType, job_done: Job) -> ResultE[str | None]:
     return query_lomas(
         "/w/job",
-        httpx2.put,
+        client.put,
         host=config.admin_api,
         headers={LomasHeaders.APIKEY: config.worker_api_key},
         json=job_done.model_dump(
@@ -191,10 +169,13 @@ def process_post_job(config: WorkerConfig, job_done: Job) -> ResultE[str | None]
     )
 
 
-async def process_message(
+async def worker_loop(
     config: WorkerConfig,
-    get_next_job: Callable[[WorkerConfig], ResultE[str | None]] = get_next_job,
-    process_post_job: Callable[[WorkerConfig, Job], ResultE[str | None]] = process_post_job,
+    client: types.ModuleType = httpx2,
+    n_steps: int | None = None,
+    *,
+    get_next_job: Callable[[WorkerConfig, types.ModuleType], ResultE[Job | None]] = get_next_job,
+    job_post_process: Callable[[WorkerConfig, types.ModuleType, Job], ResultE[str | None]] = job_post_process,
 ) -> None:
     """General Job processing loop."""
     with contextlib.ExitStack() as stack:
@@ -204,20 +185,19 @@ async def process_message(
             status = stack.enter_context(job_progress.console.status("Polling ..."))
             stack.enter_context(job_progress)
 
-        while True:
+        async for _ in anyio.itertools.repeat(None, times=n_steps):
             if status is not None:
                 status.update(status=f"Polling ... {consecutive_sleep}{err_msg}")
                 err_msg = ""
             consecutive_sleep += 1
-            await asyncio.sleep(2)
 
-            match get_next_job(config):
+            await anyio.sleep(min(config.init_delay * 1.5**consecutive_sleep, config.max_delay))
+
+            match get_next_job(config, client):
                 case Success(None):
                     if not config.tui:
                         logger.debug("No pending Jobs - Waiting")
-                case Success(job_json):
-                    job = Job.model_validate(job_json)
-
+                case Success(job):
                     task_id = job_progress.add_task(
                         f"{job.uid}",
                         total=1,
@@ -226,12 +206,12 @@ async def process_message(
                         job=job,
                     )
 
-                    job_done = handle_query(config, Proxy(partial(admin_database_proxy, config)), job)
+                    job_done = handle_query(config, Proxy(partial(admin_database_proxy, config, client)), job)
                     job_progress.update(task_id, completed=1)
-                    if job_done.status == JobResultStatus.FAILED:
+                    if job_done.failure():
                         job_progress.update(task_id, description="[red]FAILED[/red]")
 
-                    process_post_job(config, job_done)
+                    job_post_process(config, client, job_done)
 
                     consecutive_sleep = 0
                 case Failure(httpx2.HTTPError() as e):
@@ -243,10 +223,10 @@ async def process_message(
                     logger.warning(str(e))
 
 
-async def process_queue(config: WorkerConfig) -> None:
+async def start_worker_loop(config: WorkerConfig) -> None:
     """Handle & await all pika processing queues."""
     async with interruptible_notify_taskgroup(reload=config.reload) as tg:
-        tg.create_task(process_message(config))
+        tg.create_task(worker_loop(config))
 
 
 class WorkerCliConfig(WorkerConfig):
@@ -275,7 +255,7 @@ def run(config: WorkerConfig | None = None) -> None:
 
     logger.info("Waiting for messages. To exit press CTRL+C")
     with restart_self_on_change():
-        asyncio.run(process_queue(config))
+        anyio.run(start_worker_loop, config)
 
 
 if __name__ == "__main__":

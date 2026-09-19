@@ -12,7 +12,6 @@ from lomas_core.exceptions import (
     UnauthorizedAccessException,
 )
 from lomas_core.models.collections import UserId
-from lomas_core.models.constants import JobResultStatus
 from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
 from lomas_core.models.requests_examples import (
     EXAMPLE_GET_ADMIN_DB_DATA,
@@ -27,7 +26,7 @@ from lomas_server.auth.auth import ensure_dataset_access
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES
 from lomas_server.routes.utils import get_user_id_from_authenticator
 
-router = APIRouter()
+router = APIRouter(responses=API_ERROR_RESPONSES)
 example_get_admin_db_data_body = Body(EXAMPLE_GET_ADMIN_DB_DATA)
 example_get_dummy_dataset_body = Body(EXAMPLE_GET_DUMMY_DATASET)
 
@@ -52,7 +51,7 @@ async def health_handler() -> JSONResponse:
     return JSONResponse(content={"status": "alive"})
 
 
-@router.get("/status/{uid}", responses=API_ERROR_RESPONSES)
+@router.get("/status/{uid}")
 async def status_handler(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
@@ -85,18 +84,14 @@ async def status_handler(
     if job.requested_by != user_id.name:
         raise UnauthorizedAccessException(f"User {user_id.name} does not have access to job with uid {uid}")
 
-    if job.status == JobResultStatus.FAILED:
+    if job.failure():
         response.status_code = job.status_code
 
     return job
 
 
 # Metadata query
-@router.post(
-    "/get_dataset_metadata",
-    responses=API_ERROR_RESPONSES,
-    tags=["USER_METADATA"],
-)
+@router.post("/get_dataset_metadata", tags=["USER_METADATA"])
 def get_dataset_metadata(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
@@ -131,11 +126,7 @@ def get_dataset_metadata(
 
 
 # Dummy dataset query
-@router.post(
-    "/get_dummy_dataset",
-    responses=API_ERROR_RESPONSES,
-    tags=["USER_DUMMY"],
-)
+@router.post("/get_dummy_dataset", tags=["USER_DUMMY"])
 def get_dummy_dataset(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
@@ -180,11 +171,7 @@ def get_dummy_dataset(
     return DummyDsResponse(dtypes=dtypes, dummy_df=dummy_df)
 
 
-@router.post(
-    "/get_initial_budget",
-    responses=API_ERROR_RESPONSES,
-    tags=["USER_BUDGET"],
-)
+@router.post("/get_initial_budget", tags=["USER_BUDGET"])
 def get_initial_budget(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
@@ -220,11 +207,7 @@ def get_initial_budget(
     return admin_database.get_initial_budget(user_id.name, query_json.dataset_name)
 
 
-@router.post(
-    "/get_total_spent_budget",
-    responses=API_ERROR_RESPONSES,
-    tags=["USER_BUDGET"],
-)
+@router.post("/get_total_spent_budget", tags=["USER_BUDGET"])
 def get_total_spent_budget(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
@@ -261,11 +244,7 @@ def get_total_spent_budget(
     return admin_database.get_total_spent_budget(user_id.name, query_json.dataset_name)
 
 
-@router.post(
-    "/get_remaining_budget",
-    responses=API_ERROR_RESPONSES,
-    tags=["USER_BUDGET"],
-)
+@router.post("/get_remaining_budget", tags=["USER_BUDGET"])
 def get_remaining_budget(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
@@ -302,11 +281,7 @@ def get_remaining_budget(
     return admin_database.get_remaining_budget(user_id.name, query_json.dataset_name)
 
 
-@router.post(
-    "/get_previous_queries",
-    responses=API_ERROR_RESPONSES,
-    tags=["USER_BUDGET"],
-)
+@router.post("/get_previous_queries", tags=["USER_BUDGET"])
 def get_user_dataset_queries(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],

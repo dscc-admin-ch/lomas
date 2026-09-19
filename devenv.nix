@@ -231,6 +231,7 @@ in
     LOMAS_SERVER_authenticator__query_userinfo = "${lib.boolToString config.lomas.oidc.queryUserinfo}";
     LOMAS_SERVER_bootstrap = "deadbeef";
     LOMAS_SERVER_database_directory = "/tmp/lomas-db/";
+    LOMAS_SERVER_database_job_expiry_delay = "PT3M0S"; # ISO 8601;
     LOMAS_SERVER_data_directory = "${config.git.root}/server/data/";
     LOMAS_SERVER_clean_admin_database = "false";
     # Worker specifics

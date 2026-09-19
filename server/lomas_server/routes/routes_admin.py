@@ -21,14 +21,14 @@ from lomas_core.models.responses import (
     Budget,
     Job,
 )
-from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.admin_database.constants import BudgetDBKey, TopDBKey as TK
 from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.models.responses import BackupResponse, ConfigResponse
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES
 from lomas_server.routes.utils import get_user_id_from_authenticator
 from lomas_server.utils.backup_storage import store_backup
 
-router = APIRouter()
+router = APIRouter(responses=API_ERROR_RESPONSES)
 example_get_admin_db_data_body = Body(EXAMPLE_GET_ADMIN_DB_DATA)
 example_get_dummy_dataset_body = Body(EXAMPLE_GET_DUMMY_DATASET)
 
@@ -113,7 +113,7 @@ async def get_server_config(
 #############################
 
 
-@router.get("/datasets", responses=API_ERROR_RESPONSES)
+@router.get("/datasets")
 def list_datasets(
     request: Request, _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])]
 ) -> list[str]:
@@ -121,7 +121,7 @@ def list_datasets(
     return [ds.dataset_name for ds in db.datasets()]
 
 
-@router.get("/users", responses=API_ERROR_RESPONSES)
+@router.get("/users")
 def list_users(
     request: Request, _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])]
 ) -> list[User]:
@@ -129,7 +129,7 @@ def list_users(
     return db.users()
 
 
-@router.post("/users", responses=API_ERROR_RESPONSES)
+@router.post("/users")
 def put_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -147,7 +147,7 @@ def put_user(
         raise InvalidQueryException(str(e)) from e
 
 
-@router.post("/usersfile", responses=API_ERROR_RESPONSES)
+@router.post("/usersfile")
 def add_users_yaml(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -171,7 +171,7 @@ def add_users_yaml(
         raise InvalidQueryException(str(e)) from e
 
 
-@router.delete("/users/{username}", responses=API_ERROR_RESPONSES)
+@router.delete("/users/{username}")
 def delete_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -190,11 +190,11 @@ def delete_user(
     return db.del_user(username)
 
 
-@router.delete("/collections/{collection_name}", responses=API_ERROR_RESPONSES)
+@router.delete("/collections/{collection_name}")
 def delete_collection(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
-    collection_name: str,
+    collection_name: TK,
 ) -> None:
     """Drops the given collection from the administration database.
 
@@ -205,7 +205,7 @@ def delete_collection(
     return db.drop_collection(collection_name)
 
 
-@router.post("/dataset/bulk", responses=API_ERROR_RESPONSES)
+@router.post("/dataset/bulk")
 def add_dataset_bulk(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -217,7 +217,7 @@ def add_dataset_bulk(
     return db.add_datasets_via_yaml(file.file, clean=clean, path_prefix=config.data_directory)
 
 
-@router.post("/dataset", responses=API_ERROR_RESPONSES)
+@router.post("/dataset")
 def add_dataset(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -233,7 +233,7 @@ def add_dataset(
     )
 
 
-@router.delete("/dataset/{dataset_name}", responses=API_ERROR_RESPONSES)
+@router.delete("/dataset/{dataset_name}")
 def delete_dataset(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -243,7 +243,7 @@ def delete_dataset(
     return db.del_dataset(dataset_name)
 
 
-@router.patch("/users/{username}/dataset", responses=API_ERROR_RESPONSES)
+@router.patch("/users/{username}/dataset")
 def add_dataset_to_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -258,7 +258,7 @@ def add_dataset_to_user(
     return db.add_dataset_to_user(username, body.dataset_name, Budget.zero())
 
 
-@router.patch("/users/{username}/dataset/del", responses=API_ERROR_RESPONSES)
+@router.patch("/users/{username}/dataset/del")
 def del_dataset_to_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -273,7 +273,7 @@ def del_dataset_to_user(
     return db.del_dataset_to_user(username, body.dataset_name)
 
 
-@router.patch("/users/{username}/dataset/budget", responses=API_ERROR_RESPONSES)
+@router.patch("/users/{username}/dataset/budget")
 def set_budget(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -290,7 +290,7 @@ def set_budget(
     )
 
 
-@router.get("/users/{username}/archive", responses=API_ERROR_RESPONSES)
+@router.get("/users/{username}/archive")
 def get_archives_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -304,7 +304,7 @@ def get_archives_user(
     return db.get_user_queries(username)
 
 
-@router.get("/dataset/{dataset_name}", responses=API_ERROR_RESPONSES)
+@router.get("/dataset/{dataset_name}")
 def get_dataset(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -318,7 +318,7 @@ def get_dataset(
     return db.get_dataset(dataset_name)
 
 
-@router.get("/dataset/{dataset_name}/metadata", responses=API_ERROR_RESPONSES)
+@router.get("/dataset/{dataset_name}/metadata")
 def get_dataset_metadata_admin(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -332,7 +332,7 @@ def get_dataset_metadata_admin(
     return db.get_dataset_metadata(dataset_name)
 
 
-@router.patch("/dataset/{dataset_name}/metadata", responses=API_ERROR_RESPONSES)
+@router.patch("/dataset/{dataset_name}/metadata")
 def set_dataset_metadata_admin(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -347,7 +347,7 @@ def set_dataset_metadata_admin(
     db.set_dataset_metadata(dataset_name, file.file)
 
 
-@router.get("/backup", responses=API_ERROR_RESPONSES)
+@router.get("/backup")
 def backup_admin_database(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -362,7 +362,7 @@ def backup_admin_database(
     return BackupResponse(location=destination.location, is_s3=destination.is_s3, size_bytes=len(data))
 
 
-@router.get("/bootstrap", responses=API_ERROR_RESPONSES)
+@router.get("/bootstrap")
 def get_bootstrap(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -375,7 +375,7 @@ def get_bootstrap(
         response.status_code = status.HTTP_200_OK
 
 
-@router.delete("/bootstrap", responses=API_ERROR_RESPONSES)
+@router.delete("/bootstrap")
 def delete_bootstrap(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],

@@ -1,7 +1,7 @@
 import contextlib
 import time
 import types
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
 from functools import partial
 from typing import Any
 
@@ -157,7 +157,7 @@ def get_next_job(config: WorkerConfig, client: types.ModuleType) -> ResultE[Job 
     ).map(lambda job_json: Job.model_validate(job_json) if job_json is not None else None)
 
 
-def job_post_process(config: WorkerConfig, client: types.ModuleType, job_done: Job) -> ResultE[str | None]:
+def job_post_process(config: WorkerConfig, client: types.ModuleType, job_done: Job) -> ResultE[Job | None]:
     return query_lomas(
         "/w/job",
         client.put,
@@ -166,7 +166,7 @@ def job_post_process(config: WorkerConfig, client: types.ModuleType, job_done: J
         json=job_done.model_dump(
             exclude_unset=True, mode="json"
         ),  # Requires json mode to make UUID (not json serializable) into str.
-    )
+    ).map(lambda _: job_done)
 
 
 async def worker_loop(
@@ -175,8 +175,8 @@ async def worker_loop(
     n_steps: int | None = None,
     *,
     get_next_job: Callable[[WorkerConfig, types.ModuleType], ResultE[Job | None]] = get_next_job,
-    job_post_process: Callable[[WorkerConfig, types.ModuleType, Job], ResultE[str | None]] = job_post_process,
-) -> None:
+    job_post_process: Callable[[WorkerConfig, types.ModuleType, Job], ResultE[Job | None]] = job_post_process,
+) -> AsyncGenerator[ResultE[Job | None]]:
     """General Job processing loop."""
     with contextlib.ExitStack() as stack:
         consecutive_sleep = 0
@@ -194,9 +194,10 @@ async def worker_loop(
             await anyio.sleep(min(config.init_delay * 1.5**consecutive_sleep, config.max_delay))
 
             match get_next_job(config, client):
-                case Success(None):
+                case Success(None) as no_job:
                     if not config.tui:
                         logger.debug("No pending Jobs - Waiting")
+                    yield no_job
                 case Success(job):
                     task_id = job_progress.add_task(
                         f"{job.uid}",
@@ -211,22 +212,29 @@ async def worker_loop(
                     if job_done.failure():
                         job_progress.update(task_id, description="[red]FAILED[/red]")
 
-                    job_post_process(config, client, job_done)
+                    yield job_post_process(config, client, job_done)
 
                     consecutive_sleep = 0
-                case Failure(httpx2.HTTPError() as e):
+                case Failure(httpx2.HTTPError() as e) as fail:
                     if status is not None:
                         err_msg = f"     [bold red]{e}[/bold red]"
                     else:
                         logger.warning(str(e))
-                case Failure(e):
+                    yield fail
+                case Failure(e) as fail:
                     logger.warning(str(e))
+                    yield fail
 
 
 async def start_worker_loop(config: WorkerConfig) -> None:
     """Handle & await all pika processing queues."""
+
+    async def exhaust_gen(async_gen: AsyncGenerator) -> None:
+        async for _ in async_gen:
+            pass
+
     async with interruptible_notify_taskgroup(reload=config.reload) as tg:
-        tg.create_task(worker_loop(config))
+        tg.create_task(exhaust_gen(worker_loop(config)))
 
 
 class WorkerCliConfig(WorkerConfig):

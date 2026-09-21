@@ -5,6 +5,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import anyio
+import httpx2
 import pytest
 from anyio.from_thread import start_blocking_portal
 from fastapi import status
@@ -76,8 +77,8 @@ def worker_run(client):
     with start_blocking_portal(name="worker_portal") as portal:
 
         def work_in_thread(**kwargs):
-            do_work = partial(worker_loop, worker_config, client, n_steps=1, **kwargs)
-            return portal.call(do_work)
+            # can use 'anext' here since n_spets=1
+            return portal.call(anext, worker_loop(worker_config, client, n_steps=1, **kwargs))
 
         yield work_in_thread
 
@@ -93,7 +94,7 @@ def test_worker(testdb, config, headers):
         assert response.status_code == 202
         job = Job.model_validate(response.json())
 
-        work()
+        assert work().map(lambda job: job.uid) == Success(job.uid)
 
         assert job_status(job.uid).success()
 
@@ -121,17 +122,17 @@ def test_worker_timeout(testdb, config, headers):
 
         # too soon shouldn't get any job
         client.portal.call(anyio.sleep, 1)
-        work()
+        assert work() == Success(None)
 
         assert job_status(job.uid).status == JobResultStatus.INCOMPLETE
 
         # wait for expiry
         client.portal.call(anyio.sleep_until, start_time + database_job_expiry_delay.total_seconds())
         # now we should get it
-        work()
+        assert work().map(lambda job: job.uid) == Success(job.uid)
 
         assert job_status(job.uid).success()
 
         # simulate late reply
-        # with pytest.raises(InvalidQueryException, match=r'Job .* not in progress anymore'):
-        work(get_next_job=lambda *arg: Success(job))
+        with pytest.raises(httpx2.HTTPError, match=r"Client error.*"):
+            raise work(get_next_job=lambda *arg: Success(job)).failure()

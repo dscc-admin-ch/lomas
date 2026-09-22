@@ -60,12 +60,15 @@ server:
       query_userinfo: true
       authentication_type: oidc
     clean_admin_database: false # careful!
+    database_job_expiry_delay: "PT3M0S" # ISO 8601;
     s3Backup:
       enable: false # If not enabled, local path backup will be enabled (see pvc.backup)
       uri:
         existingSecret: ""
         existingSecretKey: ""
         value: ""
+    worker_loop_init_delay: "0.5"
+    worker_loop_max_delay: "5.0"
   pvc:
     db: # used for sqlite admin db
       storageClassName: "" # is not set if empty string

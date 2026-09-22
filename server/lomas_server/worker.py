@@ -186,14 +186,16 @@ async def worker_loop(config: WorkerConfig, client: types.ModuleType = httpx2) -
                 status.update(status=f"Polling ... {consecutive_sleep}{err_msg}")
                 err_msg = ""
 
-            await anyio.sleep(min(config.init_delay * 1.5**consecutive_sleep, config.max_delay))
+            await anyio.sleep(
+                min(config.worker_loop_init_delay * 1.5**consecutive_sleep, config.worker_loop_max_delay)
+            )
 
             step_result = worker_step(config, client)
 
             consecutive_sleep += 1
             match step_result:
                 case Success(Job()):
-                    consecutive_sleep = 0  # todo
+                    consecutive_sleep = 0
                 case Success(None):
                     if not config.tui:
                         logger.debug("No pending Jobs - Waiting")

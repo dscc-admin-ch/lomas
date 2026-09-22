@@ -183,10 +183,10 @@ class WorkerConfig(Config):
 
     server_host_addr: str = Field(default="localhost")
 
-    init_delay: float = 0.5
+    worker_loop_init_delay: float = 0.5
     "initial delay (in seconds) for server polling"
 
-    max_delay: float = 5.0
+    worker_loop_max_delay: float = 5.0
     "maximum delay (in seconds) for server polling"
 
     @computed_field

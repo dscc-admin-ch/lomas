@@ -1,7 +1,7 @@
 import contextlib
 import time
 import types
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import Callable
 from functools import partial
 from typing import Any
 
@@ -64,6 +64,7 @@ job_progress = Progress(
 def admin_database_proxy(
     config: WorkerConfig, client: types.ModuleType, method_name: str, kwargs: dict[str, Any]
 ) -> Any:
+    """Meant to be used as partial function to implement AdminDatabase methods necessary for handling queries (cost, dummy and real queries)."""
     match (method_name, kwargs):
         case ("get_remaining_budget", {"user_name": user_name, "dataset_name": dataset_name}):
             res = query_lomas(
@@ -149,6 +150,7 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
 
 
 def get_next_job(config: WorkerConfig, client: types.ModuleType) -> ResultE[Job | None]:
+    """Get next pending job from server. Returns the job as a ResultE."""
     return query_lomas(
         "/w/job/pending",
         client.get,
@@ -158,6 +160,7 @@ def get_next_job(config: WorkerConfig, client: types.ModuleType) -> ResultE[Job 
 
 
 def job_post_process(config: WorkerConfig, client: types.ModuleType, job_done: Job) -> ResultE[Job | None]:
+    """Return job to server. Returns the job as a ResultE."""
     return query_lomas(
         "/w/job",
         client.put,
@@ -169,72 +172,83 @@ def job_post_process(config: WorkerConfig, client: types.ModuleType, job_done: J
     ).map(lambda _: job_done)
 
 
-async def worker_loop(
-    config: WorkerConfig,
-    client: types.ModuleType = httpx2,
-    n_steps: int | None = None,
-    *,
-    get_next_job: Callable[[WorkerConfig, types.ModuleType], ResultE[Job | None]] = get_next_job,
-    job_post_process: Callable[[WorkerConfig, types.ModuleType, Job], ResultE[Job | None]] = job_post_process,
-) -> AsyncGenerator[ResultE[Job | None]]:
-    """General Job processing loop."""
+async def worker_loop(config: WorkerConfig, client: types.ModuleType = httpx2) -> None:
+    """General worker processing loop."""
     with contextlib.ExitStack() as stack:
-        consecutive_sleep = 0
         status, err_msg = None, ""
         if config.tui:
             status = stack.enter_context(job_progress.console.status("Polling ..."))
             stack.enter_context(job_progress)
 
-        async for _ in anyio.itertools.repeat(None, times=n_steps):
+        consecutive_sleep = 0
+        while True:
             if status is not None:
                 status.update(status=f"Polling ... {consecutive_sleep}{err_msg}")
                 err_msg = ""
-            consecutive_sleep += 1
 
             await anyio.sleep(min(config.init_delay * 1.5**consecutive_sleep, config.max_delay))
 
-            match get_next_job(config, client):
-                case Success(None) as no_job:
+            step_result = worker_step(config, client)
+
+            consecutive_sleep += 1
+            match step_result:
+                case Success(Job()):
+                    consecutive_sleep = 0  # todo
+                case Success(None):
                     if not config.tui:
                         logger.debug("No pending Jobs - Waiting")
-                    yield no_job
-                case Success(job):
-                    task_id = job_progress.add_task(
-                        f"{job.uid}",
-                        total=1,
-                        requested_by=job.requested_by,
-                        dataset_name=job.dataset_name,
-                        job=job,
-                    )
-
-                    job_done = handle_query(config, Proxy(partial(admin_database_proxy, config, client)), job)
-                    job_progress.update(task_id, completed=1)
-                    if job_done.failure():
-                        job_progress.update(task_id, description="[red]FAILED[/red]")
-
-                    yield job_post_process(config, client, job_done)
-
-                    consecutive_sleep = 0
-                case Failure(httpx2.HTTPError() as e) as fail:
+                case Failure(httpx2.HTTPError() as e):
                     if status is not None:
                         err_msg = f"     [bold red]{e}[/bold red]"
                     else:
                         logger.warning(str(e))
-                    yield fail
-                case Failure(e) as fail:
+                case Failure(e):
                     logger.warning(str(e))
-                    yield fail
+
+
+def worker_step(
+    config: WorkerConfig,
+    client: types.ModuleType = httpx2,
+    get_next_job: Callable[[WorkerConfig, types.ModuleType], ResultE[Job | None]] = get_next_job,
+    job_post_process: Callable[[WorkerConfig, types.ModuleType, Job], ResultE[Job | None]] = job_post_process,
+) -> ResultE[Job | None]:
+    """Runs a single worker step.
+
+    Gets a job, executes it and returns the result to the server.
+
+    Args:
+        config (WorkerConfig): The worker config.
+        client (types.ModuleType, optional): The client to use to reach the server. Defaults to httpx2.
+        get_next_job (Callable[[WorkerConfig, types.ModuleType], ResultE[Job  |  None]], optional): Callable to get next job. Defaults to get_next_job.
+        job_post_process (Callable[[WorkerConfig, types.ModuleType, Job], ResultE[Job  |  None]], optional): Callable for post job step. Defaults to job_post_process.
+
+    Returns:
+        ResultE[Job | None]: The result containing the finished job or any failure along the way.
+    """
+    match get_next_job(config, client):
+        case Success(Job() as job):
+            task_id = job_progress.add_task(
+                f"{job.uid}",
+                total=1,
+                requested_by=job.requested_by,
+                dataset_name=job.dataset_name,
+                job=job,
+            )
+
+            job_done = handle_query(config, Proxy(partial(admin_database_proxy, config, client)), job)
+            job_progress.update(task_id, completed=1)
+            if job_done.failure():
+                job_progress.update(task_id, description="[red]FAILED[/red]")
+
+            return job_post_process(config, client, job_done)
+        case _ as res:
+            return res
 
 
 async def start_worker_loop(config: WorkerConfig) -> None:
-    """Handle & await all pika processing queues."""
-
-    async def exhaust_gen(async_gen: AsyncGenerator) -> None:
-        async for _ in async_gen:
-            pass
-
+    """Start interruptible task with worker loop."""
     async with interruptible_notify_taskgroup(reload=config.reload) as tg:
-        tg.create_task(exhaust_gen(worker_loop(config)))
+        tg.create_task(worker_loop(config))
 
 
 class WorkerCliConfig(WorkerConfig):

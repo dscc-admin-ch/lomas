@@ -7,7 +7,6 @@ from tempfile import TemporaryDirectory
 import anyio
 import httpx2
 import pytest
-from anyio.from_thread import start_blocking_portal
 from fastapi import status
 from fastapi.testclient import TestClient
 from returns.result import Success
@@ -18,7 +17,7 @@ from lomas_core.models.responses import Job
 from lomas_server.app import get_full_app
 from lomas_server.auth.auth import FreePassAuthenticator
 from lomas_server.models.config import ServerConfig
-from lomas_server.worker import WorkerConfig, worker_loop
+from lomas_server.worker import WorkerConfig, worker_step
 
 
 @pytest.fixture
@@ -72,19 +71,13 @@ def get_job_status(job_uid, client, headers):
 
 
 @contextlib.contextmanager
-def worker_run(client):
+def work_step(client):
     worker_config = WorkerConfig()
-    with start_blocking_portal(name="worker_portal") as portal:
-
-        def work_in_thread(**kwargs):
-            # can use 'anext' here since n_spets=1
-            return portal.call(anext, worker_loop(worker_config, client, n_steps=1, **kwargs))
-
-        yield work_in_thread
+    yield partial(worker_step, worker_config, client)
 
 
-def test_worker(testdb, config, headers):
-    with TestClient(get_full_app(config), headers=headers) as client, worker_run(client) as work:
+def test_worker_a(testdb, config, headers):
+    with TestClient(get_full_app(config), headers=headers) as client, work_step(client) as work:
         job_status = partial(get_job_status, client=client, headers=headers)
 
         response = client.post("/get_dataset_metadata", json={"dataset_name": "PUMS"})
@@ -104,7 +97,7 @@ def test_worker_timeout(testdb, config, headers):
 
     config_fast_expiry = config.model_copy(update=dict(database_job_expiry_delay=database_job_expiry_delay))
 
-    with TestClient(get_full_app(config_fast_expiry), headers=headers) as client, worker_run(client) as work:
+    with TestClient(get_full_app(config_fast_expiry), headers=headers) as client, work_step(client) as work:
         job_status = partial(get_job_status, client=client, headers=headers)
 
         response = client.post("/get_dataset_metadata", json={"dataset_name": "PUMS"})
@@ -127,7 +120,7 @@ def test_worker_timeout(testdb, config, headers):
         assert job_status(job.uid).status == JobResultStatus.INCOMPLETE
 
         # wait for expiry
-        client.portal.call(anyio.sleep_until, start_time + database_job_expiry_delay.total_seconds())
+        client.portal.call(anyio.sleep_until, start_time + database_job_expiry_delay.total_seconds() + 1)
         # now we should get it
         assert work().map(lambda job: job.uid) == Success(job.uid)
 

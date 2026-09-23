@@ -17408,8 +17408,7 @@ Args:
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>core/lomas_core/models/responses.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">49</span>
-<span class="normal">50</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">50</span>
 <span class="normal">51</span>
 <span class="normal">52</span>
 <span class="normal">53</span>
@@ -17427,7 +17426,8 @@ Args:
 <span class="normal">65</span>
 <span class="normal">66</span>
 <span class="normal">67</span>
-<span class="normal">68</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"dummy_df"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
+<span class="normal">68</span>
+<span class="normal">69</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"dummy_df"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"before"</span><span class="p">)</span>
 <span class="nd">@classmethod</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">deserialize_dummy_df</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">ValidationInfo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Decodes the dict representation of the dummy df with correct types.</span>
@@ -19280,6 +19280,12 @@ Args:
       </li>
       <li class="doc doc-backlink">
             <span class="doc doc-backlink-crumb last">
+      <a href="../server/#lomas_server.admin_database.admin_database.AdminDatabase.get_user_dataset_queries"><code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_user_dataset_queries</a>
+  </span>
+
+      </li>
+      <li class="doc doc-backlink">
+            <span class="doc doc-backlink-crumb last">
       <a href="../server/#lomas_server.admin_database.admin_database.AdminDatabase.get_user_queries"><code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get_user_queries</a>
   </span>
 
@@ -19331,6 +19337,12 @@ Args:
       </li>
       <li class="doc doc-backlink">
             <span class="doc doc-backlink-crumb last">
+      <a href="../server/#lomas_server.worker.get_next_job"><code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;get_next_job</a>
+  </span>
+
+      </li>
+      <li class="doc doc-backlink">
+            <span class="doc doc-backlink-crumb last">
       <a href="../server/#lomas_server.worker.handle_query"><code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;handle_query</a>
   </span>
 
@@ -19343,6 +19355,12 @@ Args:
       </li>
       <li class="doc doc-backlink">
             <span class="doc doc-backlink-crumb last">
+      <a href="../server/#lomas_server.worker.job_post_process"><code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;job_post_process</a>
+  </span>
+
+      </li>
+      <li class="doc doc-backlink">
+            <span class="doc doc-backlink-crumb last">
       <a href="../server/#lomas_server.routes.routes_dp.opendp_query_handler"><code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;opendp_query_handler</a>
   </span>
 
@@ -19350,6 +19368,12 @@ Args:
       <li class="doc doc-backlink">
             <span class="doc doc-backlink-crumb last">
       <a href="../server/#lomas_server.routes.routes_dp.smartnoise_sql_handler"><code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;smartnoise_sql_handler</a>
+  </span>
+
+      </li>
+      <li class="doc doc-backlink">
+            <span class="doc doc-backlink-crumb last">
+      <a href="../server/#lomas_server.worker.worker_step"><code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;worker_step</a>
   </span>
 
       </li>
@@ -19402,13 +19426,19 @@ Args:
       </li>
       <li class="doc doc-backlink">
             <span class="doc doc-backlink-crumb last">
-      <a href="../server/#lomas_server.worker.process_message"><code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;process_message</a>
+      <a href="../server/#lomas_server.worker.job_post_process"><code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;job_post_process</a>
   </span>
 
       </li>
       <li class="doc doc-backlink">
             <span class="doc doc-backlink-crumb last">
       <a href="../server/#lomas_server.routes.utils.set_query_result"><code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;set_query_result</a>
+  </span>
+
+      </li>
+      <li class="doc doc-backlink">
+            <span class="doc doc-backlink-crumb last">
+      <a href="../server/#lomas_server.worker.worker_step"><code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;worker_step</a>
   </span>
 
       </li>

@@ -231,10 +231,13 @@ in
     LOMAS_SERVER_authenticator__query_userinfo = "${lib.boolToString config.lomas.oidc.queryUserinfo}";
     LOMAS_SERVER_bootstrap = "deadbeef";
     LOMAS_SERVER_database_directory = "/tmp/lomas-db/";
+    LOMAS_SERVER_database_job_expiry_delay = "PT3M0S"; # ISO 8601;
     LOMAS_SERVER_data_directory = "${config.git.root}/server/data/";
     LOMAS_SERVER_clean_admin_database = "false";
     # Worker specifics
     LOMAS_SERVER_server_host_addr = config.lomas.serverHostAddr;
+    LOMAS_SERVER_worker_loop_init_delay = "0.5";
+    LOMAS_SERVER_worker_loop_max_delay = "5.0";
 
     # Lomas client environment
     LOMAS_CLIENT_OIDC_DISCOVERY_URL = config.lomas.oidc.discoveryUrl;

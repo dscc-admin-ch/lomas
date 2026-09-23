@@ -16,9 +16,7 @@ from csvw_eo.metadata_structure import TableMetadata
 from fastapi import UploadFile
 from pydantic import HttpUrl
 
-from lomas_core.exceptions import (
-    InternalServerException,
-)
+from lomas_core.exceptions import InternalServerException
 from lomas_core.models.collections import (
     DatasetOfUser,
     DatasetsCollection,
@@ -35,9 +33,7 @@ from lomas_core.models.constants import (
     get_lomas_logger,
 )
 from lomas_core.models.responses import Budget, Job
-from lomas_server.admin_database.admin_database import (
-    AdminDatabase,
-)
+from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.admin_database.constants import BudgetDBKey, MiscDBKeys, TopDBKey as TK
 from lomas_server.utils.metrics import (
     ADMINDB_DELETE_COUNTER,
@@ -86,8 +82,11 @@ class LocalAdminDatabase(AdminDatabase):
 
     directory: Path
 
-    def __init__(self, directory: Path) -> None:
+    job_expiry_delay: timedelta
+
+    def __init__(self, directory: Path, job_expiry_delay: timedelta = timedelta(minutes=3)) -> None:
         self.directory = directory
+        self.job_expiry_delay = job_expiry_delay
         if self.directory.exists() and not self.directory.is_dir():
             raise NotADirectoryError(f"{self.directory} exists and is not a directory.")
         self.directory.mkdir(parents=True, exist_ok=True)
@@ -237,8 +236,8 @@ class LocalAdminDatabase(AdminDatabase):
         return Job.model_validate_json(row[0])
 
     @db_span("db.expire_jobs", table="admin-db")
-    def expire_jobs(self, delay: timedelta = timedelta(minutes=3)) -> list[UUID]:
-        ADMINDB_QUERY_COUNTER.add(1, {"operation": "exipre_jobs"})
+    def expire_jobs(self, delay: timedelta) -> list[UUID]:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "expire_jobs"})
 
         with _sqlite_connection(self._db_path) as conn:
             rows = conn.execute(
@@ -265,7 +264,7 @@ class LocalAdminDatabase(AdminDatabase):
     def get_job_pending(self) -> Job | None:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_job_pending"})
 
-        self.expire_jobs()
+        self.expire_jobs(delay=self.job_expiry_delay)
 
         with _sqlite_connection(self._db_path) as conn:
             row = conn.execute(

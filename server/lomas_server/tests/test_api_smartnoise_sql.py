@@ -14,7 +14,6 @@ from lomas_core.exceptions import (
     UnauthorizedAccessException,
     UserNotFoundException,
 )
-from lomas_core.models.constants import JobResultStatus
 from lomas_core.models.requests_examples import (
     EXAMPLE_DUMMY_SMARTNOISE_SQL,
     EXAMPLE_SMARTNOISE_SQL,
@@ -69,7 +68,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             input_smartnoise = dict(EXAMPLE_SMARTNOISE_SQL)
             input_smartnoise["epsilon"] = 0.000000001
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
-            assert job.status == JobResultStatus.FAILED
+            assert job.failure()
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error is not None
             exc = ExternalLibraryException(
@@ -89,7 +88,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             input_smartnoise = dict(EXAMPLE_SMARTNOISE_SQL)
             input_smartnoise["query_str"] = "SELECT AVG(bill) FROM df"  # no 'bill' column
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
-            assert job.status == JobResultStatus.FAILED
+            assert job.failure()
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error is not None
             exc = InvalidQueryException("Query requested columns not found in DataFrame: ['bill']")
@@ -100,7 +99,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             input_smartnoise = dict(EXAMPLE_SMARTNOISE_SQL)
             input_smartnoise["dataset_name"] = "IRIS"
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
-            assert job.status == JobResultStatus.FAILED
+            assert job.failure()
             assert job.status_code == status.HTTP_403_FORBIDDEN
             assert job.error is not None
             exc = UnauthorizedAccessException("Dr.Antartica does not have access to IRIS.")
@@ -111,7 +110,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             input_smartnoise = dict(EXAMPLE_SMARTNOISE_SQL)
             input_smartnoise["dataset_name"] = "I_do_not_exist"
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
-            assert job.status == JobResultStatus.FAILED
+            assert job.failure()
             assert job.status_code == status.HTTP_404_NOT_FOUND
             assert job.error is not None
             exc = DatasetNotFoundException("I_do_not_exist")
@@ -123,7 +122,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             job = submit_job_wait(
                 client, "/smartnoise_sql_query", json=EXAMPLE_SMARTNOISE_SQL, headers=new_headers
             )
-            assert job.status == JobResultStatus.FAILED
+            assert job.failure()
             assert job.status_code == status.HTTP_404_NOT_FOUND
             assert job.error is not None
             exc = UserNotFoundException("I_do_not_exist")
@@ -135,7 +134,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(get_user_app(self.config), headers=self.headers) as client:
             input_smartnoise = dict(EXAMPLE_SMARTNOISE_SQL)
             input_smartnoise["query_str"] = (
-                "SELECT AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"
+                "SELECT AVG(bill_length_mm) AS avg_bl, COUNT(bill_length_mm) as count_bl FROM df"
             )
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
             r_model = QueryResponse.model_validate(job.result)
@@ -151,7 +150,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             body = dict(EXAMPLE_SMARTNOISE_SQL)
             body["query_str"] = "SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"
             job = submit_job_wait(client, "/smartnoise_sql_query", json=body)
-            assert job.status == JobResultStatus.COMPLETE
+            assert job.success()
             assert job.status_code == status.HTTP_200_OK
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
@@ -160,7 +159,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             # Change the mechanism
             body["mechanisms"] = {"count": "gaussian", "sum_float": "laplace"}
             job = submit_job_wait(client, "/smartnoise_sql_query", json=body)
-            assert job.status == JobResultStatus.COMPLETE
+            assert job.success()
             assert job.status_code == status.HTTP_200_OK
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
@@ -174,7 +173,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             body = dict(EXAMPLE_SMARTNOISE_SQL)
             body["postprocess"] = False
             job = submit_job_wait(client, "/smartnoise_sql_query", json=body)
-            assert job.status == JobResultStatus.COMPLETE
+            assert job.success()
             assert job.status_code == status.HTTP_200_OK
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
@@ -190,7 +189,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             body["query_str"] = "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
             body["epsilon"] = 10
             job = submit_job_wait(client, "/smartnoise_sql_query", json=body, headers=new_headers)
-            assert job.status == JobResultStatus.COMPLETE
+            assert job.success()
             assert job.status_code == status.HTTP_200_OK
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
@@ -209,7 +208,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
                 "/smartnoise_sql_query",
                 json=input_smartnoise,
             )
-            assert job.status == JobResultStatus.COMPLETE
+            assert job.success()
             assert job.status_code == status.HTTP_200_OK
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
@@ -268,7 +267,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
                 "/estimate_smartnoise_sql_cost",
                 json=body,
             )
-            assert job.status == JobResultStatus.FAILED
+            assert job.failure()
             assert job.status_code == status.HTTP_403_FORBIDDEN
             assert job.error is not None
             match_str = str(UnauthorizedAccessException(f"{self.user_name} does not have access to IRIS."))

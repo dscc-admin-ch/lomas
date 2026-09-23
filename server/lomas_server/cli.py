@@ -1,7 +1,7 @@
-import asyncio
 import signal
 from typing import Any
 
+import anyio
 import uvicorn
 from pydantic import ValidationError
 from pydantic_settings import BaseSettings, CliApp, CliSubCommand, SettingsConfigDict
@@ -71,14 +71,14 @@ async def serve(config: ServerConfig) -> None:
     async with interruptible_notify_taskgroup(reload=config.reload) as tg:
         tg.create_task(user_server.serve())
         tg.create_task(admin_server.serve())
-        await asyncio.gather(user_app.state.ready_event.wait(), admin_app.state.ready_event.wait())
+        await anyio.gather(user_app.state.ready_event.wait(), admin_app.state.ready_event.wait())
 
 
 class ServiceCliConfig(ServerConfig):
     def cli_cmd(self) -> None:
         """Start the ASGI server for lomas."""
         with restart_self_on_change():
-            asyncio.run(serve(self))
+            anyio.run(serve, self)
 
 
 class LomasCli(BaseSettings):

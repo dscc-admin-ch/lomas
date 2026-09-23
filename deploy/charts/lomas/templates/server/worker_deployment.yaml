@@ -77,6 +77,10 @@ spec:
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
           - name: LOMAS_SERVER_SERVER_HOST_ADDR
             value: '{{ include "lomas.server.fullname" .}}'
+          - name: LOMAS_SERVER_WORKER_LOOP_INIT_DELAY
+            value: "{{ .Values.server.runtime_args.worker_loop_init_delay}}"
+          - name: LOMAS_SERVER_WORKER_LOOP_MAX_DELAY
+            value: "{{ .Values.server.runtime_args.worker_loop_max_delay}}"
       volumes:
         {{- if .Values.server.pvc.data.enabled }}
         - name: data

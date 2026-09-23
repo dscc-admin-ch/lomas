@@ -1,4 +1,5 @@
 import sys
+from datetime import timedelta
 from pathlib import Path
 from typing import Annotated, Literal, Self
 from urllib.parse import unquote
@@ -162,6 +163,8 @@ class ServerConfig(Config):
 
     database_directory: Path = Field(default=Path("/tmp/lomas-db"))
 
+    database_job_expiry_delay: timedelta = timedelta(minutes=3)
+
     clean_admin_database: bool = Field(default=False)
 
     backup: BackupConfig = Field(default=LocalBackupConfig(local_directory="/tmp/lomas-backups"))
@@ -170,13 +173,21 @@ class ServerConfig(Config):
 
     @computed_field
     def database(self) -> AdminDatabase:  # server
-        return LocalAdminDatabase(directory=self.database_directory)
+        return LocalAdminDatabase(
+            directory=self.database_directory, job_expiry_delay=self.database_job_expiry_delay
+        )
 
 
 class WorkerConfig(Config):
     tui: bool = Field(default_factory=sys.stdout.isatty, description="Terminal friendly output")
 
     server_host_addr: str = Field(default="localhost")
+
+    worker_loop_init_delay: float = 0.5
+    "initial delay (in seconds) for server polling"
+
+    worker_loop_max_delay: float = 5.0
+    "maximum delay (in seconds) for server polling"
 
     @computed_field
     def admin_api(self) -> HttpUrl:

@@ -46,7 +46,7 @@ class AdminDatabase(ABC):
         """
 
     @abstractmethod
-    def get_job_pending(self) -> Job:
+    def get_job_pending(self) -> Job | None:
         """Gets the next pending job from the database.
 
         Returns:
@@ -90,7 +90,7 @@ class AdminDatabase(ABC):
         self,
         user_name: str,
         dataset_name: str,
-    ) -> list[dict]:
+    ) -> list[Job]:
         """
         Retrieves and return the queries already done by a user for a particular dataset.
 

@@ -12,14 +12,7 @@ datasets:
     path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "metadata/penguin_metadata.json"
-- dataset_name: "BIRTHDAYS"
-  dataset_access:
-    database_type: "PATH_DB"
-    path: "birthdays.csv"
-  metadata_access:
-    database_type: "PATH_DB"
-    path: "metadata/birthday_metadata.json"
+    path: "metadata/iris_metadata.json"
 - dataset_name: "PUMS"
   dataset_access:
     database_type: "PATH_DB"
@@ -27,3 +20,24 @@ datasets:
   metadata_access:
     database_type: "PATH_DB"
     path: "metadata/pums_metadata.json"
+- dataset_name: "BIRTHDAYS"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "birthdays.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "metadata/birthday_metadata.json"
+- dataset_name: "FSO_INCOME_SYNTHETIC"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "income_synthetic_data.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "metadata/fso_income_synthetic_metadata.json"
+- dataset_name: "COVID_SYNTHETIC"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "covid_synthetic_data.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "metadata/covid_synthetic_metadata.json"

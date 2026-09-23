@@ -86,6 +86,8 @@ spec:
             value: "{{ .Values.server.runtime_args.time_attack.magnitude }}"
           - name: LOMAS_SERVER_ADMIN_DATABASE_DIRECTORY
             value: "/db/"
+          - name: LOMAS_SERVER_ADMIN_DATABASE_JOB_EXPIRY_DELAY
+            value: "{{ .Values.server.runtime_args.database_job_expiry_delay }}"
           - name: LOMAS_SERVER_CLEAN_ADMIN_DATABASE
             value: "{{ .Values.server.runtime_args.clean_admin_database }}"
           {{- if not .Values.server.runtime_args.s3Backup.enabled }}

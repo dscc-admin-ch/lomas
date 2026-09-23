@@ -187,7 +187,7 @@ exclude_also = [
   # Don't complain if tests don't hit defensive assertion code:
   "raise (AssertionError|NotImplementedError|TimeoutError)",
   '(except|raise) InternalServerException',
-  'except (Exception|yaml.YAMLError)',
+  'except (Exception|yaml.YAMLError|(anyio.)?get_cancelled_exc_class)',
   'case _:',
   # Don't complain about missing debug-only code:
   "def __repr__",

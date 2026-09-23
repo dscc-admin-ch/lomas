@@ -134,7 +134,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(get_user_app(self.config), headers=self.headers) as client:
             input_smartnoise = dict(EXAMPLE_SMARTNOISE_SQL)
             input_smartnoise["query_str"] = (
-                "SELECT AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"
+                "SELECT AVG(bill_length_mm) AS avg_bl, COUNT(bill_length_mm) as count_bl FROM df"
             )
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
             r_model = QueryResponse.model_validate(job.result)

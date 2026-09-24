@@ -33,6 +33,7 @@ class QueryTypes(StrEnum):
     QUERY = "query"
     COST = "cost"
     DUMMY = "dummy"
+    SYNTH = "synth"
 
 
 class QueryResponseTypes(StrEnum):

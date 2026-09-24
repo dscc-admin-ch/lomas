@@ -217,21 +217,11 @@ class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
 
 
 # OpenDP Synth
-
-
-class OpenDPSynthDataRequestModel(OpenDPBasedModel):
-    """TODO"""
-
-    columns: list[str] | None = None
+class OpenDPSynthDataQueryModel(OpenDPQueryModel):
+    request_type: Literal[QueryTypes.SYNTH] = QueryTypes.SYNTH  # type: ignore[assignment]
     algorithm: OpenDPSynthAlgorithm = OpenDPSynthAlgorithm.MST
-
-
-class OpenDPSynthDataQueryModel(OpenDPSynthDataRequestModel, QueryModel):
-    """TODO"""
-
-
-class OpenDPSynthDataDummyQueryModel(OpenDPSynthDataRequestModel, DummyQueryModel):
-    """TODO"""
+    keys: dict[str, list]
+    cuts: dict[str, list]
 
 
 # DiffPrivLib
@@ -285,7 +275,7 @@ SmartnoiseSQLAnyModel = Annotated[
 ]
 
 OpenDPAnyModel = Annotated[
-    OpenDPCostQueryModel | OpenDPQueryModel | OpenDPDummyQueryModel,
+    OpenDPCostQueryModel | OpenDPQueryModel | OpenDPDummyQueryModel | OpenDPSynthDataQueryModel,
     Field(discriminator="request_type"),
 ]
 

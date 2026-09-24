@@ -12,6 +12,7 @@ from lomas_core.models.requests import (
     OpenDPDummyQueryModel,
     OpenDPQueryModel,
     OpenDPRequestModel,
+    OpenDPSynthDataQueryModel,
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
 
@@ -176,5 +177,31 @@ class OpenDPClient:
 
         body = request_model.model_validate(body_json)
         res = self.http_client.post(endpoint, body)
+
+        return validate_model_response(self.http_client, res, QueryResponse)
+
+    def synth(
+        self,
+        columns: list[str],
+        keys: dict,
+        cuts: dict,
+        epsilon: float | None = None,
+        delta: float | None = None,
+        rho: float | None = None,
+        approx_zcdp: bool = True,
+    ):
+
+        body_json = self._get_opendp_request_body(
+            opendp_pipeline,
+            epsilon=epsilon,
+            delta=delta,
+            rho=rho,
+            approx_zcdp=approx_zcdp,
+        )
+        body_json["keys"] = keys
+        body_json["cuts"] = cuts
+
+        body = OpenDPSynthDataQueryModel.model_validate(body_json)
+        res = self.http_client.post("opendp_synth_query", body)
 
         return validate_model_response(self.http_client, res, QueryResponse)

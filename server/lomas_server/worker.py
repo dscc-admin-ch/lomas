@@ -118,6 +118,8 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
         dp_querier: DPQuerier
         query_response: AnyLomasQueryResponse
         match query_model:
+            # case OpenDPSynthDataQueryModel():
+            #     dp_querier =
             case SmartnoiseSQLRequestModel():
                 dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
             case OpenDPRequestModel():
@@ -146,6 +148,7 @@ def handle_query(config: WorkerConfig, admin_database: Proxy, job: Job) -> Job:
 
         return job.complete(query_response)
     except Exception as exc:  # pylint: disable=broad-exception-caught
+        logger.exception(exc)
         return job.fail(exc)
 
 

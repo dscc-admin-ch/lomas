@@ -281,7 +281,7 @@ async def opendp_synth_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return await handle_query_to_job(request, opendp_synth_query, user_id, DPLibraries.OPENDP_SYNTH)
+    return handle_query_to_job(request, opendp_synth_query, user_id, DPLibraries.OPENDP_SYNTH)
 
 
 # @router.post(

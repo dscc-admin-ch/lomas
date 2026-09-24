@@ -1,9 +1,10 @@
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from lomas_core.constants import (
     DPLibraries,
+    OpenDPSynthAlgorithm,
 )
 from lomas_core.models.constants import JSON_SCHEMA_EXAMPLES, PrivateDatabaseType, QueryTypes
 from lomas_core.models.requests_examples import (
@@ -157,7 +158,7 @@ class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
 
 # OpenDP
 # ----------------------------------------------------------------------------
-class OpenDPRequestModel(LomasRequestModel):
+class OpenDPBasedModel(LomasBudgetRequest):
     """Base input model for an opendp request."""
 
     model_config = ConfigDict(use_attribute_docstrings=True)
@@ -187,11 +188,11 @@ class OpenDPRequestModel(LomasRequestModel):
     approx_zcdp: bool
     """If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP."""
 
-    @model_validator(mode="after")
-    def check_epsilon_or_rho(self) -> Self:
-        if (self.epsilon is None and self.rho is None) or (self.epsilon and self.rho):
-            raise ValueError("Either `epsilon` or `rho` must be set.")
-        return self
+
+class OpenDPRequestModel(OpenDPBasedModel):
+    """Base input model for an opendp request."""
+
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_OPENDP_POLARS]})
 
 
 class OpenDPCostQueryModel(OpenDPRequestModel, CostQueryModel):
@@ -213,6 +214,24 @@ class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
 
     # Avoid conflict between QueryModel and DummyQueryMdoel
     request_type: Literal[QueryTypes.DUMMY] = QueryTypes.DUMMY  # type: ignore[assignment]
+
+
+# OpenDP Synth
+
+
+class OpenDPSynthDataRequestModel(OpenDPBasedModel):
+    """TODO"""
+
+    columns: list[str] | None = None
+    algorithm: OpenDPSynthAlgorithm = OpenDPSynthAlgorithm.MST
+
+
+class OpenDPSynthDataQueryModel(OpenDPSynthDataRequestModel, QueryModel):
+    """TODO"""
+
+
+class OpenDPSynthDataDummyQueryModel(OpenDPSynthDataRequestModel, DummyQueryModel):
+    """TODO"""
 
 
 # DiffPrivLib

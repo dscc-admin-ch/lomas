@@ -1,7 +1,7 @@
 import os
 from base64 import b64decode
 
-import opendp as dp
+import opendp.prelude as dp
 from aio_pika.patterns.rpc import Proxy
 from csvw_eo.csvw_to_opendp_context import csvw_to_opendp_context
 from opendp._lib import lib_path
@@ -14,7 +14,12 @@ from lomas_core.exceptions import (
     InvalidQueryException,
 )
 from lomas_core.models.constants import OpenDPFeatures, get_lomas_logger
-from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
+from lomas_core.models.requests import (
+    OpenDPDummyQueryModel,
+    OpenDPQueryModel,
+    OpenDPRequestModel,
+    OpenDPSynthDataQueryModel,
+)
 from lomas_core.models.responses import Budget, OpenDPPolarsQueryResult, OpenDPQueryResult
 from lomas_server.constants import OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
@@ -113,6 +118,9 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         Returns:
             (Union[List, int, float]) query result
         """
+        from rich.pretty import pprint
+
+        pprint(type(query_json))
         input_data = self.data_connector.get_polars_lf()
         context = csvw_to_opendp_context(
             self.metadata.to_dict(),
@@ -124,20 +132,42 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         )
         serialized_plan = b64decode(query_json.opendp_json.encode("utf-8"))
         plan = context.deserialize_polars_plan(serialized_plan)
-
-        try:
-            release_data = plan.release()
-        except Exception as e:
-            logger.exception(e)
-            raise ExternalLibraryException(
-                DPLibraries.OPENDP,
-                "Error executing query:" + str(e),
-            ) from e
-
-        if isinstance(release_data, dp.extras.polars.OnceFrame):
-            release_data = release_data.collect()
-            return OpenDPPolarsQueryResult(value=release_data)
-        return OpenDPQueryResult(value=release_data)
+        match query_json:
+            case OpenDPSynthDataQueryModel():
+                try:
+                    # contingency_table = plan.contingency_table(keys=keys, cuts=cuts, algorithm=dp.mbi.MST())
+                    pprint(query_json.keys)
+                    pprint(query_json.cuts)
+                    contingency_table = (
+                        context.query()
+                        .select("sex", "income")
+                        .contingency_table(keys=query_json.keys, cuts=query_json.cuts, algorithm=dp.mbi.MST())
+                    )
+                    pprint(contingency_table)
+                    table = contingency_table.release()
+                    pprint(table)
+                    synth_df = table.synthesize()
+                    pprint(synth_df)
+                except Exception as e:
+                    logger.exception(e)
+                    raise ExternalLibraryException(
+                        DPLibraries.OPENDP,
+                        "Error releasing synthetic data:" + str(e),
+                    ) from e
+                return OpenDPPolarsQueryResult(value=synth_df)
+            case OpenDPQueryModel() | OpenDPDummyQueryModel():
+                try:
+                    release_data = plan.release()
+                except Exception as e:
+                    logger.exception(e)
+                    raise ExternalLibraryException(
+                        DPLibraries.OPENDP,
+                        "Error executing query:" + str(e),
+                    ) from e
+                if isinstance(release_data, dp.extras.polars.OnceFrame):
+                    release_data = release_data.collect()
+                    return OpenDPPolarsQueryResult(value=release_data)
+                return OpenDPQueryResult(value=release_data)
 
 
 def set_opendp_features_config(features: OpenDPFeatures) -> None:

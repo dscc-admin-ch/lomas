@@ -8,8 +8,13 @@ import polars as pl
 import pytest
 from fastapi.testclient import TestClient
 
+from lomas_core.constants import DPLibraries
 from lomas_core.exceptions import InvalidQueryException, LomasAPIException
-from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED
+from lomas_core.models.constants import (
+    DUMMY_NB_ROWS,
+    DUMMY_SEED,
+)
+from lomas_core.models.requests import OpenDPSynthDataQueryModel
 from lomas_core.models.requests_examples import (
     EXAMPLE_OPENDP_POLARS,
     EXAMPLE_OPENDP_POLARS_COST,
@@ -346,3 +351,25 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+
+    def test_synthetic_query(self) -> None:
+        with TestClient(get_user_app(self.config), headers=self.headers) as client:
+            lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
+            plan_bytes = lf.select(pl.col("sex"), pl.col("income")).serialize()
+            query = OpenDPSynthDataQueryModel(
+                library=DPLibraries.OPENDP,
+                dataset_name="FSO_INCOME_SYNTHETIC",
+                opendp_json=b64encode(OPENDP_POLARS_PIPELINE).decode("utf-8"),
+                epsilon=0.2,
+                delta=0,
+                rho=None,
+                approx_zcdp=False,
+                keys={"sex": [0, 1]},
+                cuts={"income": [10000, 30000, 50000]},
+            )
+            job = submit_job_wait(
+                client,
+                "/opendp_synth_query",
+                json=query.model_dump(),
+            )
+            assert job.success()

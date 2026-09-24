@@ -4,9 +4,7 @@ import opendp.prelude as dp  # noqa: F401
 import polars as pl
 from pydantic import JsonValue
 
-from lomas_core.constants import (
-    DPLibraries,
-)
+from lomas_core.constants import DPLibraries
 from lomas_core.models.constants import (
     DIFFPRIVLIB_VERSION,
     DUMMY_NB_ROWS,

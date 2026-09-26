@@ -1,4 +1,10 @@
 {
+
+  nixConfig = {
+    extra-substituters = [ "https://lomas.cachix.org" ];
+    extra-trusted-public-keys = [ "lomas.cachix.org-1:beJBco1shg307WeGSlKaDJNOiQunMuMHohVa+4amAqE=" ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 

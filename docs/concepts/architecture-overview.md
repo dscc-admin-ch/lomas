@@ -11,7 +11,7 @@ The following communicate with the IdP provider:
 
 ## Client
 
-The ``lomas-client`` Python package (available on PyPi) is a dedicated client to interact with the Lomas server.
+The `lomas-client` Python package (available on PyPi) is a dedicated client to interact with the Lomas server.
 Utilizing this client library is strongly advised for querying and interacting with the
 server, as it takes care of all the necessary tasks such as authentication, query serialization and response deserialization,
 API calls, and ensures the correct installation of other required libraries. In short,
@@ -36,7 +36,7 @@ The IdP provider is also not part of the Lomas platform and should be managed ex
 
 For more information about the server, see the [server administration page](../server/administration/index.md). The [deployment section](../server/deployment/index.md) covers how to deploy the server across different environments, including Kubernetes (via Helm).
 
-!!! note "__Note__"
+!!! note "**Note**"
 
     The Lomas Python code is split into a client (`lomas-client`) and a server (`lomas-server`) package.
     The `lomas-core` package serves as a base for the code that is common to both main packages.

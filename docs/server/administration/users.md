@@ -1,6 +1,6 @@
 # Managing Users via the Admin Dashboard
 
-!!! tip "__If using Dex__"
+!!! tip "**If using Dex**"
 
     By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in `devenv/dex.nix`) to larger value when testing the dashboard.
 
@@ -12,10 +12,10 @@ Adding a user works either through the straightforward "Add user" section or via
 - id:
     name: Alice
     email: "alice@example.com"
-    client_secret: alice        # Only if using Dex, not for production.
+    client_secret: alice # Only if using Dex, not for production.
   may_query: True
   datasets:
-    IRIS:                # Can be empty
+    IRIS: # Can be empty
       dataset_name: "IRIS"
       initial_epsilon: 10.0
       initial_delta: 0.0001
@@ -38,7 +38,6 @@ You can also add a new dataset to the user from the available dataset list in th
 For how to add new datasets to Lomas, checkout the [datasets page](datasets.md).
 Finally, the previous queries button let's you display all previous queries run by that user.
 
-
 ## Deletion
 
 Deletions are grouped in the last section of this page.
@@ -47,4 +46,3 @@ Make sure you know what you are doing before deleting anything from the admin da
 
 There are also bulk delete buttons to remove entire collections from the admin database.
 Use these with caution!
-

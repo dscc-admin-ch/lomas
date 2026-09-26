@@ -18,7 +18,13 @@ services:
       - ../core/lomas_core:/code/core/lomas_core
       - ./data/collections:/data/collections
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${LOMAS_SERVER_ADMIN_PORT}/live"]
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:${LOMAS_SERVER_ADMIN_PORT}/live",
+        ]
       interval: 10s
       retries: 10
       timeout: 5s
@@ -63,11 +69,19 @@ services:
     image: docker.io/dexidp/dex:v2.45.1
     command: dex serve /config/dex_config.yaml
     ports:
-        - ${LOMAS_DEX_PORT}:${LOMAS_DEX_PORT}
+      - ${LOMAS_DEX_PORT}:${LOMAS_DEX_PORT}
     volumes:
       - ./configs/example_dex_config.yaml:/config/dex_config.yaml
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${LOMAS_DEX_PORT}/dex/healthz"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:${LOMAS_DEX_PORT}/dex/healthz",
+        ]
       interval: 10s
       retries: 10
       timeout: 5s
@@ -101,7 +115,12 @@ services:
     ports:
       - ${LOMAS_DASHBOARD_PORT}:${LOMAS_DASHBOARD_PORT}
     restart: always
-    command: ["streamlit", "run", "/code/server/lomas_server/administration/dashboard/about.py"]
+    command:
+      [
+        "streamlit",
+        "run",
+        "/code/server/lomas_server/administration/dashboard/about.py",
+      ]
     environment:
       - LOMAS_ADMIN_external_url=http://lomas_server:${LOMAS_SERVER_ADMIN_PORT}
       - STREAMLIT_SERVER_PORT=${LOMAS_DASHBOARD_PORT}
@@ -119,7 +138,17 @@ services:
   lomas_client:
     image: lomas-oci:latest
     container_name: lomas_client
-    command: ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root", "--port", "${LOMAS_CLIENT_PORT}"]
+    command:
+      [
+        "jupyter",
+        "notebook",
+        "--ip",
+        "0.0.0.0",
+        "--no-browser",
+        "--allow-root",
+        "--port",
+        "${LOMAS_CLIENT_PORT}",
+      ]
     ports:
       - ${LOMAS_CLIENT_PORT}:${LOMAS_CLIENT_PORT}
     environment:
@@ -145,7 +174,7 @@ services:
   tempo:
     image: grafana/tempo:main-265ca32
     container_name: tempo
-    command: [ "-config.file=/etc/tempo.yaml" ]
+    command: ["-config.file=/etc/tempo.yaml"]
     volumes:
       - ./configs/observability/example_tempo_config.yaml:/etc/tempo.yaml
     expose:

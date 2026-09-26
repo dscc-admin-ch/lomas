@@ -54,25 +54,25 @@ nav:
       - Client:
           - Quickstart: client/quickstart.md
           - Available DP libraries:
-            - client/opendp.md
-            - client/smartnoise-sql.md
-            - client/diffprivlib.md
+              - client/opendp.md
+              - client/smartnoise-sql.md
+              - client/diffprivlib.md
           - Examples:
-            - client/index.md
-            - notebooks/Demo_Client_Notebook.ipynb
-            - notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb
-            - notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
-            - notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb
+              - client/index.md
+              - notebooks/Demo_Client_Notebook.ipynb
+              - notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb
+              - notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
+              - notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb
       - Server:
           - Deployment:
-            - server/deployment/index.md
-            - Local Devenv: server/deployment/devenv.md
-            - Onyxia: server/deployment/onyxia.md
-            - Kubernetes: server/deployment/kubernetes.md
+              - server/deployment/index.md
+              - Local Devenv: server/deployment/devenv.md
+              - Onyxia: server/deployment/onyxia.md
+              - Kubernetes: server/deployment/kubernetes.md
           - Administration:
-            - server/administration/index.md
-            - Users: server/administration/users.md
-            - Datasets: server/administration/datasets.md
+              - server/administration/index.md
+              - Users: server/administration/users.md
+              - Datasets: server/administration/datasets.md
       - Concepts:
           - Architecture Overview: concepts/architecture-overview.md
           - Contributing: concepts/contributing.md
@@ -111,9 +111,9 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.superfences:
       custom_fences:
-      - name: mermaid
-        class: mermaid
-        format: !!python/name:pymdownx.superfences.fence_code_format
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
       slugify: !!python/object/apply:pymdownx.slugs.slugify
@@ -129,7 +129,7 @@ plugins:
   - mkdocs-jupyter:
       include: ["*.ipynb"]
       include_requirejs: true
-      no_prompt: True  # hides In[#] / Out[#]
+      no_prompt: True # hides In[#] / Out[#]
   - mike:
       canonical_version: latest
   - mkdocstrings:
@@ -162,7 +162,7 @@ plugins:
             # Members https://mkdocstrings.github.io/python/usage/configuration/members/
             inherited_members: true
             members_order: source
-            filters: ['!^_']
+            filters: ["!^_"]
             summary: true
 
             # Docstrings https://mkdocstrings.github.io/python/usage/configuration/docstrings/

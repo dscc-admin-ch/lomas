@@ -17,13 +17,13 @@ common:
 
 schema_config:
   configs:
-  - from: 2025-01-10
-    store: tsdb
-    object_store: filesystem
-    schema: v13
-    index:
-      prefix: loki_index_
-      period: 24h
+    - from: 2025-01-10
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: loki_index_
+        period: 24h
 
 storage_config:
   tsdb_shipper:

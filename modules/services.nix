@@ -4,7 +4,7 @@
 {
   flake.nixosModules.lomas = moduleWithSystem (
     perSystem@{ config, ... }: # to allow perSystem.config.<...>
-    nioxs@{
+    {
       config,
       lib,
       pkgs,

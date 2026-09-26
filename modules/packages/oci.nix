@@ -40,12 +40,10 @@
               tini
               ;
             inherit lomasEnv;
-            lomas-dashboard = (
-              pkgs.writeShellScriptBin "lomas-dashboard" ''
-                cd ${lomasEnv}/lib/python*/site-packages/
-                streamlit run lomas_server/administration/dashboard/about.py
-              ''
-            );
+            lomas-dashboard = pkgs.writeShellScriptBin "lomas-dashboard" ''
+              cd ${lomasEnv}/lib/python*/site-packages/
+              streamlit run lomas_server/administration/dashboard/about.py
+            '';
           };
           extraCommands = ''
             install -dm 1777 tmp

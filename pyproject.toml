@@ -5,7 +5,7 @@ requires-python = '>=3.12'
 dependencies = [
   "lomas-core",
   "lomas-client",
-  "lomas-server[all]",
+  "lomas-server[all]"
 ]
 
 [project.optional-dependencies]
@@ -17,7 +17,7 @@ test = [
   "pytest>=8.3",
   "pytest-cov>=6.0",
   "pytest-randomly>=4.1.0",
-  "pytest-timeout>=2.4.0",
+  "pytest-timeout>=2.4.0"
 ]
 docs = [
   "mkdocs>=1.6,<2",
@@ -29,76 +29,37 @@ docs = [
   "mike>=2"
 ]
 
-# workspace setup for uv
-[tool.uv.sources]
-lomas-core = { workspace = true }
-lomas-client = { workspace = true }
-lomas-server = { workspace = true }
-
-[tool.uv.workspace]
-members = [ "core", "client", "server" ]
-
-
-# workspace setup for setuptools (uv build)
-[tool.setuptools.package-dir]
-lomas-core = "core/lomas_core"
-lomas-client = "client/lomas_client"
-lomas-server = "server/lomas_server"
-
-[tool.ruff]
-line-length = 110
-exclude = [ "*.ipynb", "*api_pb2*" ]
-
-[tool.ruff.lint]
-# ruff linter -> get available linter list
-select = [
-  "I", # isort
-  # E,F,W together cover Flake8
-  "E", "W", # pycodestyle
-  "F", # Pyflakes
-  "PL", # Pylint Full
-  "PLC", # Pylint Convention
-  "PLE", # Pylint Error
-  "UP", # pyupgrade
-  "D", # pydocstyle see @pydocstyle.convention
-  "B", # flake8-bugbear
-  "FAST001", "FAST003", # FastAPI lint
-  "DTZ", # flake8-datetimez
-  "ICN", # flake8-import-conventions (numpy as np, pandas as pd, etc.)
-  "PYI", # flake8-pyi
-  "LOG",
-  "PT", # Pytest-style (lots of fixes todo)
-  "RSE", # flake8-raise
-  "FLY", # flynt
-  # "C90", # maccabe do we want it ?
-  "NPY", # NumPy-specific rules
-  "PD", # Pandas-specific rules
-  "RUF", # Ruff-specific rules
-  "FURB", # Refurbishing and modernizing Python codebases
-  "PGH004", # blanket noqa comments
-  "RET501", "RET502",  # better return None handling
+[tool.coverage.report]
+exclude_also = [
+  # Don't complain if tests don't hit defensive assertion code:
+  "raise (AssertionError|NotImplementedError|TimeoutError)",
+  '(except|raise) InternalServerException',
+  'except (Exception|yaml.YAMLError|(anyio.)?get_cancelled_exc_class)',
+  'case _:',
+  # Don't complain about missing debug-only code:
+  "def __repr__",
+  # Don't complain if non-runnable code isn't run:
+  "if __name__ == .__main__.:",
+  'def run\(\)'
 ]
-ignore = [
-  "E501",
-  "PLR0912", # too-many-branches
-  "PLR0913", # too-many-arguments
-  "PLR0915", # too-many-statements
-  "PLR0917", # too-many-positional
-  "PLR2004", # Magic value used in comparison
-  "D10", # Missing docstring in public module/package/__init__
-  "D301", # Esacpe Sequence in docstring
-  "D400", # First line should end with a period
-  "D401", # First line of docstring should be in imperative mood
-  "PT011", # FIXME
-  "RUF003"
-]
-pydocstyle.convention = "pep257"
 
-[tool.ruff.lint.isort]
-combine-as-imports = true
-split-on-trailing-comma = true
-extra-standard-library = ["test"]
-known-first-party = ["lomas_core", "lomas_server", "lomas_client"]
+[tool.coverage.run]
+source = [
+  "./core/lomas_core",
+  "./server/lomas_server",
+  "./client/lomas_client"
+]
+relative_files = true
+# https://coverage.readthedocs.io/en/latest/source.html#source-glob
+# > A pattern with no directory separators matches the file name in any directory.
+omit = [
+  "*/administration/dashboard/*.py",
+  "cli.py",
+  "api_pb2*.py",
+  # FIXME: remove on opendb.mbi switch
+  "*smartnoise_synth.py",
+  "bench.py"
+]
 
 [tool.mypy]
 plugins = ["returns.contrib.mypy.returns_plugin", "pydantic.mypy"]
@@ -110,8 +71,7 @@ enable_error_code = [
   # "possibly-undefined",
   "redundant-self",
   "unimported-reveal",
-  "deprecated",
-  # "exhaustive-match",
+  "deprecated"
 ]
 no_site_packages = true
 show_error_codes = true
@@ -131,7 +91,7 @@ module = [
   "lomas_server.administration.tests.*"
 ]
 disallow_untyped_defs = false
-disable_error_code = [ "attr-defined" ]
+disable_error_code = ["attr-defined"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -147,51 +107,96 @@ warn_required_dynamic_aliases = true
 [tool.pydocstringformatter]
 max-line-length = 110
 write = true
-exclude = [ ".devenv/**/*.py", "**/api_pb2*" ] # pydocstringformatter uses a wierd full path matching from glob.iglob
+exclude = [".devenv/**/*.py", "**/api_pb2*"] # pydocstringformatter uses a wierd full path matching from glob.iglob
 
 [tool.pytest.ini_options]
 log_cli_level = "INFO" # can be overridden in pytest --log-cli-level=DEBUG ...
 log_format = "%(asctime)s %(levelname)s %(message)s" # Make sure log timestamps are shown
 log_cli = false # Change to true for live logs (no equivalent cli option)
-#syntax = action:message:category:module:line (@docs.python.org/3/library/warnings.html)
+# syntax = action:message:category:module:line (@docs.python.org/3/library/warnings.html)
 filterwarnings = [
-  "ignore::DeprecationWarning:(jupyter_client|aio_pika).*:",
+  "ignore::DeprecationWarning:(jupyter_client|aio_pika).*:"
 ]
 addopts = [
-  "--import-mode=importlib",
+  "--import-mode=importlib"
 ]
 markers = [
-  "long: marks test as long (deselect with '-m \"not long\"')",
+  "long: marks test as long (deselect with '-m \"not long\"')"
 ]
 
-[tool.coverage.run]
-source = [
-  "./core/lomas_core",
-  "./server/lomas_server",
-  "./client/lomas_client"
+[tool.ruff]
+line-length = 110
+exclude = ["*.ipynb", "*api_pb2*"]
+
+[tool.ruff.lint]
+# ruff linter -> get available linter list
+select = [
+  "I", # isort
+  # E,F,W together cover Flake8
+  "E",
+  "W", # pycodestyle
+  "F", # Pyflakes
+  "PL", # Pylint Full
+  "PLC", # Pylint Convention
+  "PLE", # Pylint Error
+  "UP", # pyupgrade
+  "D", # pydocstyle see @pydocstyle.convention
+  "B", # flake8-bugbear
+  "FAST001",
+  "FAST003", # FastAPI lint
+  "DTZ", # flake8-datetimez
+  "ICN", # flake8-import-conventions (numpy as np, pandas as pd, etc.)
+  "PYI", # flake8-pyi
+  "LOG",
+  "PT", # Pytest-style (lots of fixes todo)
+  "RSE", # flake8-raise
+  "FLY", # flynt
+  # "C90", # maccabe do we want it ?
+  "NPY", # NumPy-specific rules
+  "PD", # Pandas-specific rules
+  "RUF", # Ruff-specific rules
+  "FURB", # Refurbishing and modernizing Python codebases
+  "PGH004", # blanket noqa comments
+  "RET501",
+  "RET502" # better return None handling
 ]
-relative_files = true
-# https://coverage.readthedocs.io/en/latest/source.html#source-glob
-# > A pattern with no directory separators matches the file name in any directory.
-omit = [
-  "*/administration/dashboard/*.py",
-  "cli.py",
-  "api_pb2*.py",
-  # FIXME: remove on opendb.mbi switch
-  "*smartnoise_synth.py",
-  "bench.py",
+ignore = [
+  "E501",
+  "PLR0912", # too-many-branches
+  "PLR0913", # too-many-arguments
+  "PLR0915", # too-many-statements
+  "PLR0917", # too-many-positional
+  "PLR2004", # Magic value used in comparison
+  "D10", # Missing docstring in public module/package/__init__
+  "D301", # Esacpe Sequence in docstring
+  "D400", # First line should end with a period
+  "D401", # First line of docstring should be in imperative mood
+  "PT011", # FIXME
+  "RUF003"
 ]
 
-[tool.coverage.report]
-exclude_also = [
-  # Don't complain if tests don't hit defensive assertion code:
-  "raise (AssertionError|NotImplementedError|TimeoutError)",
-  '(except|raise) InternalServerException',
-  'except (Exception|yaml.YAMLError|(anyio.)?get_cancelled_exc_class)',
-  'case _:',
-  # Don't complain about missing debug-only code:
-  "def __repr__",
-  # Don't complain if non-runnable code isn't run:
-  "if __name__ == .__main__.:",
-  'def run\(\)',
-]
+[tool.ruff.lint.isort]
+combine-as-imports = true
+split-on-trailing-comma = true
+extra-standard-library = ["test"]
+known-first-party = ["lomas_core", "lomas_server", "lomas_client"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+# workspace setup for setuptools (uv build)
+[tool.setuptools]
+
+[tool.setuptools.package-dir]
+lomas-core = "core/lomas_core"
+lomas-client = "client/lomas_client"
+lomas-server = "server/lomas_server"
+
+# workspace setup for uv
+[tool.uv.sources]
+lomas-core = {workspace = true}
+lomas-client = {workspace = true}
+lomas-server = {workspace = true}
+
+[tool.uv.workspace]
+members = ["core", "client", "server"]

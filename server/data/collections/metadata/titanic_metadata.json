@@ -1,8 +1,5 @@
 {
-  "@context": [
-    "http://www.w3.org/ns/csvw",
-    "csvw-eo-context.jsonld"
-  ],
+  "@context": ["http://www.w3.org/ns/csvw", "csvw-eo-context.jsonld"],
   "@type": "Table",
   "maxContributions": 1,
   "maxLength": 887,

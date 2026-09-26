@@ -8,23 +8,26 @@ Lomas is built on top of existing Python DP packages. Follow these steps to add 
 1. Add the library the the `DPLibraries` StrEnum class in `core/lomas_core/constants.py` (`DPLibraries.NEW_LIBRARY = "new_library"`) and add the `NewLibraryQuerier` to the worker code.
 2. Create a file for your querier in the folder `server/lomas_server/dp_queries/dp_libraries/new_library.py`. Inside, create a class `NewLibraryQuerier` that inherits from `DPQuerier` (`lomas/lomas_server/dp_queries/dp_querier.py`), your class must contain a `cost` method that return the cost of a query and a `query` method that return a result of a DP query.
 3. Add the three associated API endpoints .
-    - a. Add the endpoint handlers in `server/lomas_server/routes/routes_dp.py`: `/new_library_query` (for queries on the real dataset), `/dummy_new_library_query` (for queries on the dummy dataset) and `/estimate_new_library_cost` (for estimating the privacy budget cost of a query).
-    - b. The endpoints should have predefined pydantic BaselModel types. Add BaseModel classes of expected input `NewLibraryRequestModel`, `NewLibraryCostQueryModel`, `NewLibraryQueryModel` `NewLibraryDummyQueryModel` in  `server/lomas_server/utils/query_models.py` and update the type adapters at the bottom of the file.
-    - c. The endpoints should have predefined default values `example_new_library`, `example_dummy_new_library` in  `server/lomas_server/utils/query_examples.py`.
+   - a. Add the endpoint handlers in `server/lomas_server/routes/routes_dp.py`: `/new_library_query` (for queries on the real dataset), `/dummy_new_library_query` (for queries on the dummy dataset) and `/estimate_new_library_cost` (for estimating the privacy budget cost of a query).
+   - b. The endpoints should have predefined pydantic BaselModel types. Add BaseModel classes of expected input `NewLibraryRequestModel`, `NewLibraryCostQueryModel`, `NewLibraryQueryModel` `NewLibraryDummyQueryModel` in `server/lomas_server/utils/query_models.py` and update the type adapters at the bottom of the file.
+   - c. The endpoints should have predefined default values `example_new_library`, `example_dummy_new_library` in `server/lomas_server/utils/query_examples.py`.
 4. Add tests in `server/lomas_server/tests/test_new_library.py` to test all functionnalities and options of the new library.
 5. Add the associated method in `lomas-client` library in `client/lomas_client/client.py`. In this case there should be `new_library_query` for queries on the private and on the dummy datasets and `estimate_new_library_cost` to estimate the cost of a query.
 6. Add a notebook `Demo_Client_Notebook_NewLibrary.ipynb` in `client/notebook/` to give example of the use of the library.
 
 ### External Loggers
+
 Some packages have 'custom object' parameters which are not readily serializable.
 In those cases, a `logger` library can be made to serialise the object in the client (before sending them to the server via FastAPI) and then deserialise them in their `DPQuerier` class in the server.
 
 Some examples are avalaible here:
+
 - `diffprivlib_logger` for diffprivlib pipelines: https://github.com/dscc-admin-ch/diffprivlib-logger
 
 Do not forget to add these packages as dependencies to the Lomas core package.
 
 ## Adding a Data Connector (for private dataset in various databases)
+
 Here is the explanation of how to add a new data connector named `NewDataConnector` for the example.
 
 1. Add the new dataset store to the lomas core collection models in `core/lomas_core/models/collections.py` with the proper discriminator.

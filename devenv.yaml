@@ -3,8 +3,3 @@ inputs:
     url: path:./.
   nixpkgs:
     follows: localflake/nixpkgs
-  git-hooks:
-    url: github:cachix/git-hooks.nix
-    inputs:
-      nixpkgs:
-        follows: localflake/nixpkgs

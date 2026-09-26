@@ -7,12 +7,73 @@
       ...
     }:
     let
+      # TODO: this should take config from treesitter
+      pre-commit-config = pkgs.writeText "pre-commit-config.yaml" (
+        builtins.toJSON {
+          default_stages = [ "pre-commit" ];
+          repos = [
+            {
+              repo = "local";
+              hooks = [
+                {
+                  id = "nbstripout";
+                  name = "nbstripout";
+                  entry = "${lib.getExe pkgs.nbstripout}";
+                  args = [
+                    "--keep-output"
+                    "--drop-empty-cells"
+                  ];
+                  files = "\\.ipynb$";
+                  language = "unsupported";
+                  stages = [ "pre-commit" ];
+                }
+                {
+                  id = "nixfmt";
+                  name = "nixfmt";
+                  entry = "${lib.getExe pkgs.nixfmt}";
+                  args = [
+                    "--width"
+                    "120"
+                  ];
+                  files = "\\.nix$";
+                  language = "unsupported";
+                  stages = [ "pre-commit" ];
+                }
+                {
+                  id = "ruff-format";
+                  name = "ruff-format";
+                  entry = "${lib.getExe pkgs.ruff}";
+                  args = [ "format" ];
+                  language = "unsupported";
+                  pass_filenames = false;
+                  stages = [ "pre-commit" ];
+                  types = [ "python" ];
+                }
+                {
+                  id = "ruff";
+                  name = "ruff";
+                  entry = "${lib.getExe pkgs.ruff}";
+                  args = [
+                    "check"
+                    "--fix"
+                  ];
+                  language = "unsupported";
+                  pass_filenames = false;
+                  stages = [ "pre-commit" ];
+                  types = [ "python" ];
+                }
+              ];
+            }
+          ];
+        }
+      );
       makePyShell =
         version:
-        pkgs.mkShell {
+        pkgs.mkShellNoCC {
           packages = [
             self'.packages."lomasEnvDev_3_${version}"
             pkgs.uv
+            pkgs.pre-commit
           ];
           env = {
             UV_NO_SYNC = "1";
@@ -24,6 +85,13 @@
           shellHook = ''
             unset PYTHONPATH
             export REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")
+
+            # Pre-commit
+            preCommitFile=.pre-commit-config.yaml
+            if ! ([ -e "$preCommitFile" ] && [ $(nix hash file "$preCommitFile") = $(nix hash file ${pre-commit-config}) ]); then
+              ln -sf ${pre-commit-config} "$preCommitFile"
+              pre-commit install --install-hooks
+            fi
           '';
         };
     in

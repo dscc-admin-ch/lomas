@@ -25,27 +25,28 @@ sudo cp "$workdir/nix.conf" /etc/nix/nix.conf
 
 sh <(curl -L https://nixos.org/nix/install) --yes --no-daemon --no-channel-add --nix-extra-conf-file "$workdir/nix.conf"
 
-. $HOME/.nix-profile/etc/profile.d/nix.sh
+# shellcheck source=/dev/null
+. "$HOME/.nix-profile/etc/profile.d/nix.sh"
 
 NIX_BIN=$HOME/.nix-profile/bin
 
 echo "fixing godamn .bashrc"
-cat >> $HOME/.bashrc << EOF
+cat >> "$HOME/.bashrc" << EOF
 export USER=${USER}
 source $HOME/.nix-profile/etc/profile.d/nix.sh
 EOF
 
 echo "installing devenv & direnv"
-$NIX_BIN/nix profile add nixpkgs#{dir,dev}env
+"$NIX_BIN/nix" profile add nixpkgs#{dir,dev}env
 
 if [[ -d "$WORKSPACE_DIR" && ! -e "$WORKSPACE_DIR/lomas" ]]; then
   echo "cloning lomas"
   cd "$WORKSPACE_DIR"
   git clone -b develop https://github.com/dscc-admin-ch/lomas
   cd lomas
-  $NIX_BIN/direnv allow
-  $NIX_BIN/devenv shell
+  "$NIX_BIN/direnv" allow
+  "$NIX_BIN/devenv" shell
 elif [[ -e "$WORKSPACE_DIR/lomas" ]];then
-  $NIX_BIN/direnv allow
-  $NIX_BIN/devenv shell
+  "$NIX_BIN/direnv" allow
+  "$NIX_BIN/devenv" shell
 fi

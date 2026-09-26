@@ -83,7 +83,7 @@ in
               name: ${config.lomas.oidc.clients.apiClient}
               redirectURIs:
                 # Enables device auth flow
-                - '/device/callback'
+                - "/device/callback"
             # lomas dashboard
             - id: ${config.lomas.oidc.clients.adminDashboard.client_id}
               public: false

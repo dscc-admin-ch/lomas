@@ -29,7 +29,6 @@ in
     ./devenv/lomas.nix
     ./devenv/garage.nix
     ./devenv/telemetry.nix
-    ./devenv/hooks.nix
     ./devenv/docker-env.nix
     ./devenv/dex.nix
     ./devenv/pyenv.nix
@@ -153,11 +152,6 @@ in
     };
   };
 
-  lomas.hooks = {
-    enable = true;
-    projectConfigFile = "${config.git.root}/pyproject.toml";
-  };
-
   lomas.pyenv = {
     enable = true;
     version = lib.mkDefault "3.14";
@@ -196,7 +190,7 @@ in
     NO_MKDOCS_2_WARNING = 1;
 
     # Ensure `coverage` uses our project config
-    COVERAGE_RCFILE = config.lomas.hooks.projectConfigFile;
+    COVERAGE_RCFILE = "${config.git.root}/pyproject.toml";
 
     # Pydantic note:
     # Even when using a dotenv file, pydantic will still read environment variables as well as the dotenv file, environment variables will always take priority over values loaded from a dotenv file.

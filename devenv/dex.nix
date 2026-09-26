@@ -65,7 +65,7 @@ let
         name: ${apiClient}
         redirectURIs:
           # Enables device auth flow
-          - '/device/callback'
+          - "/device/callback"
       # lomas dashboard
       - id: ${adminDashboard.client_id}
         public: false

@@ -4,13 +4,13 @@ This page gives general information about developer workflows in the Lomas proje
 
 ## Git Branches
 
-* **master**: This is the stable branch. Release tags are always on this branch and the latest release is always the head of this branch.
-* **develop**: This is the main development branch and can be ahead of the master branch.
+- **master**: This is the stable branch. Release tags are always on this branch and the latest release is always the head of this branch.
+- **develop**: This is the main development branch and can be ahead of the master branch.
   One should never directly merge and push to develop but perform a pull request on GitHub.
   The PR can only be merged if approved by another developer and all automatic tests pass.
-* **wip_xx**: Feature branches for feature number xx start with wip_xx (one can add a short name to the branch name).
+- **wip_xx**: Feature branches for feature number xx start with wip_xx (one can add a short name to the branch name).
   They always branch off from develop, and as explained above, are merged to develop via GitHub pull requests.
-* **release/vx.y.z**: These are release branches (for version vx.y.z). They always branch off from develop.
+- **release/vx.y.z**: These are release branches (for version vx.y.z). They always branch off from develop.
   Once the release process is complete (see below), the release branch is merged to both master and develop via GitHub pull requests.
 
 ## Devenv
@@ -20,10 +20,9 @@ We use [devenv](https://devenv.sh/) devenv to setup our development environent. 
 1. `./scripts/bootstrap.sh`
 2. `nix profile add nixpkgs#{dev,dir}env`
 3. (Optional) [automatic shell activation](https://devenv.sh/auto-activation/)
-    1. add `echo 'eval "$(direnv hook bash)"' >> ~/.bashrc` [direnv shell hook](https://direnv.net/docs/hook.html)
-    2. Approve (once) inside the cloned directory / vscode terminal: `direnv allow`
-    3. Install vscode extension: [mkhl.direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv)
-
+   1. add `echo 'eval "$(direnv hook bash)"' >> ~/.bashrc` [direnv shell hook](https://direnv.net/docs/hook.html)
+   2. Approve (once) inside the cloned directory / vscode terminal: `direnv allow`
+   3. Install vscode extension: [mkhl.direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv)
 
 Once in lomas repo run the following to activate the devenv: `devenv shell`.
 The following utilities are now available in your shell:
@@ -38,7 +37,6 @@ The following utilities are now available in your shell:
 - `run-linter` will run all the Linting suit (ruff/pydocstringformatter/mypy)
 - `build-docs` builds all version of the docs (requires `uv sync --all-extras` first)
 - `build-docs-local` builds the local version of the doc (requires `uv sync --all-extras` first), the htlm will open automatically.
-
 
 Note that some of the utilities (fast enough) are integrated as git pre-commit hook (namely ruff/pylint).
 
@@ -68,10 +66,10 @@ To ensure code quality and consistency, we perform several checks using various 
 
 There should be no error or warning when calling `run-linter`, otherwise the linting github action will fail. All configurations are in
 
-* `lomas/pyproject.toml`
-* `lomas/core/pyproject.toml`
-* `lomas/server/pyproject.toml`
-* `lomas/client/pyproject.toml`.
+- `lomas/pyproject.toml`
+- `lomas/core/pyproject.toml`
+- `lomas/server/pyproject.toml`
+- `lomas/client/pyproject.toml`.
 
 As detailed below, we rely on GitHub workflows to automatically run these checks on pull requests, ensuring consistency and quality across all contributions.
 
@@ -80,20 +78,20 @@ As detailed below, we rely on GitHub workflows to automatically run these checks
 This project uses a number of GitHub workflows to automate various CI/CD tasks. These tasks can also be manually run in a local environment during development. Please refer to the workflow files in `.github/workflows/` for further details.
 The table below gives an overview of which workflows are triggered by what events.
 
-| Workflow / Trigger     | PR to develop | PR to master | Push to develop | Push to release/** | Push to master | GitHub release |
-|------------------------|---------------|--------------|-----------------|--------------------|----------------|----------------|
-| Tests and Linters      | Yes           | Yes          | No              | No                 | No             | No             |
-| Docker build and push  | Yes (no push) | Yes (no push)| Yes (tag = git sha) | No             | Yes (tag = git sha) | Yes (tags = latest and semver (x.y.z)) |
-| Python libraries push  | No            | No           | Yes             | No                 | No             | Yes (pre-version on tag, must manually adjust version) |
-| Helm charts push       | No            | No           | No              | Yes (must manually adjust version)  | No             | No             |
-| Documentation push     | No            | No           | Yes (for latest)| No                 | No             | Yes (for stable, must manually add version) |
-| Security with CodeQL*  | Yes           | Yes          | No              | No                 | No             | No             |
+| Workflow / Trigger    | PR to develop | PR to master  | Push to develop     | Push to release/**                 | Push to master      | GitHub release                                         |
+| --------------------- | ------------- | ------------- | ------------------- | ---------------------------------- | ------------------- | ------------------------------------------------------ |
+| Tests and Linters     | Yes           | Yes           | No                  | No                                 | No                  | No                                                     |
+| Docker build and push | Yes (no push) | Yes (no push) | Yes (tag = git sha) | No                                 | Yes (tag = git sha) | Yes (tags = latest and semver (x.y.z))                 |
+| Python libraries push | No            | No            | Yes                 | No                                 | No                  | Yes (pre-version on tag, must manually adjust version) |
+| Helm charts push      | No            | No            | No                  | Yes (must manually adjust version) | No                  | No                                                     |
+| Documentation push    | No            | No            | Yes (for latest)    | No                                 | No                  | Yes (for stable, must manually add version)            |
+| Security with CodeQL* | Yes           | Yes           | No                  | No                                 | No                  | No                                                     |
 
 Of these workflows, three of them need manual intervention to adjust the version number:
 
-* **Python libraries push**: The `version` and the `install_requires` must be set in `core/pyproject.toml`, `server/pyproject.toml` and `client/pyproject.toml` ('install_requires' should match the new version of `core`).
-* **Helm chart push**: The chart version (`version`) and app version (`AppVersion`) of the server and the client must be updated in `server/deploy/helm/charts/lomas_server/Chart.yml`and `client/deploy/helm/charts/lomas_client/Chart.yaml`.
-* **Documentation push**: __TODO__ Mike setup
+- **Python libraries push**: The `version` and the `install_requires` must be set in `core/pyproject.toml`, `server/pyproject.toml` and `client/pyproject.toml` ('install_requires' should match the new version of `core`).
+- **Helm chart push**: The chart version (`version`) and app version (`AppVersion`) of the server and the client must be updated in `server/deploy/helm/charts/lomas_server/Chart.yml`and `client/deploy/helm/charts/lomas_client/Chart.yaml`.
+- **Documentation push**: **TODO** Mike setup
 
 *The Security with CodeQL workflow is also triggered every Monday at 9am.
 

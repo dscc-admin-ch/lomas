@@ -22,7 +22,7 @@ To use FSO lomas client, you can do the following:
 2. Initialise the client with required url, name and dataset.
 3. You can now use any function as long as you have access to the dataset!
 
-``` py
+```py
 # Step 1
 from lomas_client import Client
 

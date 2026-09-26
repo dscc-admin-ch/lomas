@@ -1,10 +1,7 @@
 {
   "customizations": {
     "vscode": {
-      "extensions": [
-        "mkhl.direnv",
-        "jnoortheen.nix-ide"
-      ]
+      "extensions": ["mkhl.direnv", "jnoortheen.nix-ide"]
     }
   },
   "image": "ghcr.io/cachix/devenv/devcontainer:latest",

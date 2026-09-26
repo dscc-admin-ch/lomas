@@ -98,7 +98,7 @@
             # Type checking on extra packages doesn't work yet
             # skipTypeCheck = true;
             containers.worker =
-              { config, ... }:
+              { ... }:
               {
                 imports = [ self.nixosModules.lomas ];
                 services.lomas = {
@@ -168,7 +168,7 @@
 
               containers = lib.mkMerge [
                 commonOidcContainers
-                ({
+                {
                   server.services.lomas = {
                     initUsers = pkgs.writeText "users.yaml" (
                       builtins.toJSON {
@@ -233,8 +233,8 @@
                       }
                     );
                   };
-                })
-                ({
+                }
+                {
                   bencher = {
                     imports = [ commonConfig ];
                     environment.systemPackages = [
@@ -261,7 +261,7 @@
                       workerOnly = true;
                     };
                   };
-                })
+                }
               ];
 
               testScript = ''

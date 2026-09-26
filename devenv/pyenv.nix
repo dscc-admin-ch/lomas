@@ -28,7 +28,7 @@ in
       packages = devshell.nativeBuildInputs;
 
       # collect upper case ENV variables
-      env = lib.filterAttrs (n: v: n == (lib.toUpper n)) devshell;
+      env = lib.filterAttrs (n: _v: n == (lib.toUpper n)) devshell;
 
       enterShell = lib.mkAfter devshell.shellHook;
     };

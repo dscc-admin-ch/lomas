@@ -1,6 +1,5 @@
 ## They see me flakin'
 
-
 `nix flake show` <- "the fuck we have here ?"
 
 `nix develop .#py312 [of py313/py314]` <- Hoping in a (dev)shell with lomas python package in 3.[12|13|14]

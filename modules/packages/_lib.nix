@@ -33,8 +33,8 @@ rec {
     root = "$REPO_ROOT";
   };
 
-  editableSrcFilteringOverlay = final: prev: {
-    lomas = prev.lomas.overrideAttrs (old: {
+  editableSrcFilteringOverlay = _final: prev: {
+    lomas = prev.lomas.overrideAttrs (_old: {
       src =
         if devenvCorrectlyHandleFs then
           fs.toSource rec {
@@ -57,7 +57,7 @@ rec {
             done
           '';
     });
-    lomas-core = prev.lomas-core.overrideAttrs (old: {
+    lomas-core = prev.lomas-core.overrideAttrs (_old: {
       src =
         if devenvCorrectlyHandleFs then
           fs.toSource rec {
@@ -74,7 +74,7 @@ rec {
             touch $out/lomas_core/__init__.py
           '';
     });
-    lomas-client = prev.lomas-client.overrideAttrs (old: {
+    lomas-client = prev.lomas-client.overrideAttrs (_old: {
       src =
         if devenvCorrectlyHandleFs then
           fs.toSource rec {
@@ -91,7 +91,7 @@ rec {
             touch $out/lomas_client/__init__.py
           '';
     });
-    lomas-server = prev.lomas-server.overrideAttrs (old: {
+    lomas-server = prev.lomas-server.overrideAttrs (_old: {
       src =
         if devenvCorrectlyHandleFs then
           fs.toSource rec {
@@ -129,7 +129,7 @@ rec {
     });
   };
 
-  sslOverlay = final: prev: {
+  sslOverlay = _final: prev: {
     certifi = hacks.nixpkgsPrebuilt {
       # nixpkgs certifi respect the ca-bundle from pkgs.cacert as well as NIX_SSL_CERT_FILE if set
       from = python3.pkgs.certifi;
@@ -151,8 +151,8 @@ rec {
 
   # Fix sklearn.linear_model.LogisticRegression multi_class argument
   # deprecated in 1.7.2 and removed in 1.8.0
-  diffprivlibOverlay = final: prev: {
-    diffprivlib = prev.diffprivlib.overrideAttrs (old: {
+  diffprivlibOverlay = _final: prev: {
+    diffprivlib = prev.diffprivlib.overrideAttrs (_old: {
       postInstall = ''
         pushd $out/lib/python*/site-packages/diffprivlib >/dev/null
         # python wheel sources

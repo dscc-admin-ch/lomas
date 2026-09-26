@@ -9,6 +9,6 @@
 </picture>
 </h1><br>
 
-
 # Server
+
 See the technical documentation of the server: https://dscc-admin-ch.github.io/lomas/latest

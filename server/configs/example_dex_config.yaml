@@ -31,7 +31,7 @@ staticClients:
     name: lomas_client
     redirectURIs:
       # Enables device auth flow
-      - '/device/callback'
+      - "/device/callback"
   # lomas dashboard
   - id: lomas_dashboard
     public: false

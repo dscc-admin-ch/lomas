@@ -19,8 +19,7 @@ This page provides instructions on how to run a local Lomas test instance.
 5. The admin dashboard is available at `http://localhost:8501/admin`. If the demo admin script was run, you can log in with the demo admin user (email: lomas_admin@example.com and password: lomas_admin).
 6. Logs for all services started by devenv can be observed by navigating the manager started with the `devenv up` command. In adddition to those described above, they include Dex (IdP), Garage as well as two Lomas workers.
 
-
-!!! info "__Note for Developers__"
+!!! info "**Note for Developers**"
 
     A Docker compose file also enables to start a local test environment.
     However, this method is only meant to test the Lomas OCI container images and some of the services (e.g. Garage) are not started/supported.

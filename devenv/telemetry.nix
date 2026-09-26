@@ -17,32 +17,30 @@ let
     mkEnableOption
     ;
 
-  serviceModule =
-    { config, name, ... }:
-    {
-      options = {
-        host = mkOption {
-          type = types.str;
-          example = "1.2.3.4";
-          description = "hostname / IP of the service host";
+  serviceModule = _: {
+    options = {
+      host = mkOption {
+        type = types.str;
+        example = "1.2.3.4";
+        description = "hostname / IP of the service host";
+      };
+      port = mkOption {
+        type = types.nullOr types.port;
+        default = null;
+        example = 8080;
+        description = "port number of the service host";
+      };
+      ports = mkOption {
+        type = types.nullOr types.attrs;
+        default = null;
+        example = {
+          http = 19080;
+          grpc = 9095;
         };
-        port = mkOption {
-          type = types.nullOr types.port;
-          default = null;
-          example = 8080;
-          description = "port number of the service host";
-        };
-        ports = mkOption {
-          type = types.nullOr types.attrs;
-          default = null;
-          example = {
-            http = 19080;
-            grpc = 9095;
-          };
-          description = "ports mapping of the service";
-        };
+        description = "ports mapping of the service";
       };
     };
+  };
 in
 {
   options.lomas.telemetry = {

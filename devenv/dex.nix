@@ -23,7 +23,7 @@ let
     ;
 
   # Write config as file
-  confFile = pkgs.writeText "dex-config.yaml" (''
+  confFile = pkgs.writeText "dex-config.yaml" ''
     issuer: http://${cfg.host}:${config.ports.lomas.dex.api}${cfg.path}
     web:
       http: ${cfg.address}:${config.ports.lomas.dex.api}
@@ -83,7 +83,7 @@ let
 
     staticPasswords:
       # Beware: static passwords cannot be deleted in dex.
-  '');
+  '';
 
   apiProtoDrv =
     protoPath:
@@ -116,7 +116,7 @@ in
 
     package = mkOption {
       type = types.package;
-      default = pkgs.dex-oidc.overrideAttrs (old: rec {
+      default = pkgs.dex-oidc.overrideAttrs (_old: rec {
         version = "2.44.0";
         src = pkgs.fetchFromGitHub {
           owner = "dexidp";

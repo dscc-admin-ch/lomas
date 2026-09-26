@@ -9,5 +9,5 @@ icon: https://raw.githubusercontent.com/dscc-admin-ch/lomas/refs/heads/master/im
 dependencies:
   - name: dex
     condition: dex.create
-    version:  0.24.0
+    version: 0.24.0
     repository: https://charts.dexidp.io

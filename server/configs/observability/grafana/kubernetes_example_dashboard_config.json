@@ -91,9 +91,7 @@
         "orientation": "auto",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -160,9 +158,7 @@
         },
         "pieType": "pie",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -231,9 +227,7 @@
         "orientation": "auto",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -521,9 +515,7 @@
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": [
-            "sum"
-          ],
+          "reducer": ["sum"],
           "show": false
         },
         "showHeader": true
@@ -588,9 +580,7 @@
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": [
-            "sum"
-          ],
+          "reducer": ["sum"],
           "show": false
         },
         "showHeader": true
@@ -613,9 +603,7 @@
               "operator": "=",
               "scope": "span",
               "tag": "name",
-              "value": [
-                "POST /smartnoise_sql_query"
-              ],
+              "value": ["POST /smartnoise_sql_query"],
               "valueType": "string"
             }
           ],
@@ -678,9 +666,7 @@
         "footer": {
           "countRows": false,
           "fields": "",
-          "reducer": [
-            "sum"
-          ],
+          "reducer": ["sum"],
           "show": false
         },
         "showHeader": true
@@ -801,12 +787,7 @@
   ],
   "preload": false,
   "schemaVersion": 40,
-  "tags": [
-    "loki",
-    "tempo",
-    "grafana",
-    "prometheus"
-  ],
+  "tags": ["loki", "tempo", "grafana", "prometheus"],
   "templating": {
     "list": []
   },

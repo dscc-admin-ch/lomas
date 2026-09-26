@@ -217,7 +217,7 @@ in
             exec streamlit run lomas_server/administration/dashboard/about.py
           '';
           cwd = "${config.git.root}/server";
-          env = builtins.mapAttrs (name: toString) {
+          env = builtins.mapAttrs (_name: toString) {
             STREAMLIT_SECRETS_FILES = secretFile;
           };
           ready.http.get = {

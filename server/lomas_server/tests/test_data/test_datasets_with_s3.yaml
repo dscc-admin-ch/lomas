@@ -1,58 +1,58 @@
 datasets:
-- dataset_name: "PENGUIN"
-  dataset_access:
-    database_type: "PATH_DB"
-    path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
-  metadata_access:
-    database_type: "PATH_DB"
-    path: "metadata/penguin_metadata.json"
-- dataset_name: "IRIS"
-  dataset_access:
-    database_type: "PATH_DB"
-    path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
-  metadata_access:
-    database_type: "PATH_DB"
-    path: "metadata/iris_metadata.json"
-- dataset_name: "PUMS"
-  dataset_access:
-    database_type: "PATH_DB"
-    path: "https://raw.githubusercontent.com/opendp/smartnoise-sdk/main/datasets/PUMS.csv"
-  metadata_access:
-    database_type: "PATH_DB"
-    path: "metadata/pums_metadata.json"
-- dataset_name: "TINTIN_S3_TEST"
-  dataset_access:
-    database_type: "S3_DB"
-    bucket: "bucket"
-    key: "data/test_penguin.csv"
-    endpoint_url: "http://localhost:3900"
-    credentials_name: "garage"
-  metadata_access:
-    database_type: "S3_DB"
-    bucket: "bucket"
-    key: "metadata/penguin_metadata.json"
-    endpoint_url: "http://localhost:3900"
-    access_key_id: "GK0123456789abcdefdeadbeef"
-    secret_access_key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-    credentials_name: "garage"
-- dataset_name: "BIRTHDAYS"
-  dataset_access:
-    database_type: "PATH_DB"
-    path: "birthdays.csv"
-  metadata_access:
-    database_type: "PATH_DB"
-    path: "metadata/birthday_metadata.json"
-- dataset_name: "FSO_INCOME_SYNTHETIC"
-  dataset_access:
-    database_type: "PATH_DB"
-    path: "income_synthetic_data.csv"
-  metadata_access:
-    database_type: "PATH_DB"
-    path: "metadata/fso_income_synthetic_metadata.json"
-- dataset_name: "COVID_SYNTHETIC"
-  dataset_access:
-    database_type: "PATH_DB"
-    path: "covid_synthetic_data.csv"
-  metadata_access:
-    database_type: "PATH_DB"
-    path: "metadata/covid_synthetic_metadata.json"
+  - dataset_name: "PENGUIN"
+    dataset_access:
+      database_type: "PATH_DB"
+      path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
+    metadata_access:
+      database_type: "PATH_DB"
+      path: "metadata/penguin_metadata.json"
+  - dataset_name: "IRIS"
+    dataset_access:
+      database_type: "PATH_DB"
+      path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
+    metadata_access:
+      database_type: "PATH_DB"
+      path: "metadata/iris_metadata.json"
+  - dataset_name: "PUMS"
+    dataset_access:
+      database_type: "PATH_DB"
+      path: "https://raw.githubusercontent.com/opendp/smartnoise-sdk/main/datasets/PUMS.csv"
+    metadata_access:
+      database_type: "PATH_DB"
+      path: "metadata/pums_metadata.json"
+  - dataset_name: "TINTIN_S3_TEST"
+    dataset_access:
+      database_type: "S3_DB"
+      bucket: "bucket"
+      key: "data/test_penguin.csv"
+      endpoint_url: "http://localhost:3900"
+      credentials_name: "garage"
+    metadata_access:
+      database_type: "S3_DB"
+      bucket: "bucket"
+      key: "metadata/penguin_metadata.json"
+      endpoint_url: "http://localhost:3900"
+      access_key_id: "GK0123456789abcdefdeadbeef"
+      secret_access_key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      credentials_name: "garage"
+  - dataset_name: "BIRTHDAYS"
+    dataset_access:
+      database_type: "PATH_DB"
+      path: "birthdays.csv"
+    metadata_access:
+      database_type: "PATH_DB"
+      path: "metadata/birthday_metadata.json"
+  - dataset_name: "FSO_INCOME_SYNTHETIC"
+    dataset_access:
+      database_type: "PATH_DB"
+      path: "income_synthetic_data.csv"
+    metadata_access:
+      database_type: "PATH_DB"
+      path: "metadata/fso_income_synthetic_metadata.json"
+  - dataset_name: "COVID_SYNTHETIC"
+    dataset_access:
+      database_type: "PATH_DB"
+      path: "covid_synthetic_data.csv"
+    metadata_access:
+      database_type: "PATH_DB"
+      path: "metadata/covid_synthetic_metadata.json"

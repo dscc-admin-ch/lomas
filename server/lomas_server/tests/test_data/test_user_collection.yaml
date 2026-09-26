@@ -1,89 +1,89 @@
 users:
-- id:
-    name : Dr.Antartica
-    email: "dr.antartica@example.com"
-    client_secret: dr.antartica
-  may_query: True
-  datasets:
-    PENGUIN:
-      dataset_name: "PENGUIN"
-      initial_budget:
-        epsilon: 50
-        delta: 0.005
-      total_spent_budget:
-        epsilon: 0.0
-        delta: 0.0
-    TINTIN_S3_TEST:
-      dataset_name: "TINTIN_S3_TEST"
-      initial_budget:
-        epsilon: 10
-        delta: 0.005
-      total_spent_budget:
-        epsilon: 0.0
-        delta: 0.0
-    PUMS:
-      dataset_name: "PUMS"
-      initial_budget:
-        epsilon: 5
-        delta: 0.005
-      total_spent_budget:
-        epsilon: 0.0
-        delta: 0.0
-    FSO_INCOME_SYNTHETIC:
-      dataset_name: "FSO_INCOME_SYNTHETIC"
-      initial_budget:
-        epsilon: 10
-        delta: 0.005
-      total_spent_budget:
-        epsilon: 0.0
-        delta: 0.0
-    COVID_SYNTHETIC:
-      dataset_name: "COVID_SYNTHETIC"
-      initial_budget:
-        epsilon: 10
-        delta: 0.005
-      total_spent_budget:
-        epsilon: 0.0
-        delta: 0.0
-- id:
-    name: "Tintin"
-    email: "tintin@example.com"
-    client_secret: tintin
-  may_query: True
-  datasets:
-    BijouxDeLaCastafiore:
-      dataset_name: BijouxDeLaCastafiore
-      initial_budget:
-        epsilon: 10
-        delta: 0.005
-      total_spent_budget:
-        epsilon: 0.0
-        delta: 0.0
-- id:
-    name: "Milou"
-    email: "milou@example.com"
-    client_secret: milou
-  may_query: True
-  datasets:
-    os:
-      dataset_name: "os"
-      initial_budget:
-        epsilon: 20
-        delta: 0.005
-      total_spent_budget:
-        epsilon: 0.0
-        delta: 0.0
-- id:
-    name: BirthdayGirl
-    email: "birthdaygirl@example.com"
-    client_secret: birthdaygirl
-  may_query: True
-  datasets:
-    BIRTHDAYS:
-      dataset_name: "BIRTHDAYS"
-      initial_budget:
-        epsilon: 10
-        delta: 0.05
-      total_spent_budget:
-        epsilon: 0.0
-        delta: 0.0
+  - id:
+      name: Dr.Antartica
+      email: "dr.antartica@example.com"
+      client_secret: dr.antartica
+    may_query: True
+    datasets:
+      PENGUIN:
+        dataset_name: "PENGUIN"
+        initial_budget:
+          epsilon: 50
+          delta: 0.005
+        total_spent_budget:
+          epsilon: 0.0
+          delta: 0.0
+      TINTIN_S3_TEST:
+        dataset_name: "TINTIN_S3_TEST"
+        initial_budget:
+          epsilon: 10
+          delta: 0.005
+        total_spent_budget:
+          epsilon: 0.0
+          delta: 0.0
+      PUMS:
+        dataset_name: "PUMS"
+        initial_budget:
+          epsilon: 5
+          delta: 0.005
+        total_spent_budget:
+          epsilon: 0.0
+          delta: 0.0
+      FSO_INCOME_SYNTHETIC:
+        dataset_name: "FSO_INCOME_SYNTHETIC"
+        initial_budget:
+          epsilon: 10
+          delta: 0.005
+        total_spent_budget:
+          epsilon: 0.0
+          delta: 0.0
+      COVID_SYNTHETIC:
+        dataset_name: "COVID_SYNTHETIC"
+        initial_budget:
+          epsilon: 10
+          delta: 0.005
+        total_spent_budget:
+          epsilon: 0.0
+          delta: 0.0
+  - id:
+      name: "Tintin"
+      email: "tintin@example.com"
+      client_secret: tintin
+    may_query: True
+    datasets:
+      BijouxDeLaCastafiore:
+        dataset_name: BijouxDeLaCastafiore
+        initial_budget:
+          epsilon: 10
+          delta: 0.005
+        total_spent_budget:
+          epsilon: 0.0
+          delta: 0.0
+  - id:
+      name: "Milou"
+      email: "milou@example.com"
+      client_secret: milou
+    may_query: True
+    datasets:
+      os:
+        dataset_name: "os"
+        initial_budget:
+          epsilon: 20
+          delta: 0.005
+        total_spent_budget:
+          epsilon: 0.0
+          delta: 0.0
+  - id:
+      name: BirthdayGirl
+      email: "birthdaygirl@example.com"
+      client_secret: birthdaygirl
+    may_query: True
+    datasets:
+      BIRTHDAYS:
+        dataset_name: "BIRTHDAYS"
+        initial_budget:
+          epsilon: 10
+          delta: 0.05
+        total_spent_budget:
+          epsilon: 0.0
+          delta: 0.0

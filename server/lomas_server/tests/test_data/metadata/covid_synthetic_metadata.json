@@ -117,12 +117,7 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "keyValues": [
-          "female",
-          "male",
-          "other",
-          "unknown"
-        ],
+        "keyValues": ["female", "male", "other", "unknown"],
         "invariantPublicKeys": true,
         "maxNumPartitions": 4,
         "maxLength": 23180,
@@ -136,10 +131,7 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "keyValues": [
-          "pcr",
-          "rapid_antigen_test"
-        ],
+        "keyValues": ["pcr", "rapid_antigen_test"],
         "invariantPublicKeys": true,
         "maxNumPartitions": 2,
         "maxLength": 45066,
@@ -153,12 +145,7 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "keyValues": [
-          "negative",
-          "other",
-          "positive",
-          "unknown"
-        ],
+        "keyValues": ["negative", "other", "positive", "unknown"],
         "invariantPublicKeys": true,
         "maxNumPartitions": 4,
         "maxLength": 28829,
@@ -172,12 +159,7 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "keyValues": [
-          "CH",
-          "FL",
-          "other",
-          "unknown"
-        ],
+        "keyValues": ["CH", "FL", "other", "unknown"],
         "invariantPublicKeys": true,
         "maxNumPartitions": 4,
         "maxLength": 48090,
@@ -217,10 +199,7 @@
         "nullableProportion": 0.0,
         "minimum": false,
         "maximum": true,
-        "keyValues": [
-          false,
-          true
-        ],
+        "keyValues": [false, true],
         "maxNumPartitions": 2,
         "maxLength": 49699,
         "maxGroupsPerUnit": 52,
@@ -235,10 +214,7 @@
         "nullableProportion": 0.0,
         "minimum": false,
         "maximum": true,
-        "keyValues": [
-          false,
-          true
-        ],
+        "keyValues": [false, true],
         "maxNumPartitions": 2,
         "maxLength": 50010,
         "maxGroupsPerUnit": 52,
@@ -256,7 +232,7 @@
       }
     ]
   },
-    "additionalInformation": [
+  "additionalInformation": [
     {
       "@type": "ColumnGroup",
       "columnsInGroup": ["agegroup", "sex"],

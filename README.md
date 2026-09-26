@@ -17,7 +17,6 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-
 # Lomas: The Data Oases Hidden Behind the Mist.
 
 Lomas is a platform for remote data science, enabling sensitive data to be queried remotely while staying protected by a layer of differential privacy.
@@ -35,11 +34,10 @@ The service is not responsible for storing and managing private datasets, these 
 
 For a detailed description, please see the links below.
 
-* **Lomas Project White Paper**: https://arxiv.org/abs/2406.17087
-* **Swiss Federal Statistical Office Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
-* **Technical Documentation**: https://dscc-admin-ch.github.io/lomas/latest
-* **Poster**: https://github.com/dscc-admin-ch/lomas/blob/master/images/poster.pdf
-
+- **Lomas Project White Paper**: https://arxiv.org/abs/2406.17087
+- **Swiss Federal Statistical Office Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
+- **Technical Documentation**: https://dscc-admin-ch.github.io/lomas/latest
+- **Poster**: https://github.com/dscc-admin-ch/lomas/blob/master/images/poster.pdf
 
 ## Client package `lomas_client`
 
@@ -48,7 +46,6 @@ The `lomas_client` library is a client to interact with the Lomas server. It is 
 Utilizing this client library is strongly advised for querying and interacting with the server, as it takes care of all the necessary tasks such as serialization, deserialization, REST API calls, and ensures the correct installation of other required libraries. In short, it enables a seamless interaction with the server.
 
 For additional informations about the client, please see the [README.md](https://github.com/dscc-admin-ch/lomas/blob/master/client/README.md) of the client and for addictional examples please see the [Demo_Client_Notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/client/notebooks/Demo_Client_Notebook.ipynb).
-
 
 ## Server
 
@@ -63,18 +60,20 @@ The server is implemented in a micro-service architecture and is thus split into
 Lomas is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure (private database in the sketch above). We currently implement adapters to S3 storage, http file download and local files.
 
 ## Deployment
+
 We aim to facilitate the platform configuration, deployment and testing on commonly available IT infrastructure for NSOs and other potential users.
 In this regard, we provide two Helm charts for deploying the server components and a client development environment in a Kubernetes cluster.
 
 For extensive informations about how to deploy, please refer to our [online documentation](https://dscc-admin-ch.github.io/lomas/latest).
 
-
 ## Disclaimer
+
 Lomas is a Proof of Concept that is still under development.
 
-The overall infrastructure security is not our current priority.  While attention has been given to the 'logical' aspects within the server, many security aspects are not handled. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures.
+The overall infrastructure security is not our current priority. While attention has been given to the 'logical' aspects within the server, many security aspects are not handled. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures.
 
 We welcome any feedback or suggestions for future improvements. External input is valuable as we continue to enhance the security and functionality of Lomas. Please open a bug report or issue here: https://github.com/dscc-admin-ch/lomas/issues#open.
 
 ## History
+
 The starting point of our platform was the code shared to us by [Oblivious](https://www.oblivious.com/). They originally developed a client/server platform for the [UN PET Lab Hackathon 2022](https://petlab.officialstatistics.org/).

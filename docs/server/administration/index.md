@@ -6,7 +6,7 @@ As stated in the [Authentication and Authorization page](../../concepts/auth.md)
 
 Since no users are present in the Lomas admin database at first startup, we provide the bootstrap option. When enabled, a simple authorization header `Authorization: Bearer <bootstrap-credentials>` bypasses the standard auth(z) flow and provides admin role privileges. The Lomas demo setup script (in `server/lomas_server/administration/scripts/lomas_demo_setup.py`) gives an example of how to use bootstrap credentials to add a first admin user.
 
-!!! danger "__Important__"
+!!! danger "**Important**"
 
     Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!
 
@@ -16,9 +16,9 @@ The most convenient way for administrators to manage Lomas is via the admin dash
 
 The dashboard is accessible:
 
-- __Local devenv__: http://localhost:8501/admin
-- __Kubernetes deployment__: If enabled, the Helm chart notes show the dashboard url.
-- __Onyxia deployment__: Once started, click on the "Open" button. Alternatively, the dashboard url is also shown in the Helm chart notes.
+- **Local devenv**: http://localhost:8501/admin
+- **Kubernetes deployment**: If enabled, the Helm chart notes show the dashboard url.
+- **Onyxia deployment**: Once started, click on the "Open" button. Alternatively, the dashboard url is also shown in the Helm chart notes.
 
 ### Deleting bootstrap credentials
 

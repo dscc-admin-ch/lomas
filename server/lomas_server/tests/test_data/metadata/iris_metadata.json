@@ -1,8 +1,5 @@
 {
-  "@context": [
-    "http://www.w3.org/ns/csvw",
-    "csvw-eo-context.jsonld"
-  ],
+  "@context": ["http://www.w3.org/ns/csvw", "csvw-eo-context.jsonld"],
   "@type": "Table",
   "maxContributions": 1,
   "maxLength": 150,
@@ -48,11 +45,7 @@
         "nullableProportion": 0.0,
         "maxNumPartitions": 3,
         "invariantPublicKeys": true,
-        "keyValues": [
-          "setosa",
-          "versicolor",
-          "virginica"
-        ]
+        "keyValues": ["setosa", "versicolor", "virginica"]
       }
     ]
   }

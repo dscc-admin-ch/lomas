@@ -1,6 +1,6 @@
 # Managing Datasets via the Admin Dashboard
 
-!!! tip "__If using Dex__"
+!!! tip "**If using Dex**"
 
     By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in `devenv/dex.nix`) to larger value when testing the dashboard.
 
@@ -19,6 +19,7 @@ to create the dummy dataset and to apply the different DP mechanisms correctly d
 of the queries sent by the user.
 
 The metadata must follow the `csvw-eo`[^1] format.
+
 [^1]: :material-github:[csvw-eo](https://github.com/dscc-admin-ch/csvw-eo) for more information.
 
 ## Private DB credentials
@@ -46,5 +47,3 @@ The "Add dataset" section only allows adding local datasets. Similarly to bulk u
 Deletions are grouped in the last section of this page. You can select an existing dataset and delete it. Make sure you know what you are doing before deleting anything from the admin database!
 
 There are also bulk delete buttons to remove entire collections from the admin database. Use these with caution!
-
-

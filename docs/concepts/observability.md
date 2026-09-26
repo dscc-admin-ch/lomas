@@ -17,6 +17,7 @@ These backends are all integrated with **Grafana** for visualization and queryin
    - **Loki**: Collects and stores logs.
    - **Tempo**: Collects and stores traces.
    - **Prometheus**: Collects and stores time-series metrics.
+
 4. **Grafana**: Connects to all of the above systems and provides a unified dashboard for visualization and querying.
 
 ## How It Works
@@ -39,18 +40,18 @@ Queries can be created within Grafana to visualize the data, track performance, 
 
 Below are the important endpoints that can be accessed for debugging and visualizing data.
 
-|Service|Endpoint|Description|
-|-------|--------|-----------|
-|**Grafana**| http://localhost:3000| Logs, traces, and metrics visualization dashboard.
-|**Prometheus**| http://localhost:9090/query| Query expression browser.
-|**Metrics**| http://localhost:9091/metrics | Metrics from the Lomas server.
-||http://localhost:9090/metrics | Other metrics exposed by Prometheus.
-|**Tempo**| http://localhost:55679/debug/tracez | Debug trace & logging data.
-|**Loki**| http://localhost:3100/ready | Loki readiness probe.
-|| http://localhost:3100/config | Loki running configuration.
-|**OpenTelemetry**| http://localhost:13133/health | Health check of the Collector.
-|| http://localhost:1777/debug/pprof | Profiling for performance analysis.
-|| http://localhost:55679/debug/tracez | Trace information for debugging.
+| Service           | Endpoint                            | Description                                        |
+| ----------------- | ----------------------------------- | -------------------------------------------------- |
+| **Grafana**       | http://localhost:3000               | Logs, traces, and metrics visualization dashboard. |
+| **Prometheus**    | http://localhost:9090/query         | Query expression browser.                          |
+| **Metrics**       | http://localhost:9091/metrics       | Metrics from the Lomas server.                     |
+|                   | http://localhost:9090/metrics       | Other metrics exposed by Prometheus.               |
+| **Tempo**         | http://localhost:55679/debug/tracez | Debug trace & logging data.                        |
+| **Loki**          | http://localhost:3100/ready         | Loki readiness probe.                              |
+|                   | http://localhost:3100/config        | Loki running configuration.                        |
+| **OpenTelemetry** | http://localhost:13133/health       | Health check of the Collector.                     |
+|                   | http://localhost:1777/debug/pprof   | Profiling for performance analysis.                |
+|                   | http://localhost:55679/debug/tracez | Trace information for debugging.                   |
 
 ## Configuration Files and Customization
 
@@ -66,13 +67,11 @@ The **LoggingAndTracingMiddleware** in `lomas/server/lomas_server/routes/utils.p
 
 Examples of configuration files for observability, including settings for OpenTelemetry, Grafana, Loki, Tempo, and Prometheus, can be found in: `lomas/server/configs/observability/`.
 
-
 These configuration files include the necessary parameters for connecting the FastAPI application to the respective observability systems.
 
 - Grafana Dashboard Configuration
 
 To import a Grafana dashboard configuration, it must be exported or created as a dashboard JSON configuration file. This file is placed in the following directory: `lomas/server/configs/observability/grafana/example_dashboard_config.json`.
-
 
 The dashboard should be exported as a **JSON file** and placed in the `example_dashboard_config.json` file. This will allow Grafana to automatically import and use the configuration for visualization.
 

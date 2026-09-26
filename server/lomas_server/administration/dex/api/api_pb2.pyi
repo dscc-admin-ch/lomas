@@ -1,13 +1,13 @@
-from google.protobuf.internal import containers as _containers
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
 from collections.abc import Iterable as _Iterable, Mapping as _Mapping
-from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
+from typing import ClassVar as _ClassVar
+
+from google.protobuf import descriptor as _descriptor, message as _message
+from google.protobuf.internal import containers as _containers
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class Client(_message.Message):
-    __slots__ = ("id", "secret", "redirect_uris", "trusted_peers", "public", "name", "logo_url")
+    __slots__ = ("id", "logo_url", "name", "public", "redirect_uris", "secret", "trusted_peers")
     ID_FIELD_NUMBER: _ClassVar[int]
     SECRET_FIELD_NUMBER: _ClassVar[int]
     REDIRECT_URIS_FIELD_NUMBER: _ClassVar[int]
@@ -22,25 +22,34 @@ class Client(_message.Message):
     public: bool
     name: str
     logo_url: str
-    def __init__(self, id: _Optional[str] = ..., secret: _Optional[str] = ..., redirect_uris: _Optional[_Iterable[str]] = ..., trusted_peers: _Optional[_Iterable[str]] = ..., public: bool = ..., name: _Optional[str] = ..., logo_url: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        id: str | None = ...,
+        secret: str | None = ...,
+        redirect_uris: _Iterable[str] | None = ...,
+        trusted_peers: _Iterable[str] | None = ...,
+        public: bool = ...,
+        name: str | None = ...,
+        logo_url: str | None = ...,
+    ) -> None: ...
 
 class GetClientReq(_message.Message):
     __slots__ = ("id",)
     ID_FIELD_NUMBER: _ClassVar[int]
     id: str
-    def __init__(self, id: _Optional[str] = ...) -> None: ...
+    def __init__(self, id: str | None = ...) -> None: ...
 
 class GetClientResp(_message.Message):
     __slots__ = ("client",)
     CLIENT_FIELD_NUMBER: _ClassVar[int]
     client: Client
-    def __init__(self, client: _Optional[_Union[Client, _Mapping]] = ...) -> None: ...
+    def __init__(self, client: Client | _Mapping | None = ...) -> None: ...
 
 class CreateClientReq(_message.Message):
     __slots__ = ("client",)
     CLIENT_FIELD_NUMBER: _ClassVar[int]
     client: Client
-    def __init__(self, client: _Optional[_Union[Client, _Mapping]] = ...) -> None: ...
+    def __init__(self, client: Client | _Mapping | None = ...) -> None: ...
 
 class CreateClientResp(_message.Message):
     __slots__ = ("already_exists", "client")
@@ -48,13 +57,13 @@ class CreateClientResp(_message.Message):
     CLIENT_FIELD_NUMBER: _ClassVar[int]
     already_exists: bool
     client: Client
-    def __init__(self, already_exists: bool = ..., client: _Optional[_Union[Client, _Mapping]] = ...) -> None: ...
+    def __init__(self, already_exists: bool = ..., client: Client | _Mapping | None = ...) -> None: ...
 
 class DeleteClientReq(_message.Message):
     __slots__ = ("id",)
     ID_FIELD_NUMBER: _ClassVar[int]
     id: str
-    def __init__(self, id: _Optional[str] = ...) -> None: ...
+    def __init__(self, id: str | None = ...) -> None: ...
 
 class DeleteClientResp(_message.Message):
     __slots__ = ("not_found",)
@@ -63,7 +72,7 @@ class DeleteClientResp(_message.Message):
     def __init__(self, not_found: bool = ...) -> None: ...
 
 class UpdateClientReq(_message.Message):
-    __slots__ = ("id", "redirect_uris", "trusted_peers", "name", "logo_url")
+    __slots__ = ("id", "logo_url", "name", "redirect_uris", "trusted_peers")
     ID_FIELD_NUMBER: _ClassVar[int]
     REDIRECT_URIS_FIELD_NUMBER: _ClassVar[int]
     TRUSTED_PEERS_FIELD_NUMBER: _ClassVar[int]
@@ -74,7 +83,14 @@ class UpdateClientReq(_message.Message):
     trusted_peers: _containers.RepeatedScalarFieldContainer[str]
     name: str
     logo_url: str
-    def __init__(self, id: _Optional[str] = ..., redirect_uris: _Optional[_Iterable[str]] = ..., trusted_peers: _Optional[_Iterable[str]] = ..., name: _Optional[str] = ..., logo_url: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        id: str | None = ...,
+        redirect_uris: _Iterable[str] | None = ...,
+        trusted_peers: _Iterable[str] | None = ...,
+        name: str | None = ...,
+        logo_url: str | None = ...,
+    ) -> None: ...
 
 class UpdateClientResp(_message.Message):
     __slots__ = ("not_found",)
@@ -83,7 +99,7 @@ class UpdateClientResp(_message.Message):
     def __init__(self, not_found: bool = ...) -> None: ...
 
 class Password(_message.Message):
-    __slots__ = ("email", "hash", "username", "user_id")
+    __slots__ = ("email", "hash", "user_id", "username")
     EMAIL_FIELD_NUMBER: _ClassVar[int]
     HASH_FIELD_NUMBER: _ClassVar[int]
     USERNAME_FIELD_NUMBER: _ClassVar[int]
@@ -92,13 +108,19 @@ class Password(_message.Message):
     hash: bytes
     username: str
     user_id: str
-    def __init__(self, email: _Optional[str] = ..., hash: _Optional[bytes] = ..., username: _Optional[str] = ..., user_id: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        email: str | None = ...,
+        hash: bytes | None = ...,
+        username: str | None = ...,
+        user_id: str | None = ...,
+    ) -> None: ...
 
 class CreatePasswordReq(_message.Message):
     __slots__ = ("password",)
     PASSWORD_FIELD_NUMBER: _ClassVar[int]
     password: Password
-    def __init__(self, password: _Optional[_Union[Password, _Mapping]] = ...) -> None: ...
+    def __init__(self, password: Password | _Mapping | None = ...) -> None: ...
 
 class CreatePasswordResp(_message.Message):
     __slots__ = ("already_exists",)
@@ -114,7 +136,9 @@ class UpdatePasswordReq(_message.Message):
     email: str
     new_hash: bytes
     new_username: str
-    def __init__(self, email: _Optional[str] = ..., new_hash: _Optional[bytes] = ..., new_username: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self, email: str | None = ..., new_hash: bytes | None = ..., new_username: str | None = ...
+    ) -> None: ...
 
 class UpdatePasswordResp(_message.Message):
     __slots__ = ("not_found",)
@@ -126,7 +150,7 @@ class DeletePasswordReq(_message.Message):
     __slots__ = ("email",)
     EMAIL_FIELD_NUMBER: _ClassVar[int]
     email: str
-    def __init__(self, email: _Optional[str] = ...) -> None: ...
+    def __init__(self, email: str | None = ...) -> None: ...
 
 class DeletePasswordResp(_message.Message):
     __slots__ = ("not_found",)
@@ -142,10 +166,10 @@ class ListPasswordResp(_message.Message):
     __slots__ = ("passwords",)
     PASSWORDS_FIELD_NUMBER: _ClassVar[int]
     passwords: _containers.RepeatedCompositeFieldContainer[Password]
-    def __init__(self, passwords: _Optional[_Iterable[_Union[Password, _Mapping]]] = ...) -> None: ...
+    def __init__(self, passwords: _Iterable[Password | _Mapping] | None = ...) -> None: ...
 
 class Connector(_message.Message):
-    __slots__ = ("id", "type", "name", "config")
+    __slots__ = ("config", "id", "name", "type")
     ID_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
@@ -154,13 +178,15 @@ class Connector(_message.Message):
     type: str
     name: str
     config: bytes
-    def __init__(self, id: _Optional[str] = ..., type: _Optional[str] = ..., name: _Optional[str] = ..., config: _Optional[bytes] = ...) -> None: ...
+    def __init__(
+        self, id: str | None = ..., type: str | None = ..., name: str | None = ..., config: bytes | None = ...
+    ) -> None: ...
 
 class CreateConnectorReq(_message.Message):
     __slots__ = ("connector",)
     CONNECTOR_FIELD_NUMBER: _ClassVar[int]
     connector: Connector
-    def __init__(self, connector: _Optional[_Union[Connector, _Mapping]] = ...) -> None: ...
+    def __init__(self, connector: Connector | _Mapping | None = ...) -> None: ...
 
 class CreateConnectorResp(_message.Message):
     __slots__ = ("already_exists",)
@@ -169,7 +195,7 @@ class CreateConnectorResp(_message.Message):
     def __init__(self, already_exists: bool = ...) -> None: ...
 
 class UpdateConnectorReq(_message.Message):
-    __slots__ = ("id", "new_type", "new_name", "new_config")
+    __slots__ = ("id", "new_config", "new_name", "new_type")
     ID_FIELD_NUMBER: _ClassVar[int]
     NEW_TYPE_FIELD_NUMBER: _ClassVar[int]
     NEW_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -178,7 +204,13 @@ class UpdateConnectorReq(_message.Message):
     new_type: str
     new_name: str
     new_config: bytes
-    def __init__(self, id: _Optional[str] = ..., new_type: _Optional[str] = ..., new_name: _Optional[str] = ..., new_config: _Optional[bytes] = ...) -> None: ...
+    def __init__(
+        self,
+        id: str | None = ...,
+        new_type: str | None = ...,
+        new_name: str | None = ...,
+        new_config: bytes | None = ...,
+    ) -> None: ...
 
 class UpdateConnectorResp(_message.Message):
     __slots__ = ("not_found",)
@@ -190,7 +222,7 @@ class DeleteConnectorReq(_message.Message):
     __slots__ = ("id",)
     ID_FIELD_NUMBER: _ClassVar[int]
     id: str
-    def __init__(self, id: _Optional[str] = ...) -> None: ...
+    def __init__(self, id: str | None = ...) -> None: ...
 
 class DeleteConnectorResp(_message.Message):
     __slots__ = ("not_found",)
@@ -206,26 +238,42 @@ class ListConnectorResp(_message.Message):
     __slots__ = ("connectors",)
     CONNECTORS_FIELD_NUMBER: _ClassVar[int]
     connectors: _containers.RepeatedCompositeFieldContainer[Connector]
-    def __init__(self, connectors: _Optional[_Iterable[_Union[Connector, _Mapping]]] = ...) -> None: ...
+    def __init__(self, connectors: _Iterable[Connector | _Mapping] | None = ...) -> None: ...
 
 class VersionReq(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
 class VersionResp(_message.Message):
-    __slots__ = ("server", "api")
+    __slots__ = ("api", "server")
     SERVER_FIELD_NUMBER: _ClassVar[int]
     API_FIELD_NUMBER: _ClassVar[int]
     server: str
     api: int
-    def __init__(self, server: _Optional[str] = ..., api: _Optional[int] = ...) -> None: ...
+    def __init__(self, server: str | None = ..., api: int | None = ...) -> None: ...
 
 class DiscoveryReq(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
 class DiscoveryResp(_message.Message):
-    __slots__ = ("issuer", "authorization_endpoint", "token_endpoint", "jwks_uri", "userinfo_endpoint", "device_authorization_endpoint", "introspection_endpoint", "grant_types_supported", "response_types_supported", "subject_types_supported", "id_token_signing_alg_values_supported", "code_challenge_methods_supported", "scopes_supported", "token_endpoint_auth_methods_supported", "claims_supported")
+    __slots__ = (
+        "authorization_endpoint",
+        "claims_supported",
+        "code_challenge_methods_supported",
+        "device_authorization_endpoint",
+        "grant_types_supported",
+        "id_token_signing_alg_values_supported",
+        "introspection_endpoint",
+        "issuer",
+        "jwks_uri",
+        "response_types_supported",
+        "scopes_supported",
+        "subject_types_supported",
+        "token_endpoint",
+        "token_endpoint_auth_methods_supported",
+        "userinfo_endpoint",
+    )
     ISSUER_FIELD_NUMBER: _ClassVar[int]
     AUTHORIZATION_ENDPOINT_FIELD_NUMBER: _ClassVar[int]
     TOKEN_ENDPOINT_FIELD_NUMBER: _ClassVar[int]
@@ -256,10 +304,27 @@ class DiscoveryResp(_message.Message):
     scopes_supported: _containers.RepeatedScalarFieldContainer[str]
     token_endpoint_auth_methods_supported: _containers.RepeatedScalarFieldContainer[str]
     claims_supported: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, issuer: _Optional[str] = ..., authorization_endpoint: _Optional[str] = ..., token_endpoint: _Optional[str] = ..., jwks_uri: _Optional[str] = ..., userinfo_endpoint: _Optional[str] = ..., device_authorization_endpoint: _Optional[str] = ..., introspection_endpoint: _Optional[str] = ..., grant_types_supported: _Optional[_Iterable[str]] = ..., response_types_supported: _Optional[_Iterable[str]] = ..., subject_types_supported: _Optional[_Iterable[str]] = ..., id_token_signing_alg_values_supported: _Optional[_Iterable[str]] = ..., code_challenge_methods_supported: _Optional[_Iterable[str]] = ..., scopes_supported: _Optional[_Iterable[str]] = ..., token_endpoint_auth_methods_supported: _Optional[_Iterable[str]] = ..., claims_supported: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(
+        self,
+        issuer: str | None = ...,
+        authorization_endpoint: str | None = ...,
+        token_endpoint: str | None = ...,
+        jwks_uri: str | None = ...,
+        userinfo_endpoint: str | None = ...,
+        device_authorization_endpoint: str | None = ...,
+        introspection_endpoint: str | None = ...,
+        grant_types_supported: _Iterable[str] | None = ...,
+        response_types_supported: _Iterable[str] | None = ...,
+        subject_types_supported: _Iterable[str] | None = ...,
+        id_token_signing_alg_values_supported: _Iterable[str] | None = ...,
+        code_challenge_methods_supported: _Iterable[str] | None = ...,
+        scopes_supported: _Iterable[str] | None = ...,
+        token_endpoint_auth_methods_supported: _Iterable[str] | None = ...,
+        claims_supported: _Iterable[str] | None = ...,
+    ) -> None: ...
 
 class RefreshTokenRef(_message.Message):
-    __slots__ = ("id", "client_id", "created_at", "last_used")
+    __slots__ = ("client_id", "created_at", "id", "last_used")
     ID_FIELD_NUMBER: _ClassVar[int]
     CLIENT_ID_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
@@ -268,27 +333,33 @@ class RefreshTokenRef(_message.Message):
     client_id: str
     created_at: int
     last_used: int
-    def __init__(self, id: _Optional[str] = ..., client_id: _Optional[str] = ..., created_at: _Optional[int] = ..., last_used: _Optional[int] = ...) -> None: ...
+    def __init__(
+        self,
+        id: str | None = ...,
+        client_id: str | None = ...,
+        created_at: int | None = ...,
+        last_used: int | None = ...,
+    ) -> None: ...
 
 class ListRefreshReq(_message.Message):
     __slots__ = ("user_id",)
     USER_ID_FIELD_NUMBER: _ClassVar[int]
     user_id: str
-    def __init__(self, user_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, user_id: str | None = ...) -> None: ...
 
 class ListRefreshResp(_message.Message):
     __slots__ = ("refresh_tokens",)
     REFRESH_TOKENS_FIELD_NUMBER: _ClassVar[int]
     refresh_tokens: _containers.RepeatedCompositeFieldContainer[RefreshTokenRef]
-    def __init__(self, refresh_tokens: _Optional[_Iterable[_Union[RefreshTokenRef, _Mapping]]] = ...) -> None: ...
+    def __init__(self, refresh_tokens: _Iterable[RefreshTokenRef | _Mapping] | None = ...) -> None: ...
 
 class RevokeRefreshReq(_message.Message):
-    __slots__ = ("user_id", "client_id")
+    __slots__ = ("client_id", "user_id")
     USER_ID_FIELD_NUMBER: _ClassVar[int]
     CLIENT_ID_FIELD_NUMBER: _ClassVar[int]
     user_id: str
     client_id: str
-    def __init__(self, user_id: _Optional[str] = ..., client_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, user_id: str | None = ..., client_id: str | None = ...) -> None: ...
 
 class RevokeRefreshResp(_message.Message):
     __slots__ = ("not_found",)
@@ -302,10 +373,10 @@ class VerifyPasswordReq(_message.Message):
     PASSWORD_FIELD_NUMBER: _ClassVar[int]
     email: str
     password: str
-    def __init__(self, email: _Optional[str] = ..., password: _Optional[str] = ...) -> None: ...
+    def __init__(self, email: str | None = ..., password: str | None = ...) -> None: ...
 
 class VerifyPasswordResp(_message.Message):
-    __slots__ = ("verified", "not_found")
+    __slots__ = ("not_found", "verified")
     VERIFIED_FIELD_NUMBER: _ClassVar[int]
     NOT_FOUND_FIELD_NUMBER: _ClassVar[int]
     verified: bool

@@ -28,7 +28,7 @@
         };
     in
     {
-      devShells = (lib.genAttrs' [ "12" "13" "14" ] (ver: lib.nameValuePair ("py3${ver}") (makePyShell ver))) // {
+      devShells = (lib.genAttrs' [ "12" "13" "14" ] (ver: lib.nameValuePair "py3${ver}" (makePyShell ver))) // {
         default = makePyShell "14";
       };
 

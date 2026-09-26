@@ -10,7 +10,6 @@
 </picture>
 </h1><br>
 
-
 # Lomas Client
 
 The `lomas-client` package is a client to interact with the Lomas server.
@@ -20,6 +19,7 @@ Utilizing this client package is strongly advised for querying and interacting w
 ### Installation
 
 The lo can be installed with the following command:
+
 ```bash
 pip install lomas-client
 ```
@@ -30,4 +30,3 @@ pip install lomas-client
 - The Lomas client package quickstart can be found [here](https://dscc-admin-ch.github.io/lomas/latest/client/quickstart/).
 - Example notebooks using the Lomas client package can be found [here](https://dscc-admin-ch.github.io/lomas/latest/client/).
 - The Lomas Github repository can be found [here](https://github.com/dscc-admin-ch/lomas).
-

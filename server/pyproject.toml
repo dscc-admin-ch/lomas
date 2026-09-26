@@ -2,10 +2,6 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-namespaces = false
-where = ["."]
-
 [project]
 name = "lomas-server"
 version = "0.6.0b1"
@@ -13,23 +9,23 @@ description = "Lomas server."
 readme = "README.md"
 requires-python = ">=3.12, <3.15"
 authors = [
-    { name = "Data Science Competence Center", email = "dscc@bfs.admin.ch" },
-    { name = "Swiss Federal Statistical Office" },
+  {name = "Data Science Competence Center", email = "dscc@bfs.admin.ch"},
+  {name = "Swiss Federal Statistical Office"}
 ]
 license = "MIT"
 classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Science/Research",
-    "Natural Language :: English",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "Topic :: Scientific/Engineering",
-    "Topic :: Security",
-    "Topic :: Software Development :: Libraries",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Typing :: Typed",
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Security",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed"
 ]
 dependencies = [
   "lomas-core==0.6.0b1",
@@ -41,13 +37,13 @@ dependencies = [
   "aio-pika>=9.5",
   "sqlglot>=27.8.0",
   "smartnoise-sql @ git+https://github.com/LancelotMarti/smartnoise-sdk?rev=391517b2b0445cff4ef62886d20f97410495c124#subdirectory=sql",
-  "filelock>=3.29.0",
+  "filelock>=3.29.0"
 ]
 
 [project.optional-dependencies]
 all = [
   "streamlit[auth]>=1.50",
-  "bcrypt>=5.0.0",
+  "bcrypt>=5.0.0"
 ]
 
 [project.scripts]
@@ -57,3 +53,7 @@ lomas-bench = "lomas_server.administration.scripts.bench:run"
 
 [project.urls]
 Homepage = "https://github.com/dscc-admin-ch/lomas/"
+
+[tool.setuptools.packages.find]
+namespaces = false
+where = ["."]

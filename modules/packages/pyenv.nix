@@ -11,7 +11,7 @@
       # Build our python package & environments from local root (uv.lock)
       pyEnvs = lib.genAttrs' [ "12" "13" "14" ] (
         version:
-        lib.nameValuePair ("py3${version}") (
+        lib.nameValuePair "py3${version}" (
           pkgs.callPackage ./_lib.nix {
             inherit (inputs) pyproject-nix pyproject-build-systems uv2nix;
             python3 = pkgs."python3${version}";

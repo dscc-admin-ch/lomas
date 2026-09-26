@@ -7,4 +7,5 @@
 </h1><br>
 
 # Core
+
 See the technical documentation of core: https://dscc-admin-ch.github.io/lomas/latest/api/core/.

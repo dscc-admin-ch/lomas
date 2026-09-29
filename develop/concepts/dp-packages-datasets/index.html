@@ -1392,12 +1392,10 @@
 <li>Run <code>uv add &lt;new-package&gt;</code> in the core directory to add the package as a dependency.</li>
 <li>Add the library the the <code>DPLibraries</code> StrEnum class in <code>core/lomas_core/constants.py</code> (<code>DPLibraries.NEW_LIBRARY = "new_library"</code>) and add the <code>NewLibraryQuerier</code> to the worker code.</li>
 <li>Create a file for your querier in the folder <code>server/lomas_server/dp_queries/dp_libraries/new_library.py</code>. Inside, create a class <code>NewLibraryQuerier</code> that inherits from <code>DPQuerier</code> (<code>lomas/lomas_server/dp_queries/dp_querier.py</code>), your class must contain a <code>cost</code> method that return the cost of a query and a <code>query</code> method that return a result of a DP query.</li>
-<li>Add the three associated API endpoints .<ul>
+<li>Add the three associated API endpoints .</li>
 <li>a. Add the endpoint handlers in <code>server/lomas_server/routes/routes_dp.py</code>: <code>/new_library_query</code> (for queries on the real dataset), <code>/dummy_new_library_query</code> (for queries on the dummy dataset) and <code>/estimate_new_library_cost</code> (for estimating the privacy budget cost of a query).</li>
-<li>b. The endpoints should have predefined pydantic BaselModel types. Add BaseModel classes of expected input <code>NewLibraryRequestModel</code>, <code>NewLibraryCostQueryModel</code>, <code>NewLibraryQueryModel</code> <code>NewLibraryDummyQueryModel</code> in  <code>server/lomas_server/utils/query_models.py</code> and update the type adapters at the bottom of the file.</li>
-<li>c. The endpoints should have predefined default values <code>example_new_library</code>, <code>example_dummy_new_library</code> in  <code>server/lomas_server/utils/query_examples.py</code>.</li>
-</ul>
-</li>
+<li>b. The endpoints should have predefined pydantic BaselModel types. Add BaseModel classes of expected input <code>NewLibraryRequestModel</code>, <code>NewLibraryCostQueryModel</code>, <code>NewLibraryQueryModel</code> <code>NewLibraryDummyQueryModel</code> in <code>server/lomas_server/utils/query_models.py</code> and update the type adapters at the bottom of the file.</li>
+<li>c. The endpoints should have predefined default values <code>example_new_library</code>, <code>example_dummy_new_library</code> in <code>server/lomas_server/utils/query_examples.py</code>.</li>
 <li>Add tests in <code>server/lomas_server/tests/test_new_library.py</code> to test all functionnalities and options of the new library.</li>
 <li>Add the associated method in <code>lomas-client</code> library in <code>client/lomas_client/client.py</code>. In this case there should be <code>new_library_query</code> for queries on the private and on the dummy datasets and <code>estimate_new_library_cost</code> to estimate the cost of a query.</li>
 <li>Add a notebook <code>Demo_Client_Notebook_NewLibrary.ipynb</code> in <code>client/notebook/</code> to give example of the use of the library.</li>
@@ -1405,8 +1403,10 @@
 <h3 id="external-loggers">External Loggers<a class="headerlink" href="#external-loggers" title="Permanent link">#</a></h3>
 <p>Some packages have 'custom object' parameters which are not readily serializable.
 In those cases, a <code>logger</code> library can be made to serialise the object in the client (before sending them to the server via FastAPI) and then deserialise them in their <code>DPQuerier</code> class in the server.</p>
-<p>Some examples are avalaible here:
-- <code>diffprivlib_logger</code> for diffprivlib pipelines: <a href="https://github.com/dscc-admin-ch/diffprivlib-logger">https://github.com/dscc-admin-ch/diffprivlib-logger</a></p>
+<p>Some examples are avalaible here:</p>
+<ul>
+<li><code>diffprivlib_logger</code> for diffprivlib pipelines: <a href="https://github.com/dscc-admin-ch/diffprivlib-logger">https://github.com/dscc-admin-ch/diffprivlib-logger</a></li>
+</ul>
 <p>Do not forget to add these packages as dependencies to the Lomas core package.</p>
 <h2 id="adding-a-data-connector-for-private-dataset-in-various-databases">Adding a Data Connector (for private dataset in various databases)<a class="headerlink" href="#adding-a-data-connector-for-private-dataset-in-various-databases" title="Permanent link">#</a></h2>
 <p>Here is the explanation of how to add a new data connector named <code>NewDataConnector</code> for the example.</p>

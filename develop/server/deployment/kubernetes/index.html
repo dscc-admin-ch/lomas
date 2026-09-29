@@ -1508,43 +1508,33 @@
 <p>Before you begin, make sure you have the following:</p>
 <ol>
 <li><strong>Kubernetes Cluster</strong>: A running Kubernetes cluster.
-    If you don't have one, you can set up a local cluster using Minikube
-    or Kind, or use a cloud provider like GKE, EKS, or AKS.</li>
+   If you don't have one, you can set up a local cluster using Minikube
+   or Kind, or use a cloud provider like GKE, EKS, or AKS.</li>
 <li><strong>Helm</strong>: Helm installed on your local machine.
-    Follow the <a href="https://helm.sh/docs/intro/install/">official Helm installation guide</a>
-    if you haven't installed Helm yet.</li>
+   Follow the <a href="https://helm.sh/docs/intro/install/">official Helm installation guide</a>
+   if you haven't installed Helm yet.</li>
 <li><strong>kubectl</strong>: Kubernetes command-line tool <code>kubectl</code>
-    installed and configured to communicate with your cluster.
-    You can install <code>kubectl</code> by following the
-    <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">official Kubernetes installation guide</a>.</li>
+   installed and configured to communicate with your cluster.
+   You can install <code>kubectl</code> by following the
+   <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">official Kubernetes installation guide</a>.</li>
 </ol>
 <h2 id="minimal-deployment">Minimal deployment<a class="headerlink" href="#minimal-deployment" title="Permanent link">#</a></h2>
 <p>The following outlines the steps required for a basic deployment:</p>
 <ol>
-<li>
-<p><strong>Download the Helm chart:</strong> If deploying a released version of Lomas use
-  <div class="language-sh highlight"><pre><span></span><code>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>lomas<span class="w"> </span>https://dscc-admin-ch.github.io/helm-charts
+<li><strong>Download the Helm chart:</strong> If deploying a released version of Lomas use</li>
+</ol>
+<div class="language-sh highlight"><pre><span></span><code>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>lomas<span class="w"> </span>https://dscc-admin-ch.github.io/helm-charts
 </code></pre></div>
-  The source code for the chart can be found in the project repository under <code>deploy/charts/lomas/</code>.</p>
-</li>
-<li>
-<p><strong>Download the values file:</strong> Download the values file using
-  <div class="language-sh highlight"><pre><span></span><code>helm<span class="w"> </span>show<span class="w"> </span>values<span class="w"> </span>lomas/lomas-server<span class="w"> </span>&gt;<span class="w"> </span>values.yaml
+<p>The source code for the chart can be found in the project repository under <code>deploy/charts/lomas/</code>.</p>
+<ol>
+<li><strong>Download the values file:</strong> Download the values file using</li>
+</ol>
+<div class="language-sh highlight"><pre><span></span><code>helm<span class="w"> </span>show<span class="w"> </span>values<span class="w"> </span>lomas/lomas-server<span class="w"> </span>&gt;<span class="w"> </span>values.yaml
 </code></pre></div>
-  Alternatively, copy the file from <code>deploy/charts/lomas/values.yaml</code> in the project repository.</p>
-</li>
-<li><strong>Update the values file:</strong> You need to update at least the following urls for the chart to work:<ul>
-<li><code>server.runtime_args.server.authenticator.oidc_discovery_url</code>, set this to your IdP's discovery url, or Dex's if enabled.</li>
-<li><code>server.ingress.hostname</code>: Choose a hostname supported by your cluster.</li>
-<li><code>demoSetupJob.configUrl</code>: Set this to the server hostname.</li>
-<li><code>dashboard.streamlitServerSecrets</code>: Set the <code>redirectUri</code>s address to the dashboard ingress and the <code>serverMetadataUrl</code> to your IdP's discovery endpoint.</li>
-<li><code>dashboard.ingress.hostname</code>: Choose a hostname supported by your cluster.</li>
-<li><code>dex.ingress.hosts.host</code>: Choose a hostname supported by your cluster. Reminder, Dex is only included for testing purposes, do not use in production!</li>
-</ul>
-</li>
-<li><strong>Install the chart:</strong> Run
-    <code>.sh
-  helm install lomas-sever lomas/lomas-server -f values.yaml</code></li>
+<p>Alternatively, copy the file from <code>deploy/charts/lomas/values.yaml</code> in the project repository. 3. <strong>Update the values file:</strong> You need to update at least the following urls for the chart to work: - <code>server.runtime_args.server.authenticator.oidc_discovery_url</code>, set this to your IdP's discovery url, or Dex's if enabled. - <code>server.ingress.hostname</code>: Choose a hostname supported by your cluster. - <code>demoSetupJob.configUrl</code>: Set this to the server hostname. - <code>dashboard.streamlitServerSecrets</code>: Set the <code>redirectUri</code>s address to the dashboard ingress and the <code>serverMetadataUrl</code> to your IdP's discovery endpoint. - <code>dashboard.ingress.hostname</code>: Choose a hostname supported by your cluster. - <code>dex.ingress.hosts.host</code>: Choose a hostname supported by your cluster. Reminder, Dex is only included for testing purposes, do not use in production! 4. <strong>Install the chart:</strong> Run</p>
+<div class="language-sh highlight"><pre><span></span><code>helm<span class="w"> </span>install<span class="w"> </span>lomas-sever<span class="w"> </span>lomas/lomas-server<span class="w"> </span>-f<span class="w"> </span>values.yaml
+</code></pre></div>
+<ol>
 <li>The chart's post-installation notes will show the server and dashboard urls. You can continue to the <a href="../../administration/">administration section</a> for how to administer your Lomas instance.</li>
 </ol>
 <h2 id="kubernetes-secret-management">Kubernetes Secret Management<a class="headerlink" href="#kubernetes-secret-management" title="Permanent link">#</a></h2>
@@ -1553,25 +1543,21 @@ In Kubernetes, secret values are stored separately and managed through a dedicat
 Secret values are either provided to the Lomas chart directly via the values.yaml file (for testing purposes) or preferably via existing Kubernetes secrets.
 The secret format is sometimes enforced by the underlying charts Lomas depends on. Here is a list of all secret resources used/created by the Lomas chart.</p>
 <ul>
-<li><strong>Server bootstrap credential</strong><ul>
+<li><strong>Server bootstrap credential</strong></li>
 <li>Existing secret: <code>server.runtime_args.bootstrap.existingSecret</code> and <code>..existingkey</code>.</li>
 <li>Setting the value: <code>server.runtime_args.bootstrap.value</code>.</li>
-</ul>
-</li>
-<li><strong>Admin dashboard</strong><ul>
+<li><strong>Admin dashboard</strong></li>
 <li>Streamlit requires a secret file in TOML format for getting information related to authentication.</li>
 <li>Existing secret: <code>dashboard.streamlitServerSecrets.existingSecret</code> and <code>..existingSecretKey</code>.</li>
 <li><code>dashboard.streamlitServerSecrets.value</code> is used to set the value directly.</li>
-</ul>
-</li>
-<li><strong>Private DB Credentials</strong><ul>
+<li><strong>Private DB Credentials</strong></li>
 <li>Credentials for external private databases are read by the Lomas server and worker through their conf*igs and thus also injected as environment variables via Kubernetes secrets.</li>
 <li>For each set of credentials to a private database, one can either specify an existing secret or set the credentials as an element of the list at <code>server.runtime_args.private_db_credentials</code>.</li>
 <li>Existing secret: Add the name of the existing secret as an element of the list by adding <code>existing_secret: &lt;name of your secret&gt;</code> to the <code>private_db_credentials</code> list. The secret key should be <code>private-db-credentials</code> and contain a valid json representation of the private database credentials.</li>
 <li>Values file: Directly add the dictionary representing the credentials as an element of the <code>private_db_credentials</code> list.</li>
 </ul>
-</li>
-</ul>
+<div class="language-text highlight"><pre><span></span><code>
+</code></pre></div>
 
 
 

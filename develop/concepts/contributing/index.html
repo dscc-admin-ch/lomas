@@ -1457,12 +1457,10 @@
 <ol>
 <li><code>./scripts/bootstrap.sh</code></li>
 <li><code>nix profile add nixpkgs#{dev,dir}env</code></li>
-<li>(Optional) <a href="https://devenv.sh/auto-activation/">automatic shell activation</a><ol>
+<li>(Optional) <a href="https://devenv.sh/auto-activation/">automatic shell activation</a></li>
 <li>add <code>echo 'eval "$(direnv hook bash)"' &gt;&gt; ~/.bashrc</code> <a href="https://direnv.net/docs/hook.html">direnv shell hook</a></li>
 <li>Approve (once) inside the cloned directory / vscode terminal: <code>direnv allow</code></li>
 <li>Install vscode extension: <a href="https://marketplace.visualstudio.com/items?itemName=mkhl.direnv">mkhl.direnv</a></li>
-</ol>
-</li>
 </ol>
 <p>Once in lomas repo run the following to activate the devenv: <code>devenv shell</code>.
 The following utilities are now available in your shell:</p>

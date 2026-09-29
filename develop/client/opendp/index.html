@@ -1528,10 +1528,10 @@
 </li>
 <li>
 <p>Test your pipeline:</p>
-<ul>
+</li>
 <li>locally: <code>&lt;your_pipeline&gt;.release().collect()</code>. This should help you catch potential errors before sending the request to the server.</li>
-<li>on remote AND on the dummy dataset: <code>client.opendp.query(&lt;your_pipeline&gt;, dummy=True)</code></li>
-</ul>
+<li>
+<p>on remote AND on the dummy dataset: <code>client.opendp.query(&lt;your_pipeline&gt;, dummy=True)</code></p>
 </li>
 <li>
 <p>Once satisfied with the dummy results, send the query to be performed on the actual data with <code>dummy=False</code>.</p>

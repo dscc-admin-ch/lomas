@@ -5,6 +5,7 @@ scratch/*
 
 # Byte-compiled / optimized / packaging
 __pycache__/
+__marimo__/
 *.py[cod]
 *.egg-info/
 

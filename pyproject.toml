@@ -5,7 +5,8 @@ requires-python = '>=3.12'
 dependencies = [
   "lomas-core",
   "lomas-client",
-  "lomas-server[all]"
+  "lomas-server[all]",
+  "marimo>=0.25.0"
 ]
 
 [project.optional-dependencies]
@@ -126,7 +127,8 @@ markers = [
 
 [tool.ruff]
 line-length = 110
-exclude = ["*.ipynb", "*api_pb2*"]
+force-exclude = true
+exclude = ["*.ipynb", "*api_pb2*", "*/notebooks/**/*.py"]
 
 [tool.ruff.lint]
 # ruff linter -> get available linter list

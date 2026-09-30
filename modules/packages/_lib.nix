@@ -129,6 +129,15 @@ rec {
     });
   };
 
+  fixMarimo = final: prev: {
+    marimo = prev.marimo.overrideAttrs (old: {
+      buildInputs = (old.buildInputs or [ ]) ++ [
+        pkgs.libsecret
+        pkgs.glib
+      ];
+    });
+  };
+
   sslOverlay = _final: prev: {
     certifi = hacks.nixpkgsPrebuilt {
       # nixpkgs certifi respect the ca-bundle from pkgs.cacert as well as NIX_SSL_CERT_FILE if set
@@ -143,6 +152,7 @@ rec {
       uvOverlay
       fixBuildSystemOverlay
       fixSmartnoiseSql
+      fixMarimo
       sslOverlay
       # diffprivlibOverlay
       # openDpOverlay

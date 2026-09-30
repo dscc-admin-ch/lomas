@@ -59,6 +59,7 @@ nav:
               - client/diffprivlib.md
           - Examples:
               - client/index.md
+              - client/client_demo.md
               - notebooks/Demo_Client_Notebook.ipynb
               - notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb
               - notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb

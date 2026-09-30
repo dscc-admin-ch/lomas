@@ -1,4 +1,6 @@
-import{n as e}from"./chunk-Y2CYZVJY-DsF7k-Jl.js";var t=e(()=>`
+import { n as e } from "./chunk-Y2CYZVJY-DsF7k-Jl.js";
+var t = e(
+  () => `
   /* Font Awesome icon styling - consolidated */
   .label-icon {
     display: inline-block;
@@ -12,4 +14,7 @@ import{n as e}from"./chunk-Y2CYZVJY-DsF7k-Jl.js";var t=e(()=>`
     stroke: revert;
     stroke-width: revert;
   }
-`,`getIconStyles`);export{t};
+`,
+  `getIconStyles`,
+);
+export { t };

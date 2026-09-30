@@ -1,1 +1,3 @@
-import"./chunk-FOHPRMQF-DHwB1DNv.js";import{M as e}from"./mermaid-parser.core-3RKOfUXB.js";export{e as createArchitectureServices};
+import "./chunk-FOHPRMQF-DHwB1DNv.js";
+import { M as e } from "./mermaid-parser.core-3RKOfUXB.js";
+export { e as createArchitectureServices };

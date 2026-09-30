@@ -1,1 +1,5 @@
-import{t as e}from"./save-worker-Dw8ybFWq.js";var t=e(((e,t)=>{t.exports={}}));export default t();
+import { t as e } from "./save-worker-Dw8ybFWq.js";
+var t = e((e, t) => {
+  t.exports = {};
+});
+export default t();

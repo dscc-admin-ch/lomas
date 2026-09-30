@@ -55,7 +55,7 @@ Marimo's reactivity means:
 - Handle missing values appropriately
 - Use efficient data structures
 - A variable in the last expression of a cell is automatically displayed as a table
-</data_handling>
+  </data_handling>
 
 <visualization>
 - For matplotlib: use plt.gca() as the last expression instead of plt.show()
@@ -72,7 +72,7 @@ Marimo's reactivity means:
 - Create intuitive layouts with mo.hstack(), mo.vstack(), and mo.tabs()
 - Prefer reactive updates over callbacks (marimo handles reactivity automatically)
 - Group related UI elements for better organization
-</ui_elements>
+  </ui_elements>
 
 <sql>
 - When writing duckdb, prefer using marimo's SQL cells, which start with df = mo.sql(f"""<your query>""") for DuckDB, or df = mo.sql(f"""<your query>""", engine=engine) for other SQL engines.
@@ -153,14 +153,14 @@ def _():
 
 @app.cell
 def _():
-    n_points = mo.ui.slider(10, 100, value=50, label="Number of points")
-    n_points
-    return
+n_points = mo.ui.slider(10, 100, value=50, label="Number of points")
+n_points
+return
 
 @app.cell
 def _():
-    x = np.random.rand(n_points.value)
-    y = np.random.rand(n_points.value)
+x = np.random.rand(n_points.value)
+y = np.random.rand(n_points.value)
 
     df = pl.DataFrame({"x": x, "y": y})
 
@@ -184,16 +184,16 @@ def _():
 
 @app.cell
 def _():
-    import marimo as mo
-    import polars as pl
-    from vega_datasets import data
-    return
+import marimo as mo
+import polars as pl
+from vega_datasets import data
+return
 
 @app.cell
 def _():
-    cars_df = pl.DataFrame(data.cars())
-    mo.ui.data_explorer(cars_df)
-    return
+cars_df = pl.DataFrame(data.cars())
+mo.ui.data_explorer(cars_df)
+return
 
 ```
 </example>
@@ -203,39 +203,39 @@ def _():
 
 @app.cell
 def _():
-    import marimo as mo
-    import polars as pl
-    import altair as alt
-    return
+import marimo as mo
+import polars as pl
+import altair as alt
+return
 
 @app.cell
 def _():
-    iris = pl.read_csv("hf://datasets/scikit-learn/iris/Iris.csv")
-    return
+iris = pl.read_csv("hf://datasets/scikit-learn/iris/Iris.csv")
+return
 
 @app.cell
 def _():
-    species_selector = mo.ui.dropdown(
-        options=["All"] + iris["Species"].unique().to_list(),
-        value="All",
-        label="Species",
-    )
-    x_feature = mo.ui.dropdown(
-        options=iris.select(pl.col(pl.Float64, pl.Int64)).columns,
-        value="SepalLengthCm",
-        label="X Feature",
-    )
-    y_feature = mo.ui.dropdown(
-        options=iris.select(pl.col(pl.Float64, pl.Int64)).columns,
-        value="SepalWidthCm",
-        label="Y Feature",
-    )
-    mo.hstack([species_selector, x_feature, y_feature])
-    return
+species_selector = mo.ui.dropdown(
+options=["All"] + iris["Species"].unique().to_list(),
+value="All",
+label="Species",
+)
+x_feature = mo.ui.dropdown(
+options=iris.select(pl.col(pl.Float64, pl.Int64)).columns,
+value="SepalLengthCm",
+label="X Feature",
+)
+y_feature = mo.ui.dropdown(
+options=iris.select(pl.col(pl.Float64, pl.Int64)).columns,
+value="SepalWidthCm",
+label="Y Feature",
+)
+mo.hstack([species_selector, x_feature, y_feature])
+return
 
 @app.cell
 def _():
-    filtered_data = iris if species_selector.value == "All" else iris.filter(pl.col("Species") == species_selector.value)
+filtered_data = iris if species_selector.value == "All" else iris.filter(pl.col("Species") == species_selector.value)
 
     chart = alt.Chart(filtered_data).mark_circle().encode(
         x=alt.X(x_feature.value, title=x_feature.value),
@@ -258,7 +258,7 @@ def _():
 
 @app.cell
 def _():
-    mo.stop(not data.value, mo.md("No data to display"))
+mo.stop(not data.value, mo.md("No data to display"))
 
     if mode.value == "scatter":
         mo.output.replace(render_scatter(data.value))
@@ -274,40 +274,38 @@ def _():
 
 @app.cell
 def _():
-    import marimo as mo
-    import altair as alt
-    import polars as pl
-    return
+import marimo as mo
+import altair as alt
+import polars as pl
+return
+
+@app.cell
+def _(): # Load dataset
+weather = pl.read_csv("<https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/weather.csv>")
+weather_dates = weather.with_columns(
+pl.col("date").str.strptime(pl.Date, format="%Y-%m-%d")
+)
+_chart = (
+alt.Chart(weather_dates)
+.mark_point()
+.encode(
+x="date:T",
+y="temp_max",
+color="location",
+)
+)
+return
 
 @app.cell
 def _():
-    # Load dataset
-    weather = pl.read_csv("<https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/weather.csv>")
-    weather_dates = weather.with_columns(
-        pl.col("date").str.strptime(pl.Date, format="%Y-%m-%d")
-    )
-    _chart = (
-        alt.Chart(weather_dates)
-        .mark_point()
-        .encode(
-            x="date:T",
-            y="temp_max",
-            color="location",
-        )
-    )
-    return
-
-@app.cell
-def _():
-    chart = mo.ui.altair_chart(_chart)
+chart = mo.ui.altair_chart(_chart)
 chart
-    return
+return
 
 @app.cell
-def _():
-    # Display the selection
-    chart.value
-    return
+def _(): # Display the selection
+chart.value
+return
 
 ```
 </example>
@@ -317,25 +315,25 @@ def _():
 
 @app.cell
 def _():
-    import marimo as mo
-    return
+import marimo as mo
+return
 
 @app.cell
 def _():
-    first_button = mo.ui.run_button(label="Option 1")
-    second_button = mo.ui.run_button(label="Option 2")
-    [first_button, second_button]
-    return
+first_button = mo.ui.run_button(label="Option 1")
+second_button = mo.ui.run_button(label="Option 2")
+[first_button, second_button]
+return
 
 @app.cell
 def _():
-    if first_button.value:
-        print("You chose option 1!")
-    elif second_button.value:
-        print("You chose option 2!")
-    else:
-        print("Click a button!")
-    return
+if first_button.value:
+print("You chose option 1!")
+elif second_button.value:
+print("You chose option 2!")
+else:
+print("Click a button!")
+return
 
 ```
 </example>
@@ -345,23 +343,24 @@ def _():
 
 @app.cell
 def _():
-    import marimo as mo
-    import polars as pl
-    return
+import marimo as mo
+import polars as pl
+return
 
 @app.cell
 def _():
-    weather = pl.read_csv('<https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/weather.csv>')
-    return
+weather = pl.read_csv('<https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/weather.csv>')
+return
 
 @app.cell
 def _():
-    seattle_weather_df = mo.sql(
-        f"""
-        SELECT * FROM weather WHERE location = 'Seattle';
-        """
-    )
-    return
+seattle_weather_df = mo.sql(
+f"""
+SELECT * FROM weather WHERE location = 'Seattle';
+"""
+)
+return
 
 ```
 </example>
+```

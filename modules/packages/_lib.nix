@@ -129,7 +129,7 @@ rec {
     });
   };
 
-  fixMarimo = final: prev: {
+  fixMarimo = _final: prev: {
     marimo = prev.marimo.overrideAttrs (old: {
       buildInputs = (old.buildInputs or [ ]) ++ [
         pkgs.libsecret

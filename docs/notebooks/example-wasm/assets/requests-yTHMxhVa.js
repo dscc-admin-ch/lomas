@@ -1,1 +1,12 @@
-import{f as e,l as t,r as n}from"./useEvent-Dc9HkKI2.js";import{t as r}from"./invariant-Ci2dTZ72.js";var i=e(null);function a(){let e=t(i);return r(e,`useRequestClient() requires setting requestClientAtom.`),e}function o(){let e=n.get(i);return r(e,`getRequestClient() requires requestClientAtom to be set.`),e}export{i as n,a as r,o as t};
+import { f as e, l as t, r as n } from "./useEvent-Dc9HkKI2.js";
+import { t as r } from "./invariant-Ci2dTZ72.js";
+var i = e(null);
+function a() {
+  let e = t(i);
+  return (r(e, `useRequestClient() requires setting requestClientAtom.`), e);
+}
+function o() {
+  let e = n.get(i);
+  return (r(e, `getRequestClient() requires requestClientAtom to be set.`), e);
+}
+export { i as n, a as r, o as t };

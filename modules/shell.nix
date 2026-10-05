@@ -67,36 +67,68 @@
           ];
         }
       );
-      makePyShell =
-        version:
-        pkgs.mkShellNoCC {
-          packages = [
-            self'.packages."lomasEnvDev_3_${version}"
-            pkgs.uv
-            pkgs.pre-commit
-          ];
-          env = {
-            UV_NO_SYNC = "1";
-            UV_PYTHON = "${self'.packages."lomasEnvDev_3_${version}"}/bin/python";
-            UV_PYTHON_DOWNLOADS = "never";
-            # some editor uses this to find py sources
-            VIRTUAL_ENV = ".devenv/profile";
-          };
-          shellHook = ''
-            unset PYTHONPATH
-            export REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")
 
-            # Pre-commit
-            preCommitFile=.pre-commit-config.yaml
-            if ! ([ -e "$preCommitFile" ] && [ $(nix hash file "$preCommitFile") = $(nix hash file ${pre-commit-config}) ]); then
-              ln -sf ${pre-commit-config} "$preCommitFile"
-              pre-commit install --install-hooks
-            fi
-          '';
+      build-docs = pkgs.writeShellApplication {
+        name = "build-docs";
+        runtimeInputs = [ self'.packages.lomasEnvDev ];
+        runtimeEnv.NO_MKDOCS_2_WARNING = 1;
+        text = ''
+          mkdocs build
+        '';
+      };
+
+      build-docs-local = pkgs.writeShellApplication {
+        name = "build-docs-local";
+        runtimeInputs = [ self'.packages.lomasEnvDev ];
+        runtimeEnv.NO_MKDOCS_2_WARNING = 1;
+        text = ''
+          mkdocs serve -o
+        '';
+      };
+
+      py-build = pkgs.writeShellApplication {
+        name = "py-build";
+        runtimeInputs = [ self'.packages.lomasEnvDev ];
+        text = ''
+          uv build --sdist core
+          uv build --sdist client
+          uv build --sdist server
+        '';
+      };
+
+      # https://github.com/nicknovitski/make-shell/blob/main/SHELL_MODULES.md
+      makePyShell = version: {
+        imports = [ ];
+        packages = [
+          self'.packages."lomasEnvDev_3_${version}"
+          pkgs.uv
+          pkgs.pre-commit
+          build-docs
+          build-docs-local
+          py-build
+        ];
+        env = {
+          UV_NO_SYNC = "1";
+          UV_PYTHON = "${self'.packages."lomasEnvDev_3_${version}"}/bin/python";
+          UV_PYTHON_DOWNLOADS = "never";
+          # some editor uses this to find py sources
+          VIRTUAL_ENV = ".devenv/profile";
         };
+        shellHook = ''
+          unset PYTHONPATH
+          export REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")
+
+          # Pre-commit
+          preCommitFile=.pre-commit-config.yaml
+          if ! ([ -e "$preCommitFile" ] && [ $(nix hash file "$preCommitFile") = $(nix hash file ${pre-commit-config}) ]); then
+            ln -sf ${pre-commit-config} "$preCommitFile"
+            pre-commit install --install-hooks
+          fi
+        '';
+      };
     in
     {
-      devShells = (lib.genAttrs' [ "12" "13" "14" ] (ver: lib.nameValuePair "py3${ver}" (makePyShell ver))) // {
+      make-shells = (lib.genAttrs' [ "12" "13" "14" ] (ver: lib.nameValuePair "py3${ver}" (makePyShell ver))) // {
         default = makePyShell "14";
       };
 

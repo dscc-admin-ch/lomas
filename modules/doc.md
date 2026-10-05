@@ -23,3 +23,12 @@ treefmt-nix wrap treefmt to format the whole project repo.
 - to see what's up: `nix formatter build` to see the underlying `treefmt` bin/config
 - since `nix fmt` just wraps treefmt call, all options are avail through `nix fmt -- [treefmt opt]`
   - like `nix fmt -- --ci` / `nix fmt -- [-c][-v[v]]`
+
+## TODO
+
+- provide a dockerfile+package+module see @https://codeberg.org/Blooym/porxie
+- use `writeShellApplication` (runtimeInputs) [ref](https://nixos.org/manual/nixpkgs/unstable/#trivial-builder-writeShellApplication)
+- Allow for raw(er) setup ? current absolute min:
+  1. `lomas start --worker-api-key "deadbeef" --authenticator.authentication-type free_pass`
+  2. `lomas work --worker-api-key "deadbeef" --authenticator.authentication-type free_pass`
+  3. ` LOMAS_ADMIN_external_url="http://localhost:48080" LOMAS_SERVER_authenticator__authentication_type=free_pass LOMAS_SERVER_worker_api_key="deadbeef" pytest -v server/lomas_server/tests/test_worker.py`

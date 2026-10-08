@@ -33,7 +33,6 @@ treefmt-nix wrap treefmt to format the whole project repo.
   2. `lomas work --worker-api-key "deadbeef" --authenticator.authentication-type free_pass`
   3. ` LOMAS_ADMIN_external_url="http://localhost:48080" LOMAS_SERVER_authenticator__authentication_type=free_pass LOMAS_SERVER_worker_api_key="deadbeef" pytest -v server/lomas_server/tests/test_worker.py`
 
-
 # Structure
 
 We use **deferred module composition** via flake-parts + import-tree evaluated in the following order:

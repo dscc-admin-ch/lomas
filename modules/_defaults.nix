@@ -1,6 +1,6 @@
 { lib, ... }:
 let
-  portStr = with lib.types; coercedTo port toString str;
+  inherit (import ./_lib.nix { inherit lib; }) portStr;
 in
 {
   # Option which (can) have farther reaching implications than local dev environment

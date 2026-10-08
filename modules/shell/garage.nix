@@ -1,4 +1,7 @@
-{ inputs, ... }:
+{ inputs, lib, ... }:
+let
+  inherit (import ../_lib.nix { inherit lib; }) portStr;
+in
 {
   options.perSystem = inputs.flake-parts.lib.mkPerSystemOption (
     {
@@ -8,7 +11,6 @@
       ...
     }:
     let
-      portStr = with lib.types; coercedTo port toString str;
       toml = pkgs.formats.toml { };
       inherit (lib)
         types

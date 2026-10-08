@@ -2,13 +2,13 @@
   perSystem =
     {
       self',
+      config,
       pkgs,
       lib,
       ...
     }:
     let
       inherit (import ./_dex.nix { inherit pkgs lib; }) dex-service;
-      inherit (import ./_garage.nix { inherit pkgs lib; }) garage-service;
 
       # TODO: this should take config from treesitter
       pre-commit-config = pkgs.writeText "pre-commit-config.yaml" (
@@ -110,7 +110,7 @@
           build-docs-local
           py-build
           dex-service
-          garage-service
+          self'.packages.garage-service
         ];
         env = {
           UV_NO_SYNC = "1";
@@ -142,13 +142,54 @@
           fi
 
           export DEX=${dex-service}
-          export GARAGE=${garage-service}
+          export GARAGE=${self'.packages.garage-service}
           # doas portablectl reattach "$DEX/*.raw"
           # doas portablectl reattach "$GARAGE/*.raw"
         '';
       };
     in
     {
+      dev.garage = {
+        host = "localhost";
+        port = 3900;
+        rpcPort = 3901;
+        apiPort = 3903;
+        # GK + 12 hex-encoded bytes
+        keyId = "GK0123456789abcdefdeadbeef";
+        # 32 hex-encoded bytes
+        secretKey = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+        initFilesCopy = [
+          {
+            src = builtins.path {
+              name = "penguinData";
+              path = ../../server/lomas_server/tests/test_data/test_penguin.csv;
+            };
+            dst = "/data/test_penguin.csv";
+          }
+          {
+            src = builtins.path {
+              name = "penguinMetadata";
+              path = ../../server/lomas_server/tests/test_data/metadata/penguin_metadata.json;
+            };
+            dst = "/metadata/penguin_metadata.json";
+          }
+          {
+            src = builtins.path {
+              name = "Titanic";
+              path = ../../server/data/datasets/titanic.csv;
+            };
+            dst = "/data/titanic.csv";
+          }
+          {
+            src = builtins.path {
+              name = "TitanicMetadata";
+              path = ../../server/data/collections/metadata/titanic_metadata.json;
+            };
+            dst = "/metadata/titanic_metadata.json";
+          }
+        ];
+      };
+
       make-shells = (lib.genAttrs' [ "12" "13" "14" ] (ver: lib.nameValuePair "py3${ver}" (makePyShell ver))) // {
         default = makePyShell "14";
       };

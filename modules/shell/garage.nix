@@ -1,4 +1,7 @@
-{ inputs, ... }:
+{ inputs, lib, ... }:
+let
+  inherit (import ../_lib.nix { inherit lib; }) portStr;
+in
 {
   options.perSystem = inputs.flake-parts.lib.mkPerSystemOption (
     {
@@ -8,7 +11,6 @@
       ...
     }:
     let
-      portStr = with lib.types; coercedTo port toString str;
       toml = pkgs.formats.toml { };
       inherit (lib)
         types
@@ -164,7 +166,19 @@
               pkgs.curl
               pkgs.jq
               pkgs.getent # hidden minio req
-              pkgs.minio-client
+              (pkgs.symlinkJoin {
+                name = "rcloneWrapped";
+                paths = [ pkgs.rclone ];
+                buildInputs = [ pkgs.makeWrapper ];
+                postBuild = ''
+                  wrapProgram $out/bin/rclone \
+                    --add-flags "--config \"\"" \
+                    --add-flags "--s3-access-key-id ${cfg.keyId}" \
+                    --add-flags "--s3-secret-access-key ${cfg.secretKey}" \
+                    --add-flags "--s3-endpoint http://${cfg.host}:${cfg.port}" \
+                    --add-flags "--s3-provider Other"
+                '';
+              })
             ];
             runtimeEnv = { };
             text = ''
@@ -212,13 +226,9 @@
                 echo "${cfg.keyId} already has RW on ${cfg.bucketName}"
               fi
 
-              # mini-client is absolute garbage (-C/--config-dir still requires $HOME)
-              HOME=/var/tmp/mc mc alias set ${cfg.serviceHost} http://localhost:${cfg.port} ${cfg.keyId} ${cfg.secretKey} --api S3v4
               ${lib.strings.concatLines (
-                (map (
-                  attrs: "HOME=/var/tmp/mc mc cp ${attrs.src} ${cfg.serviceHost}/${cfg.bucketName}/${stripPath attrs.dst}"
-                ) cfg.initFilesCopy)
-                ++ [ "HOME=/var/tmp/mc mc ls --recursive --versions ${cfg.serviceHost}/${cfg.bucketName}" ]
+                (map (attrs: "rclone copyto ${attrs.src} :s3:${cfg.bucketName}/${stripPath attrs.dst}") cfg.initFilesCopy)
+                ++ [ "rclone ls :s3:${cfg.bucketName}" ]
               )}
             '';
           };

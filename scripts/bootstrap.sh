@@ -16,7 +16,7 @@ add_config() {
 add_config "max-jobs = auto"
 
 # Allow nix profile / flake commands
-add_config "experimental-features = nix-command flakes"
+add_config "experimental-features = nix-command flakes pipe-operators"
 
 # Allow binary caches for user
 add_config "trusted-users = root ${USER:-}"

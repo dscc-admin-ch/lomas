@@ -13,7 +13,7 @@ jobs:
         with:
           extra_nix_config: |
             accept-flake-config = true
-            experimental-features = nix-command flakes cgroups auto-allocate-uids
+            experimental-features = nix-command flakes pipe-operators cgroups auto-allocate-uids
             system-features = nixos-test benchmark big-parallel kvm
             extra-system-features = uid-range
             auto-allocate-uids = true

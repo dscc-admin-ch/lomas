@@ -16,7 +16,7 @@ add_config() {
 }
 
 add_config "max-jobs = auto"
-add_config "experimental-features = nix-command flakes"
+add_config "experimental-features = nix-command flakes pipe-operators"
 add_config "trusted-users = root ${USER}"
 add_config "build-users-group ="
 sudo mkdir -p /etc/nix

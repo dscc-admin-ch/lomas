@@ -19,7 +19,7 @@
                 {
                   id = "nbstripout";
                   name = "nbstripout";
-                  entry = "${lib.getExe pkgs.nbstripout}";
+                  entry = lib.getExe pkgs.nbstripout;
                   args = [
                     "--keep-output"
                     "--drop-empty-cells"
@@ -31,7 +31,7 @@
                 {
                   id = "nixfmt";
                   name = "nixfmt";
-                  entry = "${lib.getExe pkgs.nixfmt}";
+                  entry = lib.getExe pkgs.nixfmt;
                   args = [
                     "--width"
                     "120"
@@ -43,7 +43,7 @@
                 {
                   id = "ruff-format";
                   name = "ruff-format";
-                  entry = "${lib.getExe pkgs.ruff}";
+                  entry = lib.getExe pkgs.ruff;
                   args = [ "format" ];
                   language = "unsupported";
                   pass_filenames = false;
@@ -53,7 +53,7 @@
                 {
                   id = "ruff";
                   name = "ruff";
-                  entry = "${lib.getExe pkgs.ruff}";
+                  entry = lib.getExe pkgs.ruff;
                   args = [
                     "check"
                     "--fix"
@@ -68,24 +68,6 @@
           ];
         }
       );
-
-      build-docs = pkgs.writeShellApplication {
-        name = "build-docs";
-        runtimeInputs = [ self'.packages.lomasEnvDev ];
-        runtimeEnv.NO_MKDOCS_2_WARNING = 1;
-        text = ''
-          mkdocs build
-        '';
-      };
-
-      build-docs-local = pkgs.writeShellApplication {
-        name = "build-docs-local";
-        runtimeInputs = [ self'.packages.lomasEnvDev ];
-        runtimeEnv.NO_MKDOCS_2_WARNING = 1;
-        text = ''
-          mkdocs serve -o
-        '';
-      };
 
       py-build = pkgs.writeShellApplication {
         name = "py-build";
@@ -104,8 +86,6 @@
           self'.packages."lomasEnvDev_3_${version}"
           pkgs.uv
           pkgs.pre-commit
-          build-docs
-          build-docs-local
           py-build
           self'.packages.dex-service
           self'.packages.garage-service
@@ -213,6 +193,25 @@
 
       make-shells = (lib.genAttrs' [ "12" "13" "14" ] (ver: lib.nameValuePair "py3${ver}" (makePyShell ver))) // {
         default = makePyShell "14";
+      };
+
+      packages.doc = pkgs.writeShellApplication {
+        name = "build-doc";
+        runtimeInputs = [ self'.packages.lomasEnvDev ];
+        runtimeEnv.NO_MKDOCS_2_WARNING = 1;
+        text = "mkdocs build";
+      };
+
+      apps.doc-serve = {
+        type = "app";
+        program =
+          pkgs.writeShellApplication {
+            name = "doc-serve";
+            runtimeInputs = [ self'.packages.lomasEnvDev ];
+            runtimeEnv.NO_MKDOCS_2_WARNING = 1;
+            text = "mkdocs serve -o";
+          }
+          |> lib.getExe;
       };
 
       # add shells to (nix flake) check

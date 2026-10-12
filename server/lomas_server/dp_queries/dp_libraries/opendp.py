@@ -6,6 +6,7 @@ from aio_pika.patterns.rpc import Proxy
 from csvw_eo.csvw_to_opendp_context import csvw_to_opendp_context
 from opendp._lib import lib_path
 from opendp.mod import enable_features
+from rich.pretty import pprint
 
 from lomas_core.constants import DPLibraries
 from lomas_core.exceptions import (
@@ -118,9 +119,6 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         Returns:
             (Union[List, int, float]) query result
         """
-        from rich.pretty import pprint
-
-        pprint(type(query_json))
         input_data = self.data_connector.get_polars_lf()
         context = csvw_to_opendp_context(
             self.metadata.to_dict(),
@@ -136,16 +134,15 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             case OpenDPSynthDataQueryModel():
                 try:
                     # contingency_table = plan.contingency_table(keys=keys, cuts=cuts, algorithm=dp.mbi.MST())
-                    pprint(query_json.keys)
-                    pprint(query_json.cuts)
+                    # take all columns referenced in keys & cuts for now
+                    cols = query_json.keys.keys() | query_json.cuts.keys()
                     contingency_table = (
                         context.query()
-                        .select("sex", "income")
+                        .select(*cols)
                         .contingency_table(keys=query_json.keys, cuts=query_json.cuts, algorithm=dp.mbi.MST())
                     )
-                    pprint(contingency_table)
                     table = contingency_table.release()
-                    pprint(table)
+                    # pprint(table)
                     synth_df = table.synthesize()
                     pprint(synth_df)
                 except Exception as e:
@@ -164,7 +161,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
                         DPLibraries.OPENDP,
                         "Error executing query:" + str(e),
                     ) from e
-                if isinstance(release_data, dp.extras.polars.OnceFrame):
+                if isinstance(release_data, dp.polars.OnceFrame):
                     release_data = release_data.collect()
                     return OpenDPPolarsQueryResult(value=release_data)
                 return OpenDPQueryResult(value=release_data)

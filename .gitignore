@@ -25,6 +25,7 @@ htmlcov/
 devenv.local.nix
 .direnv
 .pre-commit-config.yaml
+deploy/portable
 
 # vscode
 .vscode

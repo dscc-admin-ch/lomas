@@ -120,9 +120,13 @@
           fi
 
           export DEX=${self'.packages.dex-service}
+          install -C -Dm644 -t deploy/portable "$DEX/dex_1.raw"
           export GARAGE=${self'.packages.garage-service}
-          # doas portablectl reattach "$DEX/*.raw"
-          # doas portablectl reattach "$GARAGE/*.raw"
+          install -C -Dm644 -t deploy/portable "$GARAGE/garage_1.raw"
+          export DASHBOARD=${self'.packages.dashboard-service}
+          install -C -Dm644 -t deploy/portable "$DASHBOARD/dashboard_1.raw"
+
+          # doas portablectl reattach "<file>.raw"
         '';
       };
     in

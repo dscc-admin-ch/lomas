@@ -63,7 +63,7 @@ class OpenDPSynthClient:
 
     # def cost(
     #     self,
-    #     opendp_pipeline: dp.extras.polars.LazyFrameQuery | pl.LazyFrame,
+    #     opendp_pipeline: dp.polars.LazyFrameQuery | pl.LazyFrame,
     #     epsilon: float | None = None,
     #     delta: float | None = None,
     #     rho: float | None = None,

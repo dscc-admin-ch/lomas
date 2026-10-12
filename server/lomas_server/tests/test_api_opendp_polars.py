@@ -354,8 +354,8 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
 
     def test_synthetic_query(self) -> None:
         with TestClient(get_user_app(self.config), headers=self.headers) as client:
-            lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
-            plan_bytes = lf.select(pl.col("sex"), pl.col("income")).serialize()
+            # lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
+            # plan_bytes = lf.select(pl.col("sex"), pl.col("income")).serialize()
             query = OpenDPSynthDataQueryModel(
                 library=DPLibraries.OPENDP,
                 dataset_name="FSO_INCOME_SYNTHETIC",

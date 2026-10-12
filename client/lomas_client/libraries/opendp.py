@@ -25,7 +25,7 @@ class OpenDPClient:
 
     def _get_opendp_request_body(
         self,
-        opendp_pipeline: dp.extras.polars.LazyFrameQuery | pl.LazyFrame,
+        opendp_pipeline: dp.polars.LazyFrameQuery | pl.LazyFrame,
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
@@ -63,7 +63,7 @@ class OpenDPClient:
             "approx_zcdp": approx_zcdp,
         }
 
-        if isinstance(opendp_pipeline, (pl.LazyFrame, dp.extras.polars.LazyFrameQuery)):
+        if isinstance(opendp_pipeline, (pl.LazyFrame, dp.polars.LazyFrameQuery)):
             body_json["opendp_json"] = b64encode(opendp_pipeline.serialize()).decode("utf-8")
         else:
             raise InvalidQueryException(
@@ -74,7 +74,7 @@ class OpenDPClient:
 
     def cost(
         self,
-        opendp_pipeline: dp.extras.polars.LazyFrameQuery | pl.LazyFrame,
+        opendp_pipeline: dp.polars.LazyFrameQuery | pl.LazyFrame,
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
@@ -117,7 +117,7 @@ class OpenDPClient:
 
     def query(
         self,
-        opendp_pipeline: dp.extras.polars.LazyFrameQuery | pl.LazyFrame,
+        opendp_pipeline: dp.polars.LazyFrameQuery | pl.LazyFrame,
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,

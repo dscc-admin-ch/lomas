@@ -2,7 +2,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Request, Security, status
 
-from lomas_core.constants import DPLibraries
 from lomas_core.models.collections import UserId
 from lomas_core.models.requests import (
     DiffPrivLibCostQueryModel,
@@ -61,7 +60,7 @@ def smartnoise_sql_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
+    return handle_query_to_job(request, smartnoise_sql_query, user_id)
 
 
 @router.post(
@@ -97,7 +96,7 @@ def dummy_smartnoise_sql_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
+    return handle_query_to_job(request, smartnoise_sql_query, user_id)
 
 
 @router.post(
@@ -132,7 +131,7 @@ def estimate_smartnoise_sql_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
+    return handle_query_to_job(request, smartnoise_sql_query, user_id)
 
 
 # OpenDP
@@ -171,7 +170,7 @@ def opendp_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
+    return handle_query_to_job(request, opendp_query, user_id)
 
 
 @router.post(
@@ -206,7 +205,7 @@ def dummy_opendp_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
+    return handle_query_to_job(request, opendp_query, user_id)
 
 
 @router.post(
@@ -241,7 +240,7 @@ def estimate_opendp_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
+    return handle_query_to_job(request, opendp_query, user_id)
 
 
 # OpenDPSynth
@@ -281,79 +280,8 @@ async def opendp_synth_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return handle_query_to_job(request, opendp_synth_query, user_id, DPLibraries.OPENDP_SYNTH)
+    return handle_query_to_job(request, opendp_synth_query, user_id)
 
-
-# @router.post(
-#     "/dummy_opendp_query",
-#     responses=API_ERROR_RESPONSES,
-#     tags=["USER_DUMMY"],
-#     status_code=status.HTTP_202_ACCEPTED,
-# )
-# async def dummy_opendp_query_handler(
-#     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-#     request: Request,
-#     opendp_query: OpenDPDummyQueryModel,
-# ) -> Job:
-#     """
-#     Handles queries on dummy datasets for the OpenDP library.
-
-#     \f
-#     Args:
-#         user_id (UserId): A UserId object identifying the user.
-#         request (Request): Raw request object.
-#         opendp_query (OpenDPQueryModel): The opendp query object.
-
-#     Raises:
-#         ExternalLibraryException: For exceptions from libraries
-#             external to this package.
-#         InternalServerException: For any other unforseen exceptions.
-#         InvalidQueryException: The pipeline does not contain a "measurement",
-#             there is not enough budget or the dataset does not exist.
-#         UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
-#         DatasetNotFoundException: If the dataset does not exist.
-#         UserNotFoundException: If the user does not exist.
-
-#     Returns:
-#         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
-#     """
-#     return await handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
-
-
-# @router.post(
-#     "/estimate_opendp_cost",
-#     responses=API_ERROR_RESPONSES,
-#     tags=["USER_QUERY"],
-#     status_code=status.HTTP_202_ACCEPTED,
-# )
-# async def estimate_opendp_cost(
-#     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-#     request: Request,
-#     opendp_query: OpenDPRequestModel,
-# ) -> Job:
-#     """
-#     Estimates the privacy loss budget cost of an OpenDP query.
-
-#     \f
-#     Args:
-#         user_id (UserId): A UserId object identifying the user.
-#         request (Request): Raw request object.
-#         opendp_query (OpenDPRequestModel): The opendp query object.
-
-#     Raises:
-#         ExternalLibraryException: For exceptions from libraries
-#             external to this package.
-#         InternalServerException: For any other unforseen exceptions.
-#         InvalidQueryException: The pipeline does not contain a "measurement",
-#             there is not enough budget or the dataset does not exist.
-#         UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
-#         DatasetNotFoundException: If the dataset does not exist.
-#         UserNotFoundException: If the user does not exist.
-
-#     Returns:
-#         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
-#     """
-#     return await handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
 
 # DiffPrivLib
 # -----------------------------------------------------------------------------
@@ -391,7 +319,7 @@ def diffprivlib_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return handle_query_to_job(request, diffprivlib_query, user_id, DPLibraries.DIFFPRIVLIB)
+    return handle_query_to_job(request, diffprivlib_query, user_id)
 
 
 @router.post(
@@ -426,7 +354,7 @@ def dummy_diffprivlib_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return handle_query_to_job(request, query_json, user_id, DPLibraries.DIFFPRIVLIB)
+    return handle_query_to_job(request, query_json, user_id)
 
 
 @router.post(
@@ -470,4 +398,4 @@ def estimate_diffprivlib_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return handle_query_to_job(request, diffprivlib_query, user_id, DPLibraries.DIFFPRIVLIB)
+    return handle_query_to_job(request, diffprivlib_query, user_id)

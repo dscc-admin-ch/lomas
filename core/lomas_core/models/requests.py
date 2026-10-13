@@ -1,11 +1,8 @@
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
-from lomas_core.constants import (
-    DPLibraries,
-    OpenDPSynthAlgorithm,
-)
+from lomas_core.constants import DPLibraries
 from lomas_core.models.constants import JSON_SCHEMA_EXAMPLES, PrivateDatabaseType, QueryTypes
 from lomas_core.models.requests_examples import (
     EXAMPLE_DIFFPRIVLIB,
@@ -55,23 +52,6 @@ class GetDummyDataset(LomasRequestModel):
     """The number of dummy rows to generate."""
     dummy_seed: int
     """The seed for the random generation of the dummy dataset."""
-
-
-class GetDummyContext(GetDummyDataset):
-    """Model input to get a dummy dataset."""
-
-    epsilon: Annotated[float | None, Field(ge=0.0)]
-    """The epsilon parameter used for pure ε-DP or approximate-DP."""
-    delta: Annotated[float | None, Field(ge=0.0)]
-    """The delta parameter."""
-    rho: Annotated[float | None, Field(ge=0.0)]
-    """
-    Privacy loss paramater for zCDP (or approximate-zCDP).
-
-    Using this parameter instead of `epsilon` switches to a Gaussian mechansim.
-    """
-    approx_zcdp: bool
-    """If False, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP."""
 
 
 class QueryModel(LomasRequestModel):
@@ -158,7 +138,7 @@ class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
 
 # OpenDP
 # ----------------------------------------------------------------------------
-class OpenDPBasedModel(LomasBudgetRequest):
+class OpenDPRequestModel(LomasRequestModel):
     """Base input model for an opendp request."""
 
     model_config = ConfigDict(use_attribute_docstrings=True)
@@ -188,11 +168,11 @@ class OpenDPBasedModel(LomasBudgetRequest):
     approx_zcdp: bool
     """If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP."""
 
-
-class OpenDPRequestModel(OpenDPBasedModel):
-    """Base input model for an opendp request."""
-
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_OPENDP_POLARS]})
+    @model_validator(mode="after")
+    def check_epsilon_or_rho(self) -> Self:
+        if (self.epsilon is None and self.rho is None) or (self.epsilon and self.rho):
+            raise ValueError("Either `epsilon` or `rho` must be set.")
+        return self
 
 
 class OpenDPCostQueryModel(OpenDPRequestModel, CostQueryModel):
@@ -219,7 +199,6 @@ class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
 # OpenDP Synth
 class OpenDPSynthDataQueryModel(OpenDPQueryModel):
     request_type: Literal[QueryTypes.SYNTH] = QueryTypes.SYNTH  # type: ignore[assignment]
-    algorithm: OpenDPSynthAlgorithm = OpenDPSynthAlgorithm.MST
     keys: dict[str, list]
     cuts: dict[str, list]
 

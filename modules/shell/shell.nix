@@ -208,6 +208,7 @@
 
       apps.doc-serve = {
         type = "app";
+        meta.description = "Serve locally the Lomas documentation (MkDocs).";
         program =
           pkgs.writeShellApplication {
             name = "doc-serve";

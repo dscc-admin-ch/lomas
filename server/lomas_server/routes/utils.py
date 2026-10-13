@@ -8,7 +8,6 @@ from aio_pika.patterns.rpc import Proxy
 from fastapi import Depends, Request
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 
-from lomas_core.constants import DPLibraries
 from lomas_core.exceptions import (
     InternalServerException,
     InvalidQueryException,
@@ -160,7 +159,6 @@ def handle_query_to_job(
     request: Request,
     query: DummyQueryModel | QueryModel | LomasRequestModel,
     user: UserId,
-    dp_library: DPLibraries,
 ) -> Job:
     """
     Submit Job to handles queries on private, dummy and cost datasets on a worker.
@@ -169,7 +167,6 @@ def handle_query_to_job(
         request (Request): Raw request object
         query (DummyQueryModel|QueryModel|LomasRequestModel): A Request or Query to be scheduled
         user_name (str): The user name
-        dp_library (DPLibraries): Name of the DP library to use for the request
 
     Raises:
         UnauthorizedAccessException: A query is already ongoing for this user,

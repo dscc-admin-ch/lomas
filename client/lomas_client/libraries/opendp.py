@@ -1,6 +1,6 @@
 from base64 import b64encode
 
-import opendp as dp
+import opendp.prelude as dp
 import polars as pl
 
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
@@ -189,7 +189,8 @@ class OpenDPClient:
         delta: float | None = None,
         rho: float | None = None,
         approx_zcdp: bool = True,
-    ):
+    ) -> QueryResponse:
+        opendp_pipeline = pl.LazyFrame().select(*(pl.col(col) for col in columns))
 
         body_json = self._get_opendp_request_body(
             opendp_pipeline,

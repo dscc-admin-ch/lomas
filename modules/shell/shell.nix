@@ -80,55 +80,67 @@
       };
 
       # https://github.com/nicknovitski/make-shell/blob/main/SHELL_MODULES.md
-      makePyShell = version: {
-        imports = [ ];
-        packages = [
-          self'.packages."lomasEnvDev_3_${version}"
-          pkgs.uv
-          pkgs.pre-commit
-          py-build
-          self'.packages.dex-service
-          self'.packages.garage-service
-        ];
-        env = {
-          UV_NO_SYNC = "1";
-          UV_PYTHON = "${self'.packages."lomasEnvDev_3_${version}"}/bin/python";
-          UV_PYTHON_DOWNLOADS = "never";
-          # some editor uses this to find py sources
-          VIRTUAL_ENV = ".devenv/profile";
+      makePyShell =
+        version:
+        let
+          lomasPkg = self'.packages."lomasEnvDev_3_${version}";
+        in
+        {
+          imports = [ ];
+          packages = [
+            lomasPkg
+            pkgs.uv
+            pkgs.pre-commit
+            py-build
+            self'.packages.dex-service
+            self'.packages.garage-service
+          ];
+          env = {
+            UV_NO_SYNC = "1";
+            UV_PYTHON = "${lomasPkg}/bin/python";
+            UV_PYTHON_DOWNLOADS = "never";
+            # some editor uses this to find py sources
+            VIRTUAL_ENV = ".devenv/profile";
 
-          # lomas
-          LOMAS_SERVER_worker_api_key = "workerdeadbeef";
-          LOMAS_SERVER_authenticator__authentication_type = "oidc";
-          LOMAS_SERVER_authenticator__oidc_discovery_url = config.dev.dex.discoveryUrl;
-          LOMAS_ADMIN_bootstrap = "deadbeef";
-          LOMAS_ADMIN_external_url = "http://localhost:48081";
-          # LOMAS_ADMIN_user_yaml = "${admin_data_dir}/collections/user_collection.yaml";
-          # LOMAS_ADMIN_dataset_yaml = "${admin_data_dir}/collections/dataset_collection_devenv.yaml";
-          LOMAS_ADMIN_dex_config__url = config.dev.dex.grpcUrl;
-          LOMAS_CLIENT_use_password_flow = true;
+            # lomas
+            LOMAS_SERVER_worker_api_key = "workerdeadbeef";
+            LOMAS_SERVER_authenticator__authentication_type = "oidc";
+            LOMAS_SERVER_authenticator__oidc_discovery_url = config.dev.dex.discoveryUrl;
+            LOMAS_ADMIN_bootstrap = "deadbeef";
+            LOMAS_ADMIN_external_url = "http://localhost:48081";
+            # LOMAS_ADMIN_user_yaml = "${admin_data_dir}/collections/user_collection.yaml";
+            # LOMAS_ADMIN_dataset_yaml = "${admin_data_dir}/collections/dataset_collection_devenv.yaml";
+            LOMAS_ADMIN_dex_config__url = config.dev.dex.grpcUrl;
+            LOMAS_CLIENT_use_password_flow = true;
+          };
+          shellHook = ''
+            unset PYTHONPATH
+            export REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")
+
+            # Pre-commit
+            preCommitFile=.pre-commit-config.yaml
+            if ! ([ -e "$preCommitFile" ] && [ $(nix hash file "$preCommitFile") = $(nix hash file ${pre-commit-config}) ]); then
+              ln -sf ${pre-commit-config} "$preCommitFile"
+              pre-commit install --install-hooks
+            fi
+
+            export DEX=${self'.packages.dex-service}
+            install -C -Dm644 -t deploy/portable "$DEX/dex_1.raw"
+            export GARAGE=${self'.packages.garage-service}
+            install -C -Dm644 -t deploy/portable "$GARAGE/garage_1.raw"
+            export DASHBOARD=${self'.packages.dashboard-service}
+            install -C -Dm644 -t deploy/portable "$DASHBOARD/dashboard_1.raw"
+
+            # doas portablectl reattach "<file>.raw"
+
+            # todo: coverage
+            # start worker with coverage
+            # coverage run --data-file=.coverage.worker ${lomasPkg}/bin/lomas work
+            # Run coverage & combine
+            # pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${../../pyproject.toml}
+            # coverage combine -a .coverage.*
+          '';
         };
-        shellHook = ''
-          unset PYTHONPATH
-          export REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")
-
-          # Pre-commit
-          preCommitFile=.pre-commit-config.yaml
-          if ! ([ -e "$preCommitFile" ] && [ $(nix hash file "$preCommitFile") = $(nix hash file ${pre-commit-config}) ]); then
-            ln -sf ${pre-commit-config} "$preCommitFile"
-            pre-commit install --install-hooks
-          fi
-
-          export DEX=${self'.packages.dex-service}
-          install -C -Dm644 -t deploy/portable "$DEX/dex_1.raw"
-          export GARAGE=${self'.packages.garage-service}
-          install -C -Dm644 -t deploy/portable "$GARAGE/garage_1.raw"
-          export DASHBOARD=${self'.packages.dashboard-service}
-          install -C -Dm644 -t deploy/portable "$DASHBOARD/dashboard_1.raw"
-
-          # doas portablectl reattach "<file>.raw"
-        '';
-      };
     in
     {
       dev = {

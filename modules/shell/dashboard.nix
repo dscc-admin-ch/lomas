@@ -23,7 +23,7 @@ in
         port = lib.mkOption {
           type = portStr;
           default = config.ports.streamlit;
-          description = "Garage port";
+          description = "Dashboard port";
         };
 
         baseUrl = lib.mkOption {
@@ -73,12 +73,14 @@ in
         [Service]
         Type=simple
         ExecStart=${cfg.package}/bin/streamlit run ${src}/administration/dashboard/about.py
+        BindReadOnlyPaths=${secretFile}
         Environment="HOME=/"
         Environment="STREAMLIT_SERVER_PORT=${cfg.port}"
         Environment="STREAMLIT_SERVER_BASE_URL_PATH=${cfg.baseUrl}"
-        Environment="STREAMLIT_SECRETS_FILE=${secretFile}"
+        Environment="STREAMLIT_SECRETS_FILES=${secretFile}"
         Environment="STREAMLIT_SERVER_HEADLESS=true"
         Environment="STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
+        Environment="LOMAS_ADMIN_external_url=http://localhost:${config.ports.lomas.adminApiService}"
       '';
     in
     {

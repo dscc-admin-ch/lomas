@@ -100,7 +100,7 @@ def test_oauth2(aria, dex_config) -> None:
     client = aria.as_client()
 
     with pytest.raises(LomasAPIException, match=f"{UserNotFoundException(aria.user_name)!s}"):
-        client.get_dataset_metadata()
+        len(client.metadata)
 
 
 class DeviceAuthorizationBot(io.StringIO):
@@ -204,7 +204,7 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     init_budget = client.get_initial_budget()
     assert init_budget == pytest.approx(Budget(epsilon=45, delta=0.2), rel=0.01)
 
-    metadata = client.get_dataset_metadata()
+    metadata = client.metadata
     assert isinstance(metadata, dict)
     assert TABLE_SCHEMA in metadata.keys()
 
@@ -395,7 +395,7 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
         user_password=user_name.lower(),
         dataset_name="FSO_INCOME_SYNTHETIC",
     )
-    income_metadata = client.get_dataset_metadata()
+    income_metadata = client.metadata
     NB_ROWS, SEED = 200, 0
     context = client.get_context(epsilon=DEFAULT_EPSILON)
     test = client.get_dummy_dataset(nb_rows=NB_ROWS, seed=SEED)

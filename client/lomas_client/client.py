@@ -1,3 +1,4 @@
+import functools
 from typing import Any, Protocol
 
 import pandas as pd
@@ -62,33 +63,25 @@ class Client:
         self.opendp = OpenDPClient(self.http_client)
         self.diffprivlib = DiffPrivLibClient(self.http_client)
 
-        self.metadata: dict[str, Any] | None = None
-
-    def get_dataset_metadata(self) -> dict[str, Any]:
-        """This function retrieves metadata for the dataset.
+    @functools.cached_property
+    def metadata(self) -> dict[str, Any]:
+        """Retrieves metadata for the dataset.
 
         Returns: A dictionary containing dataset metadata.
         """
-        if self.metadata is None:
-            body_dict = {"dataset_name": self.config.dataset_name}
-            body = LomasRequestModel.model_validate(body_dict)
-            res = self.http_client.post("get_dataset_metadata", body)
-            if res.status_code == status.HTTP_200_OK:
-                metadata = TableMetadata.model_validate(res.json())
-                self.metadata = metadata.to_dict()
-                return self.metadata
+        body = LomasRequestModel(dataset_name=self.config.dataset_name)
+        res = self.http_client.post("get_dataset_metadata", body)
+        if res.status_code == status.HTTP_200_OK:
+            metadata = TableMetadata.model_validate(res.json()).to_dict()
+            return metadata
 
-            raise_error(res)
-        return self.metadata
+        raise_error(res)
 
     def get_column_metadata(self, column_name: str) -> dict[str, Any]:
         """This function retrieves metadata for the column.
 
         Returns: A dictionary containing column metadata.
         """
-        if self.metadata is None:
-            self.metadata = self.get_dataset_metadata()
-
         try:
             return next(col for col in self.metadata[TABLE_SCHEMA][COL_LIST] if col[COL_NAME] == column_name)
         except StopIteration as err:
@@ -112,9 +105,6 @@ class Client:
 
     def get_diffprivlib_bounds(self, columns: list[str]) -> tuple[list[int | float], list[int | float]]:
         """Get bounds for a list of columns in diffprivlib expected format."""
-        if self.metadata is None:
-            self.metadata = self.get_dataset_metadata()
-
         cols = self.metadata[TABLE_SCHEMA][COL_LIST]
         col_map = {col[COL_NAME]: col for col in cols}
 
@@ -198,9 +188,6 @@ class Client:
             user-provided privacy parameters.
         """
         dummy_lf = self.get_dummy_dataset(lazy=True)
-        if self.metadata is None:
-            self.metadata = self.get_dataset_metadata()
-
         return csvw_to_opendp_context(
             self.metadata, dummy_lf, epsilon=epsilon, delta=delta, rho=rho, split_evenly_over=1
         )

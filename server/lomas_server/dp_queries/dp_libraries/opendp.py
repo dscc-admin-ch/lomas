@@ -134,11 +134,9 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             case OpenDPSynthDataQueryModel():
                 try:
                     # contingency_table = plan.contingency_table(keys=keys, cuts=cuts, algorithm=dp.mbi.MST())
-                    # take all columns referenced in keys & cuts for now
-                    cols = query_json.keys.keys() | query_json.cuts.keys()
                     contingency_table = (
                         context.query()
-                        .select(*cols)
+                        .select(query_json.columns)
                         .contingency_table(keys=query_json.keys, cuts=query_json.cuts, algorithm=dp.mbi.MST())
                     )
                     table = contingency_table.release()

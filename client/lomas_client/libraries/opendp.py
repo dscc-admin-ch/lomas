@@ -1,7 +1,9 @@
 from base64 import b64encode
 
+import numpy as np
 import opendp.prelude as dp
 import polars as pl
+from csvw_eo import XSD_GROUP_MAP, DataTypesGroups, TableMetadata
 
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
@@ -20,8 +22,9 @@ from lomas_core.models.responses import CostResponse, QueryResponse
 class OpenDPClient:
     """A client for executing and estimating the cost of OpenDP queries."""
 
-    def __init__(self, http_client: LomasHttpClient) -> None:
+    def __init__(self, http_client: LomasHttpClient, metadata: dict | None = None) -> None:
         self.http_client = http_client
+        self.metadata = metadata
 
     def _get_opendp_request_body(
         self,
@@ -180,17 +183,33 @@ class OpenDPClient:
 
         return validate_model_response(self.http_client, res, QueryResponse)
 
+    def _gen_key_cuts(self) -> (dict, dict):
+        keys, cuts = {}, {}
+        for col in TableMetadata.from_dict(self.metadata).columns:
+            if (pub_keys := col.public_keys_values) is not None:
+                keys[col.name] = [pk.predicate.partition_value for pk in pub_keys]
+            elif XSD_GROUP_MAP[col.datatype] in {DataTypesGroups.INTEGER, DataTypesGroups.FLOAT}:
+                cuts[col.name] = np.ceil(
+                    np.histogram_bin_edges(np.arange(col.minimum, col.maximum + 1)),
+                    casting="unsafe",
+                    dtype=np.int64,
+                ).tolist()
+            else:
+                pass
+                # print(f"Column {col.name} automatic key/cuts unsupported yet.")
+        return keys, cuts
+
     def synth(
         self,
         columns: list[str],
-        keys: dict,
-        cuts: dict,
+        keys: dict | None = None,
+        cuts: dict | None = None,
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
         approx_zcdp: bool = True,
     ) -> QueryResponse:
-        opendp_pipeline = pl.LazyFrame().select(*(pl.col(col) for col in columns))
+        opendp_pipeline = pl.LazyFrame().select(columns)
 
         body_json = self._get_opendp_request_body(
             opendp_pipeline,
@@ -199,8 +218,21 @@ class OpenDPClient:
             rho=rho,
             approx_zcdp=approx_zcdp,
         )
-        body_json["keys"] = keys
-        body_json["cuts"] = cuts
+        computed_keys, computed_cuts = self._gen_key_cuts()
+
+        body_json["columns"] = columns
+        body_json["keys"] = {col: v for col, v in computed_keys.items() if col in columns}
+        if keys is not None:
+            body_json["keys"] |= keys
+
+        body_json["cuts"] = {col: v for col, v in computed_cuts.items() if col in columns}
+        if cuts is not None:
+            body_json["cuts"] |= cuts
+
+        residual = set(columns) ^ (set(body_json["keys"]) | set(body_json["cuts"]))
+        if len(residual) > 0:
+            print(f"dropping {residual} columns, not keys/cuts automatically generated of specified")
+            body_json["columns"] = list(set(columns) - residual)
 
         body = OpenDPSynthDataQueryModel.model_validate(body_json)
         res = self.http_client.post("opendp_synth_query", body)

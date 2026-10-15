@@ -199,6 +199,7 @@ class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
 # OpenDP Synth
 class OpenDPSynthDataQueryModel(OpenDPQueryModel):
     request_type: Literal[QueryTypes.SYNTH] = QueryTypes.SYNTH  # type: ignore[assignment]
+    columns: list[str]
     keys: dict[str, list]
     cuts: dict[str, list]
 

@@ -60,7 +60,7 @@ class Client:
 
         self.http_client = LomasHttpClient(self.config)
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
-        self.opendp = OpenDPClient(self.http_client)
+        self.opendp = OpenDPClient(self.http_client, self.metadata)
         self.diffprivlib = DiffPrivLibClient(self.http_client)
 
     @functools.cached_property

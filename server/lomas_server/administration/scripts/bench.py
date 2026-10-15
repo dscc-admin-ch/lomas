@@ -42,8 +42,6 @@ class BenchConfig(BaseSettings):
             user_name=f"user-{self.idx}@bench.com",
             user_password=f"secret-{self.idx}",
         )
-        client.get_dataset_metadata()
-
         for _ in range(10):
             client.get_dummy_dataset()
 

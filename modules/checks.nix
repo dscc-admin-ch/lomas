@@ -138,8 +138,7 @@
                     user_password="dr.antartica",
                   )
 
-                  metadata = client.get_dataset_metadata()
-                  pprint(metadata)
+                  pprint(client.metadata)
                 '';
               in
               ''

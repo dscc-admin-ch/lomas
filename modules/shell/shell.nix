@@ -84,9 +84,11 @@
         version:
         let
           lomasPkg = self'.packages."lomasEnvDev_3_${version}";
+          admin_data_dir = ../../server/data;
         in
         {
           imports = [ ];
+
           packages = [
             lomasPkg
             pkgs.uv
@@ -94,7 +96,9 @@
             py-build
             self'.packages.dex-service
             self'.packages.garage-service
+            pkgs.isd
           ];
+
           env = {
             UV_NO_SYNC = "1";
             UV_PYTHON = "${lomasPkg}/bin/python";
@@ -107,12 +111,14 @@
             LOMAS_SERVER_authenticator__authentication_type = "oidc";
             LOMAS_SERVER_authenticator__oidc_discovery_url = config.dev.dex.discoveryUrl;
             LOMAS_ADMIN_bootstrap = "deadbeef";
-            LOMAS_ADMIN_external_url = "http://localhost:48081";
-            # LOMAS_ADMIN_user_yaml = "${admin_data_dir}/collections/user_collection.yaml";
-            # LOMAS_ADMIN_dataset_yaml = "${admin_data_dir}/collections/dataset_collection_devenv.yaml";
-            LOMAS_ADMIN_dex_config__url = config.dev.dex.grpcUrl;
+            LOMAS_ADMIN_external_url = "http://localhost:${config.ports.lomas.adminApiService}";
+            LOMAS_SERVER_data_directory = "${admin_data_dir}";
+            LOMAS_ADMIN_user_yaml = "${admin_data_dir}/collections/user_collection.yaml";
+            LOMAS_ADMIN_dataset_yaml = "${admin_data_dir}/collections/dataset_collection_devenv.yaml";
+            LOMAS_ADMIN_dex_config__url = "http://${config.dev.dex.grpcUrl}"; # schema is required here #DemoAdminConfig
             LOMAS_CLIENT_use_password_flow = true;
           };
+
           shellHook = ''
             unset PYTHONPATH
             export REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")

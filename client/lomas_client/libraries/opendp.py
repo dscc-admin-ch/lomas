@@ -183,7 +183,7 @@ class OpenDPClient:
 
         return validate_model_response(self.http_client, res, QueryResponse)
 
-    def _gen_key_cuts(self) -> (dict, dict):
+    def _gen_key_cuts(self) -> tuple[dict, dict]:
         keys, cuts = {}, {}
         for col in TableMetadata.from_dict(self.metadata).columns:
             if (pub_keys := col.public_keys_values) is not None:

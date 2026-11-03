@@ -97,6 +97,9 @@
             self'.packages.dex-service
             self'.packages.garage-service
             pkgs.isd
+            # sbom & vulnerability scanner
+            pkgs.sbomnix
+            pkgs.grype
           ];
 
           env = {

@@ -5,6 +5,7 @@ import opendp.prelude as dp
 from aio_pika.patterns.rpc import Proxy
 from csvw_eo.csvw_to_opendp_context import csvw_to_opendp_context
 from opendp._lib import lib_path
+from opendp.combinators import make_zCDP_to_approxDP
 from opendp.mod import enable_features
 from rich.pretty import pprint
 
@@ -82,7 +83,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
 
         match meas_type:
             case OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE:
-                meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)
+                meas_zcdp = make_zCDP_to_approxDP(meas)
                 cost = meas_zcdp.map(d_in=int(max_contrib))
 
                 fixed_delta = query_json.delta
@@ -91,7 +92,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
                 epsilon, delta = cost.epsilon(fixed_delta), fixed_delta
 
             case OpenDPMeasurement.APPROX_ZERO_CONCENTRATED_DIVERGENCE:
-                meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)
+                meas_zcdp = make_zCDP_to_approxDP(meas)
                 cost = meas_zcdp.map(d_in=int(max_contrib))
 
                 epsilon, delta = cost[0].epsilon(cost[1]), cost[1]

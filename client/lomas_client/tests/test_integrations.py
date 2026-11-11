@@ -202,7 +202,7 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     )
 
     init_budget = client.get_initial_budget()
-    assert init_budget == pytest.approx(Budget(epsilon=45, delta=0.2), rel=0.01)
+    assert init_budget == Budget(epsilon=45, delta=0.2)
 
     metadata = client.get_dataset_metadata()
     assert isinstance(metadata, dict)

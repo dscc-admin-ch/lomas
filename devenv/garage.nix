@@ -126,7 +126,7 @@ in
 
   config = mkIf cfg.enable {
     packages = [
-      pkgs.minio-client
+      pkgs.rclone
     ];
 
     services.garage = {
@@ -167,8 +167,13 @@ in
 
         mc alias set ${cfg.serviceHost} http://localhost:${toString cfg.port} ${cfg.keyId} ${cfg.secretKey} --api S3v4
         ${lib.strings.concatLines (
-          (map (attrs: "mc cp ${attrs.src} ${cfg.serviceHost}/${cfg.bucketName}/${stripPath attrs.dst}") cfg.initFilesCopy)
-          ++ [ "mc ls --recursive --versions ${cfg.serviceHost}/${cfg.bucketName}" ]
+          (map (
+            attrs:
+            "rclone copyto ${attrs.src} :s3:${cfg.bucketName}/${stripPath attrs.dst} --s3-endpoint http://localhost:${toString cfg.port} --s3-access-key-id ${cfg.keyId} --s3-secret-access-key ${cfg.secretKey} --s3-provider Other"
+          ) cfg.initFilesCopy)
+          ++ [
+            "rclone lsl :s3:${cfg.bucketName} --s3-versions --s3-endpoint http://localhost:${toString cfg.port} --s3-access-key-id ${cfg.keyId} --s3-secret-access-key ${cfg.secretKey} --s3-provider Other"
+          ]
         )}
       '';
     };

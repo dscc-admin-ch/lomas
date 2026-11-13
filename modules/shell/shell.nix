@@ -179,6 +179,7 @@
         };
 
         garage = {
+          settings.admin.admin_token = "e3640a659b59c6a6b06c0820a2bd0380aa12124b61000aee7af684d10aab7fa0";
           # GK + 12 hex-encoded bytes
           keyId = "GK0123456789abcdefdeadbeef";
           # 32 hex-encoded bytes
@@ -215,6 +216,36 @@
           ];
         };
       };
+
+      process-compose."lomas-dev-pc" =
+        let
+          dexCfg = config.dev.dex;
+          garageCfg = config.dev.garage;
+        in
+        {
+          # Default settings for all processes
+          defaults.processSettings = {
+            namespace = lib.mkDefault "lomas";
+          };
+
+          settings = {
+            environment.TTY_COMPATIBLE = "1";
+            processes = {
+              dex = {
+                command = "${lib.getExe dexCfg.package} serve ${dexCfg.configFile}";
+                readiness_probe.http_get = {
+                  inherit (dexCfg) host path;
+                  port = lib.toInt dexCfg.apiPort;
+                };
+              };
+              garage = {
+                command = "${lib.getExe garageCfg.package} -c ${garageCfg.configFile} server";
+                # ExecStartPost=${lib.getExe cfg.initScript}
+              };
+            };
+
+          };
+        };
 
       make-shells = (lib.genAttrs' [ "12" "13" "14" ] (ver: lib.nameValuePair "py3${ver}" (makePyShell ver))) // {
         default = makePyShell "14";

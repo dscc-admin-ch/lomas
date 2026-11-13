@@ -126,6 +126,64 @@ in
           };
         };
 
+        configFile = mkOption {
+          type = types.package;
+          internal = true;
+          default =
+            let
+              cfgOidc = cfg.oidc.clients;
+            in
+            pkgs.writeText "dex-config.yaml" ''
+              issuer: ${cfg.providerUrl}
+              web:
+                http: ${cfg.host}:${cfg.apiPort}
+              storage:
+                type: memory
+              grpc:
+                addr: ${cfg.grpcUrl}
+              enablePasswordDB: true
+              oauth2:
+                passwordConnector: local
+              expiry:
+                deviceRequests: "5m"
+                signingKeys: "6h"
+                idTokens: "3s"         # Set very short for testing
+                refreshTokens:
+                  disableRotation: false
+                  reuseInterval: "3s"
+                  validIfNotUsedFor: "24h" # "2160h" # 90 days
+                  absoluteLifetime: "3960h" # 165 days
+              staticClients:
+                # lomas api server
+                - id: ${cfgOidc.apiServer.client_id}
+                  public: false
+                  name: ${cfgOidc.apiServer.client_id}
+                  secret: ${cfgOidc.apiServer.client_secret}
+                # lomas client lib
+                - id: ${cfgOidc.apiClient}
+                  public: true
+                  name: ${cfgOidc.apiClient}
+                  redirectURIs:
+                    # Enables device auth flow
+                    - "/device/callback"
+                # lomas dashboard
+                - id: ${cfgOidc.adminDashboard.client_id}
+                  public: false
+                  name: ${cfgOidc.adminDashboard.client_id}
+                  secret: ${cfgOidc.adminDashboard.client_secret}
+                  redirectURIs:
+                    - ${cfgOidc.adminDashboard.redirect_uri}
+                # lomas grafana
+                - id: ${cfgOidc.grafanaDashboard.client_id}
+                  public: false
+                  name: ${cfgOidc.grafanaDashboard.client_id}
+                  secret: ${cfgOidc.grafanaDashboard.client_secret}
+                  redirectURIs:
+                    - ${cfgOidc.grafanaDashboard.redirect_uri}
+              # Beware: static passwords cannot be deleted in dex.
+              staticPasswords:
+            '';
+        };
       };
     }
   );
@@ -139,62 +197,10 @@ in
     }:
     let
       cfg = config.dev.dex;
-      cfgOidc = cfg.oidc.clients;
     in
     {
       packages.dex-service =
         let
-          dexConfig = pkgs.writeText "dex-config.yaml" ''
-            issuer: ${cfg.providerUrl}
-            web:
-              http: ${cfg.host}:${cfg.apiPort}
-            storage:
-              type: memory
-            grpc:
-              addr: ${cfg.grpcUrl}
-            enablePasswordDB: true
-            oauth2:
-              passwordConnector: local
-            expiry:
-              deviceRequests: "5m"
-              signingKeys: "6h"
-              idTokens: "3s"         # Set very short for testing
-              refreshTokens:
-                disableRotation: false
-                reuseInterval: "3s"
-                validIfNotUsedFor: "24h" # "2160h" # 90 days
-                absoluteLifetime: "3960h" # 165 days
-            staticClients:
-              # lomas api server
-              - id: ${cfgOidc.apiServer.client_id}
-                public: false
-                name: ${cfgOidc.apiServer.client_id}
-                secret: ${cfgOidc.apiServer.client_secret}
-              # lomas client lib
-              - id: ${cfgOidc.apiClient}
-                public: true
-                name: ${cfgOidc.apiClient}
-                redirectURIs:
-                  # Enables device auth flow
-                  - "/device/callback"
-              # lomas dashboard
-              - id: ${cfgOidc.adminDashboard.client_id}
-                public: false
-                name: ${cfgOidc.adminDashboard.client_id}
-                secret: ${cfgOidc.adminDashboard.client_secret}
-                redirectURIs:
-                  - ${cfgOidc.adminDashboard.redirect_uri}
-              # lomas grafana
-              - id: ${cfgOidc.grafanaDashboard.client_id}
-                public: false
-                name: ${cfgOidc.grafanaDashboard.client_id}
-                secret: ${cfgOidc.grafanaDashboard.client_secret}
-                redirectURIs:
-                  - ${cfgOidc.grafanaDashboard.redirect_uri}
-            # Beware: static passwords cannot be deleted in dex.
-            staticPasswords:
-          '';
-
           dex-unit = pkgs.writeText "dex.service" ''
             [Unit]
             Description=Identity service OpenID Connect
@@ -202,7 +208,7 @@ in
 
             [Service]
             Type=simple
-            ExecStart=${lib.getExe cfg.package} serve ${dexConfig}
+            ExecStart=${lib.getExe cfg.package} serve ${cfg.configFile}
             TimeoutStopSec=2
           '';
         in

@@ -1,6 +1,8 @@
 { inputs, lib, ... }:
 let
   inherit (import ../_lib.nix { inherit lib; }) portStr;
+  inherit (lib.strings) hasPrefix substring stringLength;
+  stripPath = strPath: if (hasPrefix "/" strPath) then (substring 1 (stringLength strPath) strPath) else strPath;
 in
 {
   options.perSystem = inputs.flake-parts.lib.mkPerSystemOption (
@@ -11,11 +13,12 @@ in
       ...
     }:
     let
-      toml = pkgs.formats.toml { };
       inherit (lib)
         types
         mkOption
         ;
+      cfg = config.dev.garage;
+      toml = pkgs.formats.toml { };
     in
     {
       options.dev.garage = {
@@ -115,24 +118,11 @@ in
             };
           };
         };
-      };
-    }
-  );
 
-  config.perSystem =
-    {
-      config,
-      lib,
-      pkgs,
-      ...
-    }:
-    {
-      packages.garage-service =
-        let
-          cfg = config.dev.garage;
-          inherit (lib.strings) hasPrefix substring stringLength;
-          stripPath = strPath: if (hasPrefix "/" strPath) then (substring 1 (stringLength strPath) strPath) else strPath;
-          settings = {
+        configFile = mkOption {
+          type = types.package;
+          internal = true;
+          default = (pkgs.formats.toml { }).generate "garage.toml" {
             metadata_dir = "/var/tmp/garage/meta";
             data_dir = "/var/tmp/garage/data";
             db_engine = "lmdb";
@@ -149,15 +139,19 @@ in
             };
 
             admin = {
+              inherit (cfg.settings.admin) admin_token;
               api_bind_addr = "0.0.0.0:${cfg.apiPort}";
-              admin_token = "e3640a659b59c6a6b06c0820a2bd0380aa12124b61000aee7af684d10aab7fa0";
             };
 
             metrics_require_token = true;
             metrics_token = "ddd02920a2431ad2d8fb77207f2933e775873c2461894a443c61776a3db854fd";
           };
-          garageConfig = (pkgs.formats.toml { }).generate "garage.toml" settings;
-          garageInit = pkgs.writeShellApplication {
+        };
+
+        initScript = mkOption {
+          type = types.package;
+          internal = true;
+          default = pkgs.writeShellApplication {
             name = "garage-init";
             runtimeInputs = [
               cfg.package
@@ -183,11 +177,11 @@ in
             runtimeEnv = { };
             text = ''
               function garageHealthEndpoint() {
-                curl -f -H 'Authorization: Bearer ${settings.admin.admin_token}' \
+                curl -f -H 'Authorization: Bearer ${cfg.settings.admin.admin_token}' \
                   'http://0.0.0.0:${cfg.apiPort}/v1/health' 2>/dev/null
               }
 
-              GARAGE="garage -c ${garageConfig}"
+              GARAGE="garage -c ${cfg.configFile}"
 
               until garageHealthEndpoint; do
                 echo "Garage not ready, waiting..."
@@ -232,6 +226,22 @@ in
               )}
             '';
           };
+        };
+      };
+    }
+  );
+
+  config.perSystem =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    {
+      packages.garage-service =
+        let
+          cfg = config.dev.garage;
           garage-unit = pkgs.writeText "garage.service" ''
             [Unit]
             Description=S3 object store
@@ -241,8 +251,8 @@ in
             Type=simple
             # Share /tmp, /var/tmp with host
             PrivateTmp=true
-            ExecStart=${lib.getExe cfg.package} -c ${garageConfig} server
-            ExecStartPost=${lib.getExe garageInit}
+            ExecStart=${lib.getExe cfg.package} -c ${cfg.configFile} server
+            ExecStartPost=${lib.getExe cfg.initScript}
           '';
         in
         pkgs.portableService {

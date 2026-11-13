@@ -133,6 +133,7 @@ in
           buildInputs = [ pkgs.makeWrapper ];
           postBuild = ''
             wrapProgram $out/bin/rclone \
+              --add-flags "--config \"\"" \
               --add-flags "--s3-access-key-id ${cfg.keyId}" \
               --add-flags "--s3-secret-access-key ${cfg.secretKey}" \
               --add-flags "--s3-endpoint http://localhost:${toString cfg.port}" \
@@ -180,7 +181,7 @@ in
 
         ${lib.strings.concatLines (
           (map (attrs: "rclone copyto ${attrs.src} :s3:${cfg.bucketName}/${stripPath attrs.dst}") cfg.initFilesCopy)
-          ++ [ "rclone lsl :s3:${cfg.bucketName}" ]
+          ++ [ "rclone ls :s3:${cfg.bucketName}" ]
         )}
       '';
     };

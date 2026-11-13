@@ -132,7 +132,7 @@ rec {
   sslOverlay = _final: prev: {
     certifi = hacks.nixpkgsPrebuilt {
       # nixpkgs certifi respect the ca-bundle from pkgs.cacert as well as NIX_SSL_CERT_FILE if set
-      from = python3.pkgs.certifi.overrideAttrs (oa: rec {
+      from = python3.pkgs.certifi.overrideAttrs rec {
         version = "2026.10.23";
         src = pkgs.fetchFromGitHub {
           owner = "certifi";
@@ -140,7 +140,7 @@ rec {
           tag = version;
           hash = "sha256-uESJgC07To+bUePmwi180SCtAzAZkmEn1UolTWpB4X0=";
         };
-      });
+      };
       prev = prev.certifi;
     };
   };

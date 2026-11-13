@@ -125,9 +125,22 @@ in
   };
 
   config = mkIf cfg.enable {
-    packages = [
-      pkgs.rclone
-    ];
+    packages =
+      let
+        rcloneWrapped = pkgs.symlinkJoin {
+          name = "rcloneWrapped";
+          paths = [ pkgs.rclone ];
+          buildInputs = [ pkgs.makeWrapper ];
+          postBuild = ''
+            wrapProgram $out/bin/rclone \
+              --add-flags "--s3-access-key-id ${cfg.keyId}" \
+              --add-flags "--s3-secret-access-key ${cfg.secretKey}" \
+              --add-flags "--s3-endpoint http://localhost:${toString cfg.port}" \
+              --add-flags "--s3-provider Other"
+          '';
+        };
+      in
+      [ rcloneWrapped ];
 
     services.garage = {
       enable = true;
@@ -165,15 +178,9 @@ in
           echo "${cfg.keyId} already has RW on ${cfg.bucketName}"
         fi
 
-        mc alias set ${cfg.serviceHost} http://localhost:${toString cfg.port} ${cfg.keyId} ${cfg.secretKey} --api S3v4
         ${lib.strings.concatLines (
-          (map (
-            attrs:
-            "rclone copyto ${attrs.src} :s3:${cfg.bucketName}/${stripPath attrs.dst} --s3-endpoint http://localhost:${toString cfg.port} --s3-access-key-id ${cfg.keyId} --s3-secret-access-key ${cfg.secretKey} --s3-provider Other"
-          ) cfg.initFilesCopy)
-          ++ [
-            "rclone lsl :s3:${cfg.bucketName} --s3-versions --s3-endpoint http://localhost:${toString cfg.port} --s3-access-key-id ${cfg.keyId} --s3-secret-access-key ${cfg.secretKey} --s3-provider Other"
-          ]
+          (map (attrs: "rclone copyto ${attrs.src} :s3:${cfg.bucketName}/${stripPath attrs.dst}") cfg.initFilesCopy)
+          ++ [ "rclone lsl :s3:${cfg.bucketName}" ]
         )}
       '';
     };

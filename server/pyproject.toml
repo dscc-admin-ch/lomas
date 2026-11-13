@@ -9,8 +9,8 @@ description = "Lomas server."
 readme = "README.md"
 requires-python = ">=3.12, <3.15"
 authors = [
-  {name = "Data Science Competence Center", email = "dscc@bfs.admin.ch"},
-  {name = "Swiss Federal Statistical Office"}
+  { name = "Data Science Competence Center", email = "dscc@bfs.admin.ch" },
+  { name = "Swiss Federal Statistical Office" }
 ]
 license = "MIT"
 classifiers = [

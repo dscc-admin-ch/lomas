@@ -194,9 +194,9 @@ lomas-server = "server/lomas_server"
 
 # workspace setup for uv
 [tool.uv.sources]
-lomas-core = {workspace = true}
-lomas-client = {workspace = true}
-lomas-server = {workspace = true}
+lomas-core = { workspace = true }
+lomas-client = { workspace = true }
+lomas-server = { workspace = true }
 
 [tool.uv.workspace]
 members = ["core", "client", "server"]

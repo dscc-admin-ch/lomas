@@ -42,7 +42,8 @@ dependencies = [
   "pandas>=2.2.2",
   "pydantic>=2.8",
   "pydantic-settings>=2.8",
-  "csvw-eo>=0.2.1"
+  "csvw-eo>=0.2.1",
+  "marimo>=0.25.2"
 ]
 
 [project.urls]

@@ -94,8 +94,6 @@
             pkgs.uv
             pkgs.pre-commit
             py-build
-            self'.packages.dex-service
-            self'.packages.garage-service
             pkgs.isd
             # sbom & vulnerability scanner
             pkgs.sbomnix
@@ -134,13 +132,16 @@
             fi
 
             export DEX=${self'.packages.dex-service}
-            install -C -Dm644 -t deploy/portable "$DEX/dex_1.raw"
+            systemctl --user enable $DEX
+            # install -C -Dm644 -t deploy/portable "$DEX/dex_1.raw"
             export GARAGE=${self'.packages.garage-service}
-            install -C -Dm644 -t deploy/portable "$GARAGE/garage_1.raw"
+            systemctl --user enable $GARAGE
+            # install -C -Dm644 -t deploy/portable "$GARAGE/garage_1.raw"
             export DASHBOARD=${self'.packages.dashboard-service}
-            install -C -Dm644 -t deploy/portable "$DASHBOARD/dashboard_1.raw"
+            systemctl --user enable $DASHBOARD
+            # install -C -Dm644 -t deploy/portable "$DASHBOARD/dashboard_1.raw"
 
-            # doas portablectl reattach "<file>.raw"
+            echo "loggin: journalctl -ef --user -u lomas.slice"
 
             # todo: coverage
             # start worker with coverage

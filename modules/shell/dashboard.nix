@@ -71,6 +71,7 @@ in
         Description=Lomas Admin Dashboard
 
         [Service]
+        Slice=lomas.slice
         Type=simple
         ExecStart=${cfg.package}/bin/streamlit run ${src}/administration/dashboard/about.py
         BindReadOnlyPaths=${secretFile}
@@ -81,13 +82,17 @@ in
         Environment="STREAMLIT_SERVER_HEADLESS=true"
         Environment="STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
         Environment="LOMAS_ADMIN_external_url=http://localhost:${config.ports.lomas.adminApiService}"
+
+        [Install]
+        Alias=dashboard.service
       '';
     in
     {
-      packages.dashboard-service = pkgs.portableService {
-        pname = "dashboard";
-        version = "1";
-        units = [ dashboard-unit ];
-      };
+      packages.dashboard-service = dashboard-unit;
+      # packages.dashboard-service = pkgs.portableService {
+      #   pname = "dashboard";
+      #   version = "1";
+      #   units = [ dashboard-unit ];
+      # };
     };
 }

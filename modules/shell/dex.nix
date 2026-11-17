@@ -207,16 +207,21 @@ in
             Documentation=https://dexidp.io/docs/
 
             [Service]
+            Slice=lomas.slice
             Type=simple
             ExecStart=${lib.getExe cfg.package} serve ${cfg.configFile}
             TimeoutStopSec=2
+
+            [Install]
+            Alias=dex.service
           '';
         in
-        pkgs.portableService {
-          pname = "dex";
-          version = "1";
-          units = [ dex-unit ];
-        };
+        dex-unit;
+      # pkgs.portableService {
+      #   pname = "dex";
+      #   version = "1";
+      #   units = [ dex-unit ];
+      # };
     };
 
 }

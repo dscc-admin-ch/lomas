@@ -248,18 +248,23 @@ in
             Documentation=https://garagehq.deuxfleurs.fr/documentation
 
             [Service]
+            Slice=lomas.slice
             Type=simple
             # Share /tmp, /var/tmp with host
             PrivateTmp=true
             ExecStart=${lib.getExe cfg.package} -c ${cfg.configFile} server
             ExecStartPost=${lib.getExe cfg.initScript}
+
+            [Install]
+            Alias=garage.service
           '';
         in
-        pkgs.portableService {
-          pname = "garage";
-          version = "1";
-          units = [ garage-unit ];
-        };
+        garage-unit;
+      # pkgs.portableService {
+      #   pname = "garage";
+      #   version = "1";
+      #   units = [ garage-unit ];
+      # };
 
     };
 

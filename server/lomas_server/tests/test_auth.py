@@ -27,6 +27,7 @@ from lomas_server.utils.query import query_lomas
 def demo_setup():
     # Make sure bootstrap is enabled
     config = ServerConfig()
+    assert config.bootstrap is not None, "Auth test requires a bootstrap set"
     config.database.set_bootstrap(config.bootstrap)
 
     assert lomas_demo_setup() == Status.EX_OK
@@ -114,7 +115,7 @@ def get_auth_header(user_name: str, user_password: str) -> dict[str, str]:
 def switch_query_userinfo(request):
     userinfo_key = "LOMAS_SERVER_authenticator__query_userinfo"
     if request.param:
-        query_userinfo = os.getenv(userinfo_key)
+        query_userinfo = os.getenv(userinfo_key, "true")
         assert isinstance(query_userinfo, str)
         # pydantic allow true/false/True/False
         os.environ[userinfo_key] = str(query_userinfo == "true")

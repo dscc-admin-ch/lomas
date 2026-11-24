@@ -233,39 +233,42 @@ in
 
   config.perSystem =
     {
+      self',
       config,
       lib,
       pkgs,
       ...
     }:
+    let
+      cfg = config.dev.garage;
+      unitConfig = "garage.service";
+      garage-unit = pkgs.writeText unitConfig ''
+        [Unit]
+        Description=S3 object store
+        Documentation=https://garagehq.deuxfleurs.fr/documentation
+
+        [Service]
+        Slice=lomas.slice
+        Type=simple
+        # Share /tmp, /var/tmp with host
+        PrivateTmp=true
+        ExecStart=${lib.getExe cfg.package} -c ${cfg.configFile} server
+        ExecStartPost=${lib.getExe cfg.initScript}
+
+        [Install]
+        Alias=garage.service
+      '';
+    in
     {
-      packages.garage-service =
-        let
-          cfg = config.dev.garage;
-          garage-unit = pkgs.writeText "garage.service" ''
-            [Unit]
-            Description=S3 object store
-            Documentation=https://garagehq.deuxfleurs.fr/documentation
+      packages.garage-service = garage-unit;
 
-            [Service]
-            Slice=lomas.slice
-            Type=simple
-            # Share /tmp, /var/tmp with host
-            PrivateTmp=true
-            ExecStart=${lib.getExe cfg.package} -c ${cfg.configFile} server
-            ExecStartPost=${lib.getExe cfg.initScript}
-
-            [Install]
-            Alias=garage.service
+      make-shell.imports = [
+        {
+          shellHook = ''
+            install -C -Dm644 -T ${self'.packages.garage-service} deploy/systemd/${unitConfig}
           '';
-        in
-        garage-unit;
-      # pkgs.portableService {
-      #   pname = "garage";
-      #   version = "1";
-      #   units = [ garage-unit ];
-      # };
-
+        }
+      ];
     };
 
 }

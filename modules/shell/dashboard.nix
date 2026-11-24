@@ -39,6 +39,7 @@ in
 
   config.perSystem =
     {
+      self',
       config,
       lib,
       pkgs,
@@ -46,6 +47,7 @@ in
     }:
     let
       cfg = config.dev.dashboard;
+      unitConfig = "dashboard.service";
       toml = pkgs.formats.toml { };
       secretFile = toml.generate "secrets.toml" {
         auth = {
@@ -66,7 +68,7 @@ in
 
       # polars: RuntimeError: could not execute mprotect for CPUID check
       # MemoryDenyWriteExecute=no (?)
-      dashboard-unit = pkgs.writeText "dashboard.service" ''
+      dashboard-unit = pkgs.writeText unitConfig ''
         [Unit]
         Description=Lomas Admin Dashboard
 
@@ -89,10 +91,14 @@ in
     in
     {
       packages.dashboard-service = dashboard-unit;
-      # packages.dashboard-service = pkgs.portableService {
-      #   pname = "dashboard";
-      #   version = "1";
-      #   units = [ dashboard-unit ];
-      # };
+
+      make-shell.imports = [
+        {
+          env.LOMAS_ADMIN_external_url = "http://localhost:${config.ports.lomas.adminApiService}";
+          shellHook = ''
+            install -C -Dm644 -T ${self'.packages.dashboard-service} deploy/systemd/${unitConfig}
+          '';
+        }
+      ];
     };
 }

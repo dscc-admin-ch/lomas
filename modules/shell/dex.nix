@@ -137,22 +137,27 @@ in
               issuer: ${cfg.providerUrl}
               web:
                 http: ${cfg.host}:${cfg.apiPort}
+
               storage:
                 type: memory
+
               grpc:
                 addr: ${cfg.grpcUrl}
+
               enablePasswordDB: true
               oauth2:
                 passwordConnector: local
+
               expiry:
                 deviceRequests: "5m"
                 signingKeys: "6h"
-                idTokens: "3s"         # Set very short for testing
+                # idTokens: "3s"         # Set very short for testing
                 refreshTokens:
                   disableRotation: false
                   reuseInterval: "3s"
                   validIfNotUsedFor: "24h" # "2160h" # 90 days
                   absoluteLifetime: "3960h" # 165 days
+
               staticClients:
                 # lomas api server
                 - id: ${cfgOidc.apiServer.client_id}
@@ -190,6 +195,7 @@ in
 
   config.perSystem =
     {
+      self',
       config,
       lib,
       pkgs,
@@ -197,31 +203,39 @@ in
     }:
     let
       cfg = config.dev.dex;
+      unitConfig = "dex.service";
+      dex-unit = pkgs.writeText unitConfig ''
+        [Unit]
+        Description=Identity service OpenID Connect
+        Documentation=https://dexidp.io/docs/
+
+        [Service]
+        Slice=lomas.slice
+        Type=simple
+        ExecStart=${lib.getExe cfg.package} serve ${cfg.configFile}
+        TimeoutStopSec=2
+
+        [Install]
+        Alias=dex.service
+      '';
     in
     {
-      packages.dex-service =
-        let
-          dex-unit = pkgs.writeText "dex.service" ''
-            [Unit]
-            Description=Identity service OpenID Connect
-            Documentation=https://dexidp.io/docs/
+      packages.dex-service = dex-unit;
 
-            [Service]
-            Slice=lomas.slice
-            Type=simple
-            ExecStart=${lib.getExe cfg.package} serve ${cfg.configFile}
-            TimeoutStopSec=2
-
-            [Install]
-            Alias=dex.service
+      make-shell.imports = [
+        {
+          env = {
+            LOMAS_ADMIN_dex_config__url = "grpc://${config.dev.dex.grpcUrl}"; # schema is required here #DemoAdminConfig
+            LOMAS_SERVER_authenticator__authentication_type = "oidc";
+            LOMAS_SERVER_authenticator__oidc_discovery_url = config.dev.dex.discoveryUrl;
+            # pytest req
+            LOMAS_CLIENT_oidc_discovery_url = config.dev.dex.discoveryUrl;
+          };
+          shellHook = ''
+            install -C -Dm644 -T ${self'.packages.dex-service} deploy/systemd/${unitConfig}
           '';
-        in
-        dex-unit;
-      # pkgs.portableService {
-      #   pname = "dex";
-      #   version = "1";
-      #   units = [ dex-unit ];
-      # };
+        }
+      ];
     };
 
 }

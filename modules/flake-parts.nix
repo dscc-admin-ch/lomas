@@ -5,6 +5,5 @@
     inputs.flake-parts.flakeModules.touchup
     inputs.treefmt-nix.flakeModule
     inputs.make-shell.flakeModules.default
-    inputs.process-compose-flake.flakeModule
   ];
 }

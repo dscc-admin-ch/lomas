@@ -109,15 +109,17 @@
 
             # lomas
             LOMAS_SERVER_worker_api_key = "workerdeadbeef";
-            LOMAS_SERVER_authenticator__authentication_type = "oidc";
-            LOMAS_SERVER_authenticator__oidc_discovery_url = config.dev.dex.discoveryUrl;
+            LOMAS_SERVER_user_host_port = config.ports.lomas.userApiService;
+            LOMAS_SERVER_admin_host_port = config.ports.lomas.adminApiService;
+            LOMAS_SERVER_bootstrap = "deadbeef";
             LOMAS_ADMIN_bootstrap = "deadbeef";
-            LOMAS_ADMIN_external_url = "http://localhost:${config.ports.lomas.adminApiService}";
             LOMAS_SERVER_data_directory = "${admin_data_dir}";
             LOMAS_ADMIN_user_yaml = "${admin_data_dir}/collections/user_collection.yaml";
             LOMAS_ADMIN_dataset_yaml = "${admin_data_dir}/collections/dataset_collection_devenv.yaml";
-            LOMAS_ADMIN_dex_config__url = "http://${config.dev.dex.grpcUrl}"; # schema is required here #DemoAdminConfig
+            # client pytest
             LOMAS_CLIENT_use_password_flow = true;
+            # todo: lomas-service.host
+            LOMAS_CLIENT_APP_URL = "http://localhost:${config.ports.lomas.userApiService}";
           };
 
           shellHook = ''
@@ -131,17 +133,9 @@
               pre-commit install --install-hooks
             fi
 
-            export DEX=${self'.packages.dex-service}
-            systemctl --user enable $DEX
-            # install -C -Dm644 -t deploy/portable "$DEX/dex_1.raw"
-            export GARAGE=${self'.packages.garage-service}
-            systemctl --user enable $GARAGE
-            # install -C -Dm644 -t deploy/portable "$GARAGE/garage_1.raw"
-            export DASHBOARD=${self'.packages.dashboard-service}
-            systemctl --user enable $DASHBOARD
-            # install -C -Dm644 -t deploy/portable "$DASHBOARD/dashboard_1.raw"
-
             echo "loggin: journalctl -ef --user -u lomas.slice"
+            # systemctl --user link deploy/systemd/*
+            # systemctl --user enable dex garage dashboard
 
             # todo: coverage
             # start worker with coverage
@@ -168,7 +162,7 @@
               client_id = "lomas_dashboard";
               client_secret = "lomas_dashboard";
               # todo: dashboard conf
-              redirect_uri = "http://localhost:8501/admin/oauth2callback";
+              redirect_uri = "http://localhost:${config.dev.dashboard.port}${config.dev.dashboard.baseUrl}/oauth2callback";
             };
             grafanaDashboard = {
               client_id = "lomas_grafana";
@@ -217,36 +211,6 @@
           ];
         };
       };
-
-      process-compose."lomas-dev-pc" =
-        let
-          dexCfg = config.dev.dex;
-          garageCfg = config.dev.garage;
-        in
-        {
-          # Default settings for all processes
-          defaults.processSettings = {
-            namespace = lib.mkDefault "lomas";
-          };
-
-          settings = {
-            environment.TTY_COMPATIBLE = "1";
-            processes = {
-              dex = {
-                command = "${lib.getExe dexCfg.package} serve ${dexCfg.configFile}";
-                readiness_probe.http_get = {
-                  inherit (dexCfg) host path;
-                  port = lib.toInt dexCfg.apiPort;
-                };
-              };
-              garage = {
-                command = "${lib.getExe garageCfg.package} -c ${garageCfg.configFile} server";
-                # ExecStartPost=${lib.getExe cfg.initScript}
-              };
-            };
-
-          };
-        };
 
       make-shells = (lib.genAttrs' [ "12" "13" "14" ] (ver: lib.nameValuePair "py3${ver}" (makePyShell ver))) // {
         default = makePyShell "14";

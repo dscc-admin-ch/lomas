@@ -187,7 +187,11 @@ async def worker_loop(config: WorkerConfig, client: types.ModuleType = httpx2) -
                 err_msg = ""
 
             await anyio.sleep(
-                min(config.worker_loop_init_delay * 1.5**consecutive_sleep, config.worker_loop_max_delay)
+                min(
+                    config.worker_loop_init_delay
+                    * 1.5 ** min(consecutive_sleep, 10),  # 1.5**1750 is fine but that's it !
+                    config.worker_loop_max_delay,
+                )
             )
 
             step_result = worker_step(config, client)

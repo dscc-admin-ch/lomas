@@ -210,6 +210,76 @@
             }
           ];
         };
+
+        telemetry.settings = {
+
+          receivers.otlp.protocols = {
+            grpc.endpoint = "localhost:${config.ports.otlp.grpc}";
+            http.endpoint = "localhost:${config.ports.otlp.http}";
+          };
+
+          processors.batch.timeout = "5s";
+
+          exporters = {
+            debug.verbosity = "detailed";
+
+            # prometheus = {
+            #   endpoint = "${cfg.services.otlp.host}:${toString cfg.services.otlp.ports.metrics}";
+            #   namespace = "lomas_server";
+            # };
+            #
+            # "otlp/tempo" = {
+            #   endpoint = "${cfg.services.tempo.host}:${toString cfg.services.tempo.ports.otlp_grpc}";
+            #   tls.insecure = true;
+            # };
+            #
+            # "otlphttp/loki" = {
+            #   endpoint = "http://${cfg.services.loki.host}:${toString cfg.services.loki.port}/otlp";
+            #   tls.insecure = true;
+            # };
+          };
+
+          extensions = {
+            health_check.endpoint = "localhost:13133";
+            pprof.endpoint = "localhost:1777";
+            zpages.endpoint = "localhost:55679";
+          };
+
+          service = {
+            extensions = [
+              "health_check"
+              "pprof"
+              "zpages"
+            ];
+            pipelines = {
+              traces = {
+                receivers = [ "otlp" ];
+                processors = [ "batch" ];
+                exporters = [
+                  "debug"
+                  "otlp/tempo"
+                ];
+              };
+              metrics = {
+                receivers = [ "otlp" ];
+                processors = [ "batch" ];
+                exporters = [
+                  "debug"
+                  "prometheus"
+                ];
+              };
+              logs = {
+                receivers = [ "otlp" ];
+                processors = [ "batch" ];
+                exporters = [
+                  "debug"
+                  "otlphttp/loki"
+                ];
+              };
+            };
+          };
+
+        };
       };
 
       make-shells = (lib.genAttrs' [ "12" "13" "14" ] (ver: lib.nameValuePair "py3${ver}" (makePyShell ver))) // {
